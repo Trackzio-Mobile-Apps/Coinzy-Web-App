@@ -2,9 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useId, useRef, useState, type MouseEvent } from "react";
+import { useId, useRef, useState, type MouseEvent } from "react";
 import { CoinPlaceholder } from "@/components/ui/CoinPlaceholder";
+import { PremiumUpsellDialog } from "@/components/home/PremiumUpsellDialog";
 import { FallbackImage } from "@/components/ui/FallbackImage";
+import { useModalDialog } from "@/components/ui/useModalDialog";
 import type { DrawerSection } from "@/lib/catalogue/coinDetails";
 
 const A = "/assets/home";
@@ -38,33 +40,14 @@ export function CoinOfTheDayDrawer({
   detailsHref: string;
   lockedCount: number;
 }) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const [open, setOpen] = useState(false);
+  const [upsellOpen, setUpsellOpen] = useState(false);
+  const learnMoreRef = useRef<HTMLAnchorElement>(null);
+  const upsellFromDrawer = useRef(false);
+  const dialogRef = useModalDialog(open, setOpen);
   const [active, setActive] = useState(coin.sections[0]?.id);
-
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    if (open && !dialog.open) dialog.showModal();
-    if (!open && dialog.open) dialog.close();
-  }, [open]);
-
-  // Lock page scroll while open, and close on Esc (native `cancel` already does; this also covers synthetic keys).
-  useEffect(() => {
-    if (!open) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = previous;
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
 
   function openFromLink(event: MouseEvent<HTMLAnchorElement>) {
     // Let ctrl/cmd/shift/middle clicks open the details page normally.
@@ -102,7 +85,22 @@ export function CoinOfTheDayDrawer({
 
   return (
     <>
+      {lockedCount > 0 && (
+        <button
+          type="button"
+          aria-haspopup="dialog"
+          onClick={() => {
+            upsellFromDrawer.current = false;
+            setUpsellOpen(true);
+          }}
+          className="flex w-full items-center justify-center gap-1 text-xs font-light leading-4 text-muted"
+        >
+          <Image src={`${A}/icon-lock.svg`} alt="" width={16} height={16} />
+          {`Unlock ${lockedCount} more with Premium`}
+        </button>
+      )}
       <Link
+        ref={learnMoreRef}
         href={detailsHref}
         onClick={openFromLink}
         aria-haspopup="dialog"
@@ -219,19 +217,34 @@ export function CoinOfTheDayDrawer({
           {/* Free-plan footer */}
           {lockedCount > 0 && (
             <div className="flex shrink-0 flex-col items-center justify-center gap-2.5 border-t border-border-neutral bg-white px-14 py-4">
-              <Link
-                href="/home#premium"
-                onClick={() => setOpen(false)}
+              <button
+                type="button"
+                onClick={() => {
+                  // Free plan: "Show more coins" is the Premium upsell (Figma 1248:114479). One dialog at a time.
+                  upsellFromDrawer.current = true;
+                  setOpen(false);
+                  setUpsellOpen(true);
+                }}
                 className="flex w-full items-center justify-center gap-1.5 overflow-hidden rounded-button bg-primary-500 px-4 py-2 text-sm font-medium leading-5 text-[#fafafa] hover:bg-primary-700"
               >
                 Show more coins
                 <Image src={`${A}/icon-crown-16.svg`} alt="" width={16} height={16} />
-              </Link>
+              </button>
               <p className="text-xs leading-4 text-muted">Free members get one coin a day</p>
             </div>
           )}
         </div>
       </dialog>
+
+      <PremiumUpsellDialog
+        open={upsellOpen}
+        onClose={() => {
+          setUpsellOpen(false);
+          // Opened from inside the (now closed) drawer → hand focus back to the page trigger; otherwise the browser
+          // already returns it to the lock button.
+          if (upsellFromDrawer.current) learnMoreRef.current?.focus();
+        }}
+      />
     </>
   );
 }
