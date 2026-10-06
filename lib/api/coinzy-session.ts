@@ -158,6 +158,127 @@ export async function fetchCollectionsForSession(
   };
 }
 
+export type UserCoinRow = {
+  coinId: string;
+  name: string;
+  issuer?: string | null;
+  yearOfMinting?: string | number | null;
+  imageUrls?: string[];
+  archetypeId?: string | null;
+  isOwned?: boolean;
+  isIdentified?: boolean;
+  isWishlisted?: boolean;
+};
+
+/** `GET /coin/getDetails/:id` — one coin in the user's private collection. */
+export type UserCoinDetails = {
+  coinId: string;
+  name: string;
+  issuer?: string | null;
+  yearOfMinting?: string | number | null;
+  currency?: string | null;
+  ruler?: string | null;
+  shape?: string | null;
+  rarity?: string | null;
+  estimatedPrice?: number | null;
+  weightGrams?: number | null;
+  diameterMm?: number | null;
+  thicknessMm?: number | null;
+  material?: string | null;
+  edgeType?: string | null;
+  technique?: string | null;
+  mintMark?: string | null;
+  frontDesign?: string | null;
+  backDesign?: string | null;
+  inscriptions?: string | null;
+  context?: string | null;
+  mintLocation?: string | null;
+  inCirculation?: boolean | null;
+  imageUrls?: string[];
+  archetypeId?: string | null;
+  isOwned?: boolean;
+  isIdentified?: boolean;
+  isWishlisted?: boolean;
+  marketplace?: ArchetypeDetails["marketplace"];
+};
+
+function normalizeUserCoin(raw: Record<string, unknown>): UserCoinDetails {
+  const id = (raw.coinId ?? raw._id ?? "") as string;
+  return { ...raw, coinId: id, name: String(raw.name ?? "") } as UserCoinDetails;
+}
+
+export async function fetchUserCoinDetails(
+  token: string,
+  coinId: string,
+): Promise<{ error: false; data: UserCoinDetails } | { error: true; reason?: string; _status: number }> {
+  const res = await fetch(`${ORIGIN}/api/coin/getDetails/${encodeURIComponent(coinId)}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  const json = (await res.json()) as { error?: boolean; data?: Record<string, unknown>; reason?: string };
+  if (!res.ok || json.error || !json.data) {
+    return { error: true, reason: json.reason, _status: res.status };
+  }
+  return { error: false, data: normalizeUserCoin(json.data) };
+}
+
+/** `GET /api/coin/filteritems` — distinct values for the user's coins. */
+export async function fetchUserCoinFilters(
+  token: string,
+  fields: string[],
+): Promise<Record<string, string[]>> {
+  const qs = fields.join("&");
+  const res = await fetch(`${ORIGIN}/api/coin/filteritems?${qs}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  const json = (await res.json()) as { error?: boolean; data?: Record<string, (string | null)[]> };
+  if (!res.ok || json.error || !json.data) return {};
+  const out: Record<string, string[]> = {};
+  for (const [key, values] of Object.entries(json.data)) {
+    out[key] = (values ?? []).filter((v): v is string => typeof v === "string" && v.length > 0).slice(0, 12);
+  }
+  return out;
+}
+
+/** `POST /api/coin/fetchAll` — user's private coins. */
+export async function fetchUserCoins(
+  token: string,
+  opts: {
+    pageNo?: number;
+    pageSize?: number;
+    search?: string;
+    filters?: Record<string, (string | boolean)[]>;
+  },
+): Promise<
+  | { error: false; data: UserCoinRow[]; totalCount: number }
+  | { error: true; reason?: string; _status: number }
+> {
+  const qs = new URLSearchParams({
+    pageNo: String(opts.pageNo ?? 0),
+    pageSize: String(opts.pageSize ?? 20),
+  });
+  if (opts.search) qs.set("search", opts.search);
+  const res = await fetch(`${ORIGIN}/api/coin/fetchAll?${qs}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify(opts.filters ?? {}),
+    cache: "no-store",
+  });
+  const json = (await res.json()) as {
+    error?: boolean;
+    data?: UserCoinRow[];
+    reason?: string;
+    pagination?: { totalCount?: number };
+  };
+  if (!res.ok || json.error) return { error: true, reason: json.reason, _status: res.status };
+  const data = (json.data ?? []).map((row) => {
+    const r = row as UserCoinRow & { _id?: string };
+    return { ...r, coinId: r.coinId ?? r._id ?? "" };
+  });
+  return { error: false, data, totalCount: json.pagination?.totalCount ?? json.data?.length ?? 0 };
+}
+
 /** `POST /coin/add` */
 export async function addCoinToCollection(
   token: string,

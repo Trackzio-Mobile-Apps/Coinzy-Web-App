@@ -3,8 +3,8 @@ import Link from "next/link";
 
 const A = "/assets/home";
 
-/** Human expert CTA on identify result details (Figma `1828:206836`). */
-export function IdentifyExpertBanner() {
+/** Human expert CTA on identify / collection details (Figma `1828:206836`, `1348:175552`). */
+export function IdentifyExpertBanner({ subtext = "Want more certainty?" }: { subtext?: string }) {
   return (
     <div className="rounded-xl border border-primary-200 bg-[rgba(246,233,231,0.5)] px-4 py-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -12,7 +12,7 @@ export function IdentifyExpertBanner() {
           <Image src={`${A}/icon-diploma.svg`} alt="" width={40} height={40} className="shrink-0" />
           <div>
             <p className="text-sm font-medium text-ink">Human Expert Review</p>
-            <p className="mt-1 text-sm text-[#49494b]">Want more certainty?</p>
+            <p className="mt-1 text-sm text-[#49494b]">{subtext}</p>
           </div>
         </div>
         <Link

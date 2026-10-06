@@ -70,6 +70,8 @@ async function CoinDetailsContent({
       ? [{ href: "/home", label: "Home" }]
       : from === "identify"
         ? [{ href: "/identify", label: "Identify" }]
+      : from === "collection"
+        ? [{ href: "/collection/owned", label: "Owned collection" }]
       : from === "catalogue"
         ? [{ href: `${pagedHref("/catalogue", fromPage, fromQuery)}#browse-all`, label: "Global Catalogue" }]
         : [
