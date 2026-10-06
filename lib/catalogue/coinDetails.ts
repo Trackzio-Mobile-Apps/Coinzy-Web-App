@@ -196,6 +196,30 @@ export function detailTabs(c: CoinSpec): { label: string; groups: TableGroup[] }
   ];
 }
 
+/** One scrollable section of the "Coin of the day" drawer (Figma 1248:123835). */
+export type DrawerSection = { id: "overview" | "design" | "rarity" | "history"; heading: string; groups: { heading?: string; rows: Row[] }[] };
+
+/** Serializable sections for the "Coin of the day" drawer: Overview · Design & Material · Rarity · History. */
+export function coinDrawerSections(c: CoinSpec): DrawerSection[] {
+  const tabs = detailTabs(c);
+  const groupsOf = (label: string, section: string) =>
+    (tabs.find((t) => t.label === label)?.groups ?? []).map((g) => ({
+      // The section heading already says it ("Rarity" › "Rarity"), so don't repeat it as a sub-heading.
+      heading: g.heading === section ? undefined : g.heading,
+      rows: g.rows,
+    }));
+  return [
+    {
+      id: "overview",
+      heading: "Overview",
+      groups: [{ rows: [...overviewRows(c), { label: "Estimated price ($)", value: estimatedSpan(c.estimatedPrice ?? null) ?? NA }] }],
+    },
+    { id: "design", heading: "Design & Material", groups: groupsOf("Design & Material", "Design & Material") },
+    { id: "rarity", heading: "Rarity", groups: groupsOf("Rarity", "Rarity") },
+    { id: "history", heading: "History", groups: groupsOf("History", "History") },
+  ];
+}
+
 // ---- Marketplace listing (`/marketplace/listing/[id]`, Figma 843:15466) ----
 
 /** Asking price, e.g. 500 → "$500" (API sends whole USD; strings are tolerated). */
