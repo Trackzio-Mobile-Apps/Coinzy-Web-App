@@ -16,11 +16,12 @@ Figma: `YV6ArWhD2eVlLPH6M090gc` · MCP server name `figma`.
 
 ---
 
-## Status (5 Oct 2026)
+## Status (6 Oct 2026)
 
 | Area | Progress | Notes |
 | --- | --- | --- |
-| Home | 100% | India landing `1526:302784` |
+| Home (marketing) | 100% | India landing `1526:302784`; logged-in users redirect to `/home` |
+| Signed-in home | 100% | Free-user dashboard Figma `1898:205770` → `/home` |
 | Feature landings | 100% | Marketplace, Catalogue, view-all, Other apps, Blogs list + article |
 | Account access | ~75% | Email/guest/forgot/reset live; Google off; entry pop-ups pending |
 | Catalogue browse | ~50% | Live API; search pending |
@@ -38,7 +39,8 @@ Timeline: `coinzy-web-timeline.html` (browser + localStorage) and `coinzy-web-ti
 
 | Path | Entry | Figma | Notes |
 | --- | --- | --- | --- |
-| `/` | `app/page.tsx` | `1526:302784` | `components/landing/*` + `lib/constants.ts` |
+| `/` | `app/page.tsx` | `1526:302784` | Marketing landing; redirects to `/home` when `coinzy_session` is set |
+| `/home` | `app/home/page.tsx` | `1898:205770` | Post-sign-in free-user dashboard (`components/home/`); requires session |
 | `/marketplace` | `app/marketplace/page.tsx` | `793:77834` | Rows via `MARKETPLACE_LISTING_ROWS`; live row loader |
 | `/marketplace/[slug]` | `app/marketplace/[slug]/page.tsx` | `793:77612` | `lib/marketplace/categories.ts`; page size 20 |
 | `/marketplace/listing/[id]` | `app/marketplace/listing/[id]/page.tsx` | `843:15466` | Seller panel; mailto/tel |
@@ -72,6 +74,7 @@ Active nav: `components/landing/NavLinks.tsx` (`usePathname`).
 - `lib/catalogue/categories.ts` / `lib/marketplace/categories.ts` — slug → regex/filter rules.
 - `lib/catalogue/coinDetails.ts` — grade labels, price ranges; accepts string **or** number API fields.
 - `lib/auth/client.ts` → browser; cookies set only by the auth route handler.
+- `lib/auth/session.ts` — server helper; reads `coinzy_session` and decodes display name/email from the JWT.
 
 ### Assets
 

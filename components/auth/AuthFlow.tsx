@@ -45,7 +45,6 @@ export function AuthFlow({ mode }: { mode: AuthMode }) {
   const [notice, setNotice] = useState("");
   const [pending, setPending] = useState(false);
   const [remember, setRemember] = useState(false);
-  const [signedIn, setSignedIn] = useState(false);
   const [toastVisible, setToastVisible] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
@@ -97,14 +96,13 @@ export function AuthFlow({ mode }: { mode: AuthMode }) {
       await submitAuth(mode as "signup" | "login" | "forgot" | "reset", { email, password, name, remember, code: digits.join("") });
       if (mode === "forgot") { setDigits(Array(6).fill("")); setCountdown(30); navigate("otp"); }
       else if (mode === "reset") { setToastVisible(false); setDigits(Array(6).fill("")); setPassword(""); setConfirm(""); setNotice("Password changed. You can now log in."); }
-      else { setPassword(""); setSignedIn(true); router.refresh(); }
+      else { setPassword(""); router.push("/home"); router.refresh(); }
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Unable to complete authentication.");
     } finally { setPending(false); }
 
   }
   if (mode === "welcome") return <WelcomeActions />;
-  if (signedIn) return <div role="status" className="w-full max-w-[400px] rounded-xl bg-white p-6 text-center"><h1 className="text-2xl font-medium">You’re signed in</h1><Link href="/catalogue" className={`${primary} mt-6`}>Browse catalogue</Link></div>;
   const description = mode === "forgot" ? "Enter your email and it will be sent an account verification code." : mode === "reset" ? "Choose something strong that you haven't used before." : "Create your account to start collecting";
   return (
     <>

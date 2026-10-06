@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { TopNav } from "@/components/landing/TopNav";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { IdentifyDemoSection } from "@/components/landing/IdentifyDemoSection";
@@ -9,8 +10,11 @@ import { CollectionCTASection } from "@/components/landing/CollectionCTASection"
 import { ExpertEvaluationSection } from "@/components/landing/ExpertEvaluationSection";
 import { CommunityFeedSection } from "@/components/landing/CommunityFeedSection";
 import { Footer } from "@/components/landing/Footer";
+import { getSessionUser } from "@/lib/auth/session";
 
-export default function HomePage() {
+export default async function HomePage() {
+  if (await getSessionUser()) redirect("/home");
+
   return (
     <>
       <TopNav />

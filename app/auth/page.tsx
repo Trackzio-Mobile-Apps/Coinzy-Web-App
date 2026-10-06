@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { LogoMark } from "@/components/landing/TopNav";
 import { AuthFlow, type AuthMode } from "@/components/auth/AuthFlow";
 import { PLAY_STORE_URL } from "@/lib/constants";
+import { getSessionUser } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "Welcome to Coinzy | Coinzy AI",
@@ -12,6 +14,8 @@ export const metadata: Metadata = {
 
 /** Web entry screen — Figma 1758:121426. */
 export default async function AuthPage({ searchParams }: { searchParams: Promise<{ mode?: string }> }) {
+  if (await getSessionUser()) redirect("/home");
+
   const { mode: requestedMode } = await searchParams;
   const modes: AuthMode[] = ["welcome", "signup", "login", "forgot", "otp", "reset"];
   const mode = modes.includes(requestedMode as AuthMode) ? requestedMode as AuthMode : "welcome";

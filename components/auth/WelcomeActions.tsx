@@ -16,15 +16,13 @@ export function WelcomeActions() {
   const router = useRouter();
   const [notice, setNotice] = useState("");
   const [pending, setPending] = useState(false);
-  const [signedIn, setSignedIn] = useState(false);
   async function guest() {
     if (pending) return;
     setPending(true); setNotice("");
-    try { await submitAuth("guest"); setSignedIn(true); router.refresh(); }
+    try { await submitAuth("guest"); router.push("/home"); router.refresh(); }
     catch (error) { setNotice(error instanceof Error ? error.message : "Unable to start a guest session."); }
     finally { setPending(false); }
   }
-  if (signedIn) return <div role="status" className="rounded-xl bg-white p-6 text-center"><h1 className="text-2xl font-medium">Guest session started</h1><Link href="/catalogue" className="mt-6 block font-medium text-primary-500">Browse catalogue</Link></div>;
   return (
     <div className="w-full max-w-[352px] rounded-xl bg-white px-6 py-4">
       <div className="space-y-8">

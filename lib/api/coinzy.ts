@@ -317,3 +317,15 @@ export const fetchListingFilterValues = unstable_cache(
   ["marketplace-filter-items"],
   { revalidate: 3600, tags: ["marketplace-listings"] },
 );
+
+/** `GET /archetypes/coins-of-the-day` — three ULTRA_RARE archetypes, cached per calendar day. */
+export const fetchCoinsOfTheDay = unstable_cache(
+  async (): Promise<ArchetypeDetails[]> => {
+    const json = await apiFetch<{ data: ArchetypeDetails[] }>("/archetypes/coins-of-the-day", {
+      revalidate: 0,
+    });
+    return json.data ?? [];
+  },
+  ["coins-of-the-day"],
+  { revalidate: 86400, tags: ["coins-of-the-day"] },
+);
