@@ -53,13 +53,22 @@ Figma auth modals (`908:39186`, `908:39439`, `908:39567`, `905:38594`, `905:3880
 ## Our other apps
 - [x] Our other apps page — `876:23169` → `app/other-apps/page.tsx` ("Explore" → trackzio.com/apps/*, "Get the app" → Google Play; TCG/Vinyl/Birds "Coming soon")
 
+## Collections (signed-in)
+- [x] Collections home — `1341:262557` → `app/collection/page.tsx`
+- [x] System collection grid + filters — `1341:264828` · `1344:117106` → `app/collection/[bucket]/page.tsx`
+- [x] Private collection grid — `app/collection/c/[id]/page.tsx`
+- [x] Collection coin details — `1348:175552` · `1344:118250` → `app/collection/coin/[id]/page.tsx` (`GET /coin/getDetails/:id`)
+- [x] Empty state — `1346:113133` → `CollectionEmptyState`
+- [ ] Free-user details variant — `1349:146447` (premium gates on tabs if needed)
+- [ ] Create/edit collection, remove coins, sell from collection
+
 ## Identification flow (section `1831:219131`)
 - [x] Signed-in upload + analyse + match list — `/identify` (Figma row: `1828:206837` … `1831:215037`)
 - [x] Result coin details + collection prompt — `/identify/coin/[id]` (reuse catalogue details; `1498:259534`, `1492:255248`)
 - [x] API — `POST /api/ai/identify-v2` proxy → catalogue `POST /ai/identify-v2`
 - [x] Analyse progress `1828:206840`, top matches `1831:215037`, result details `1828:206836`, collection drawer/modals `1301:153660` / `1500:287598`, added toast `1498:257365`
 - [x] Collection add — `GET /api/collections/fetchAll` + `POST /api/coin/add` proxies; select modal (identified / owned / private); own-coin → owned locked; `isIdentified` always `true`
-- [ ] Pixel polish vs remaining frame variants (camera slider `1828:206846`, error toasts `1493:236892`)
+- [x] Task 6 (start identification): upload `1828:206837`, flip `1828:206843`, camera/zoom `1828:206846`, blocked camera `1828:206844`, analyse `1828:206840`, free plan rail `1828:206842` (30 scans, local usage), error toasts `1493:236892`, `POST /api/ai/identify-v2`
 
 ## Identification flow (legacy section `1383:260617`)
 - Superseded by `1831:219131` for signed-in webapp; keep for historical node refs only.

@@ -30,7 +30,7 @@ Figma: `YV6ArWhD2eVlLPH6M090gc` · MCP server name `figma`.
 | Listing details | 100% | Email/phone contact |
 | Blogs | 100% | 6 static posts |
 | Premium experience | ~75% | Task 5; home + CoTD Premium UI + catalogue Premium tabs (`?premium=1` dev preview); pending: real entitlement JWT, expert prompt |
-| Identification | ~95% | Full flow through add-to-collection (API-backed); remaining: error toasts `1493:236892`, camera slider polish `1828:206846` |
+| Identification | Tasks 6–7 done | `/identify` through `/identify/coin/[id]` (matches, result, collection add). Rate-match dummy. Free-plan scan usage is local until API exposes counts |
 
 Timeline: `coinzy-web-timeline.html` (browser + localStorage) and `coinzy-web-timeline.xlsx`. HTML `sortedTasks()` orders by progress then ID; last synced 6 Oct 2026 (tasks 3–4, 10–11 catalogue details + wishlist; task 5 ~75%). XLSX Detailed Timeline must stay in task-ID order; only Weekly View is sorted (progress, then ID).
 
@@ -54,7 +54,11 @@ Timeline: `coinzy-web-timeline.html` (browser + localStorage) and `coinzy-web-ti
 | `/auth` | `app/auth/page.tsx` | task 3 nodes | `AuthFlow`; modes via `?mode=`; field errors `lib/auth/messages.ts` (Figma `1758:124172`); Terms/Privacy → `COINZY_*_URL` in `lib/constants.ts` |
 | `/api/auth/[action]` | `app/api/auth/[action]/route.ts` | — | Proxy only; HTTP-only cookies |
 | `/api/catalogue/wishlist/[id]` | `app/api/catalogue/wishlist/[id]/route.ts` | — | `PUT` add / `DELETE` remove → catalogue `archetypes/wishlist/*` with `coinzy_session` |
-| `/identify` | `app/identify/page.tsx` | `1831:219131` | Session required; client flow in `components/identify/IdentifyApp.tsx`. Dev: `?debug=1` or **Load sample photos** → `public/assets/identify/debug/` (India 5₹ 1994 pair) |
+| `/collection` | `app/collection/page.tsx` | `1341:262557` | Overview + system/private collection entry points |
+| `/collection/[bucket]` | `app/collection/[bucket]/page.tsx` | `1341:264828` · filters `1344:117106` | `owned` / `identified` / `wishlist` grids + filter rail |
+| `/collection/c/[id]` | `app/collection/c/[id]/page.tsx` | — | Private collection grid |
+| `/collection/coin/[id]` | `app/collection/coin/[id]/page.tsx` | `1348:175552` · `1344:118250` | `GET /coin/getDetails/:id` + optional archetype merge; `?from=` bucket or `c/<collectionId>` |
+| `/identify` | `app/identify/page.tsx` | `1831:219131` · free plan `1828:206842` | Session required; client flow in `components/identify/IdentifyApp.tsx`. Side rail **Free plan** card (`IdentifyFreePlanCard`): **30** scan cap (Figma); usage in `localStorage` until API exposes counts — not on `auth/me` today. Dev: `?debug=1` or **Load sample photos** → `public/assets/identify/debug/` (India 5₹ 1994 pair) |
 | `/identify/coin/[id]` | `app/identify/coin/[id]/page.tsx` | `1828:206836` | Archetype photos (DB) + right rail user uploads from `sessionStorage`; collection flow in `IdentifyCoinClient` / `IdentifyCollectionUI` |
 | `/api/coin/add` | `app/api/coin/add/route.ts` | — | Session `POST /coin/add` (identify collection save) |
 | `/api/collections/fetchAll` | `app/api/collections/fetchAll/route.ts` | — | Session `GET /collections/fetchAll` (identified/owned + private lists for select modal) |
