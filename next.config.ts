@@ -4,6 +4,8 @@ const DAY = 60 * 60 * 24;
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: process.cwd(),
+  // Dev: allow opening the app as localhost, 127.0.0.1, or the LAN IP without cross-origin _next warnings.
+  allowedDevOrigins: ["127.0.0.1", "localhost", "[::1]"],
   images: {
     remotePatterns: [
       {

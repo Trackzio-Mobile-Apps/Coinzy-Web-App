@@ -107,7 +107,7 @@ Runtime under `public/assets/<area>/` (landing numbered folders `01-top-nav`…`
 - Details streaming returns HTTP 200 + `noindex` for unknown coins (Suspense).
 - Marketplace listings: fetch-all + local newest-first sort (API sort is title/price only); ~207 prod listings (5 Oct 2026).
 - Auth: Google disabled; OTP has no standalone verify API (code goes to reset as `token`); `coinzy_guest_id` reused on guest + forwarded on signup. Catalogue guest client is independent of browser session cookies.
-- Tests: `node tests/auth-api.cjs` for auth proxy/cookies/origin.
+- Tests: `node tests/auth-api.cjs` for auth proxy/cookies/origin. Auth `POST` rejects mismatched `Origin` (CSRF); in dev, `localhost` and `127.0.0.1` on the same port are treated as equivalent (`lib/auth/origin.ts`). Production aliases (e.g. `www`) → `COINZY_ALLOWED_ORIGINS` comma-separated full origins.
 
 ### Back-navigation rules
 

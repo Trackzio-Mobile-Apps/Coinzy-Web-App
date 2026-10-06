@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isAllowedAuthOrigin } from "@/lib/auth/origin";
 
 const paths: Record<string, string> = { login: "login", signup: "signup", guest: "guest-login", forgot: "forgot-password", reset: "reset-password" };
 const cookieOptions = { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax" as const, path: "/" };
@@ -7,7 +8,7 @@ const reply = (body: object, status = 200) => NextResponse.json(body, { status, 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ action: string }> }) {
   const { action } = await params;
   if (!Object.hasOwn(paths, action)) return reply({ error: true, reason: "Unknown authentication action." }, 404);
-  if (request.headers.get("origin") !== request.nextUrl.origin) return reply({ error: true, reason: "Invalid request origin." }, 403);
+  if (!isAllowedAuthOrigin(request)) return reply({ error: true, reason: "Invalid request origin." }, 403);
   try {
     const raw = await request.text();
     if (raw.length > 10000) return reply({ error: true, reason: "Request is too large." }, 413);

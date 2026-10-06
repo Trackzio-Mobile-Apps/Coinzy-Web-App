@@ -4,13 +4,16 @@ const fs = require('node:fs');
 const Module = require('node:module');
 const ts = require('typescript');
 const { NextRequest } = require('next/server');
-const filename = require('node:path').resolve('app/api/auth/[action]/route.ts');
-const compiled = ts.transpileModule(fs.readFileSync(filename, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
-const handler = new Module(filename, module);
-handler.filename = filename;
-handler.paths = module.paths;
-handler._compile(compiled, filename);
-const { POST } = handler.exports;
+const path = require('node:path');
+const compile = (file) => ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+const load = (file) => { const mod = new Module(file, module); mod.filename = file; mod.paths = module.paths; mod._compile(compile(file), file); return mod.exports; };
+const routeFile = path.resolve('app/api/auth/[action]/route.ts');
+const routeSource = fs.readFileSync(routeFile, 'utf8').replace('@/lib/auth/origin', path.resolve('lib/auth/origin.js').replace(/\\/g, '/'));
+const routeMod = new Module(routeFile, module);
+routeMod.filename = routeFile;
+routeMod.paths = module.paths;
+routeMod._compile(ts.transpileModule(routeSource, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, routeFile);
+const { POST } = routeMod.exports;
 let calls = [];
 let result = { error: false, token: 'test-session', guestId: 'guest-42' };
 let status = 200;
@@ -53,7 +56,18 @@ const request = (action, data, headers = {}) => POST(new NextRequest(`http://loc
   assert.equal((await request('login', { email: 'bad', password: 'password' })).status, 400);
   assert.equal((await request('reset', { email: 'user@example.com', password: 'password', code: 'bad' })).status, 400);
   assert.equal((await request('guest', {}, { origin: 'https://other.example' })).status, 403);
-  assert.equal(calls.length, count);
+  result = { error: false, token: 'test-session', guestId: 'guest-42' };
+  status = 200;
+  response = await POST(
+    new NextRequest('http://localhost:3000/api/auth/guest', {
+      method: 'POST',
+      headers: { origin: 'http://127.0.0.1:3000', 'content-type': 'application/json' },
+      body: JSON.stringify({}),
+    }),
+    { params: Promise.resolve({ action: 'guest' }) },
+  );
+  assert.equal(response.status, 200);
+  assert.equal(calls.length, count + 1);
   result = { error: true, reason: 'Service unavailable' }; status = 503;
   assert.equal((await request('guest', {})).status, 502);
   global.fetch = async () => { throw new Error('Network unavailable'); };
