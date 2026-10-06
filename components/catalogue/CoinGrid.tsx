@@ -2,8 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { CoinPlaceholder } from "@/components/ui/CoinPlaceholder";
 import { FallbackImage } from "@/components/ui/FallbackImage";
-import { fetchArchetypes } from "@/lib/api/coinzy";
+import { fetchArchetypesCached } from "@/lib/api/coinzy";
 import { withFrom } from "@/lib/backNav";
+import { searchVariants } from "@/lib/catalogue/search";
 import { CATALOGUE_COINS } from "@/lib/constants";
 
 const ICONS = "/assets/catalogue";
@@ -11,18 +12,34 @@ const ICONS = "/assets/catalogue";
 /** `href` is only set for live API coins (the static fallbacks have no details page). */
 export type GridCoin = { id: string; image: string; title: string; remote: boolean; href?: string };
 
-/** Load one page of catalogue coins; falls back to Figma's static cards if the API is unreachable. */
+/**
+ * Load one page of catalogue coins. With `search`, the term is tried in a few spellings (see
+ * `lib/catalogue/search.ts`) and the first one with hits wins; `query` is the spelling that matched.
+ * Without `search` an unreachable API falls back to Figma's static cards; a search never fakes results
+ * (`live: false` + no coins → the page shows "search unavailable").
+ */
 export async function loadCoins({
   page,
   pageSize,
   filters = {},
+  search = "",
 }: {
   page: number;
   pageSize: number;
   filters?: Record<string, (string | boolean)[]>;
+  search?: string;
 }): Promise<{ coins: GridCoin[]; totalPages: number; totalCount: number; live: boolean }> {
   try {
-    const res = await fetchArchetypes({ pageNo: page - 1, pageSize, filters });
+    const pageNo = page - 1;
+    let res;
+    if (search) {
+      const results = await Promise.all(
+        searchVariants(search).map((term) => fetchArchetypesCached({ pageNo, pageSize, search: term, filters })),
+      );
+      res = results.find((r) => r.totalCount > 0) ?? results[0];
+    } else {
+      res = await fetchArchetypesCached({ pageNo, pageSize, filters });
+    }
     return {
       coins: res.items.map((a) => ({
         id: a.archetypeId,
@@ -37,6 +54,7 @@ export async function loadCoins({
     };
   } catch (err) {
     console.error(err);
+    if (search) return { coins: [], totalPages: 1, totalCount: 0, live: false };
     const coins = Array.from({ length: Math.ceil(pageSize / CATALOGUE_COINS.length) })
       .flatMap((_, row) =>
         CATALOGUE_COINS.map((c, i) => ({ id: `${row}-${i}`, image: c.image, title: c.title, remote: false })),
@@ -90,14 +108,25 @@ export function CoinCard({ image, title, remote, href, priority = false }: GridC
  * `from` = origin list (view-all slug or `"catalogue"`) and `fromPage` its page number, passed on so the
  * details page breadcrumb/back button return to the exact list state.
  */
-export function CoinGrid({ coins, from, fromPage }: { coins: GridCoin[]; from?: string; fromPage?: number }) {
+export function CoinGrid({
+  coins,
+  from,
+  fromPage,
+  fromQuery,
+}: {
+  coins: GridCoin[];
+  from?: string;
+  fromPage?: number;
+  /** Search term of the list the visitor came from (round-trips as `?fromQ=`). */
+  fromQuery?: string;
+}) {
   return (
     <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-[repeat(5,211px)]">
       {coins.map((coin, i) => (
         <CoinCard
           key={coin.id}
           {...coin}
-          href={coin.href ? withFrom(coin.href, from, fromPage) : undefined}
+          href={coin.href ? withFrom(coin.href, from, fromPage, fromQuery) : undefined}
           priority={i < 5}
         />
       ))}

@@ -122,6 +122,17 @@ export async function fetchArchetypes({
 }
 
 /**
+ * `fetchArchetypes`, cached in the Next data cache (1h, tag `archetype-list`). Plain `fetch` caching would key on
+ * the rotating guest Bearer token and miss on every token refresh; here the key is the arguments only (page,
+ * size, search term and filters). Failures throw and are never cached.
+ */
+export const fetchArchetypesCached = unstable_cache(
+  (args: Parameters<typeof fetchArchetypes>[0]) => fetchArchetypes(args),
+  ["archetype-list"],
+  { revalidate: 3600, tags: ["archetype-list"] },
+);
+
+/**
  * `GET /archetypes/filteritems` — distinct values per field (issuer ~10.8k, material ~4.4k).
  * The response is ~0.5 MB, so it is cached for a day in the Next data cache.
  */
