@@ -97,6 +97,14 @@ Runtime under `public/assets/<area>/` (landing numbered folders `01-top-nav`…`
 - Auth: Google disabled; OTP has no standalone verify API (code goes to reset as `token`); `coinzy_guest_id` reused on guest + forwarded on signup. Catalogue guest client is independent of browser session cookies.
 - Tests: `node tests/auth-api.cjs` for auth proxy/cookies/origin.
 
+### Back-navigation rules
+
+- **Never `router.back()`** — in-page back controls are deterministic `<Link>`s; the browser Back button works because every list/pager/filter control is a pushing `<Link>`.
+- **Details pages** take `?from=<origin>[&fromPage=N]` (`lib/backNav.ts`: `withFrom`, `pagedHref`, `parsePageParam`). `catalogue/coin/[id]`: `home`, `catalogue` (→ `/catalogue?page=N#browse-all`), or a view-all slug (→ `/catalogue/<slug>?page=N`). `marketplace/listing/[id]`: `home`, `marketplace`, or a marketplace slug (+page). `blogs/[slug]` takes `?category=&show=` (validated; makes article pages dynamic) so the breadcrumb returns to the exact list. `/home` widgets pass `from=home` (breadcrumb "Home" → `/home`). New list → details links must pass `from`/`fromPage`.
+- **Auth wizard = one history entry**: step changes inside `/auth` use `router.replace` / `<Link replace>`; the on-page "Back" link (explicit hrefs) steps back. After login/signup/guest, `goHome()` (`lib/auth/client.ts`) does `window.location.replace("/home")` (hard load clears the SPA router cache so Back to `/` or `/auth` re-hits the server, which redirects signed-in users to `/home`). Entries before `/auth` (e.g. landing `/`) still redirect to `/home` once — unavoidable while `/` and `/auth` redirect signed-in users.
+- `/`, `/auth`, `/home` read `coinzy_session` via `cookies()` → dynamic, `Cache-Control: no-store` (verified). `ReloadOnRestore` reloads them on bfcache restore (`pageshow.persisted`). No sign-out exists yet: when added, use a hard navigation to `/` (not `router.push`) so the router cache can't show a signed-in `/home`.
+- Blogs "Load more" uses `replace` so repeated clicks don't stack history entries.
+
 ---
 
 ## Section → component cheat sheet (home)
