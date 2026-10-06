@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { getSessionUser } from "@/lib/auth/session";
 import { Suspense } from "react";
 import { TopNav } from "@/components/landing/TopNav";
 import { BrowseCatalogueSection } from "@/components/landing/BrowseCatalogueSection";
@@ -20,7 +21,7 @@ const PAGE_SIZE = 20; // Figma 793:77612: 4 rows × 5 cards
 
 type Params = {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ page?: string; q?: string | string[] }>;
+  searchParams: Promise<{ page?: string; q?: string | string[]; issuer?: string | string[] }>;
 };
 
 const SEARCH_HINT =
@@ -116,7 +117,19 @@ async function ListingResults({ slug, page, query }: { slug: string; page: numbe
 
 /** Marketplace listings — Figma `Landing page/MarketplacePage/CoinListings` (793:77612). */
 export default async function MarketplaceCategoryPage({ params, searchParams }: Params) {
-  const [{ slug }, { page, q }] = await Promise.all([params, searchParams]);
+  const [{ slug }, sp] = await Promise.all([params, searchParams]);
+  if (await getSessionUser()) {
+    const p = new URLSearchParams();
+    if (slug && slug !== "all") p.set("category", slug);
+    const q = parseQueryParam(sp.q);
+    if (q) p.set("q", q);
+    if (sp.page && sp.page !== "1") p.set("page", sp.page);
+    const issuers = sp.issuer;
+    if (Array.isArray(issuers)) issuers.forEach((i) => p.append("issuer", i));
+    else if (issuers) p.set("issuer", issuers);
+    redirect(p.size ? `/marketplace?${p}` : "/marketplace");
+  }
+  const { page, q } = sp;
   const category = getMarketplaceCategory(slug);
   if (!category) notFound();
   const requested = parsePageParam(page);

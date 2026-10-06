@@ -128,6 +128,54 @@ export async function loadListingPage(
   };
 }
 
+/**
+ * Signed-in marketplace browse (`1356:154252`): category slug + title search + optional issuer filters from the URL.
+ */
+export async function loadSignedInBrowse({
+  categorySlug,
+  search,
+  page,
+  pageSize,
+  issuerFilters = [],
+}: {
+  categorySlug?: string;
+  search: string;
+  page: number;
+  pageSize: number;
+  issuerFilters?: string[];
+}): Promise<{ cards: ListingCard[]; totalCount: number; totalPages: number; page: number }> {
+  const slug =
+    categorySlug && categorySlug in MARKETPLACE_CATEGORIES ? (categorySlug as MarketplaceSlug) : "all";
+  const def = MARKETPLACE_CATEGORIES[slug];
+  const built = await buildListingFilters(def);
+  let issuerList: string[] | undefined;
+  if (issuerFilters.length) {
+    issuerList =
+      built?.issuer?.length
+        ? built.issuer.filter((i) => issuerFilters.includes(i))
+        : issuerFilters;
+    if (!issuerList.length) return { cards: [], totalCount: 0, totalPages: 1, page: 1 };
+  }
+  const filters: Record<string, string[]> = { ...(built ?? {}), ...(issuerList ? { issuer: issuerList } : {}) };
+  if (!built && slug !== "all" && !issuerFilters.length) {
+    return { cards: [], totalCount: 0, totalPages: 1, page: 1 };
+  }
+  const categorySearch = "search" in def ? def.search : undefined;
+  let all = await fetchAllListings(filters, search || categorySearch || "");
+  if (search && categorySearch) {
+    const needle = categorySearch.toLowerCase();
+    all = all.filter((l) => l.title.toLowerCase().includes(needle));
+  }
+  const totalPages = Math.max(1, Math.ceil(all.length / pageSize));
+  const current = Math.min(Math.max(1, page), totalPages);
+  return {
+    cards: all.slice((current - 1) * pageSize, current * pageSize).map(toCard),
+    totalCount: all.length,
+    totalPages,
+    page: current,
+  };
+}
+
 /** Newest `n` listings with both photos (for the marketplace page rows); empty on API failure. */
 export async function loadListingRow(slug: MarketplaceSlug, n: number): Promise<ListingCard[]> {
   try {

@@ -61,14 +61,21 @@ export function ListingGrid({
   from,
   fromPage,
   fromQuery,
+  columns = 5,
 }: {
   cards: ListingCardData[];
   from?: string;
   fromPage?: number;
   fromQuery?: string;
+  /** Signed-in marketplace browse uses 4 columns (Figma `1356:154252`). */
+  columns?: 4 | 5;
 }) {
+  const gridClass =
+    columns === 4
+      ? "grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-4"
+      : "grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-[repeat(5,211px)] xl:justify-between";
   return (
-    <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-[repeat(5,211px)] xl:justify-between">
+    <div className={gridClass}>
       {cards.map((card, i) => (
         <ListingCard key={card.id} card={card} priority={i < 5} from={from} fromPage={fromPage} fromQuery={fromQuery} />
       ))}

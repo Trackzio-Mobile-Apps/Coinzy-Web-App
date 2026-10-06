@@ -127,7 +127,7 @@ export default async function SignedInHomePage({
   return (
     <div className="flex h-svh overflow-hidden bg-white">
       <ReloadOnRestore />
-      <AppSidebar user={user} />
+      <AppSidebar user={user} active="home" />
       <HomeDashboard
         user={user}
         listings={market.rows}

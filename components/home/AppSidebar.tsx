@@ -2,7 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { LogoMark } from "@/components/landing/TopNav";
 import type { SessionUser } from "@/lib/auth/session";
-import { HOME_NAV, type HomeNavIcon } from "@/lib/home";
+import { type HomeNavIcon } from "@/lib/home";
+import { sidebarNav } from "@/lib/sidebarNav";
 
 const A = "/assets/home";
 
@@ -17,7 +18,14 @@ const ICONS: Record<HomeNavIcon, string> = {
   settings: `${A}/icon-settings-nav.svg`,
 };
 
-export function AppSidebar({ user }: { user: SessionUser }) {
+export function AppSidebar({
+  user,
+  active = "home",
+}: {
+  user: SessionUser;
+  active?: "home" | "marketplace" | "catalogue";
+}) {
+  const items = sidebarNav(active);
   return (
     <aside className="flex h-full w-[254px] shrink-0 flex-col border-r border-[#e5e7eb] bg-white">
       <div className="flex h-[76px] items-center gap-2 border-b border-[#e5e7eb] px-4">
@@ -29,10 +37,10 @@ export function AppSidebar({ user }: { user: SessionUser }) {
       </div>
 
       <nav className="flex flex-1 flex-col gap-1 px-2 py-4" aria-label="App">
-        {HOME_NAV.map((item) => {
-          const active = Boolean(item.active);
+        {items.map((item) => {
+          const isActive = Boolean(item.active);
           const className = `flex h-9 items-center gap-2 rounded-[10px] px-3 text-sm font-medium leading-5 ${
-            active
+            isActive
               ? "bg-primary-50 text-primary-500"
               : item.soon
                 ? "cursor-not-allowed text-ink opacity-50"
@@ -45,8 +53,8 @@ export function AppSidebar({ user }: { user: SessionUser }) {
                 alt=""
                 width={16}
                 height={16}
-                className={active ? "opacity-100" : "opacity-70"}
-                style={active ? { filter: "invert(27%) sepia(24%) saturate(1200%) hue-rotate(314deg)" } : undefined}
+                className={isActive ? "opacity-100" : "opacity-70"}
+                style={isActive ? { filter: "invert(27%) sepia(24%) saturate(1200%) hue-rotate(314deg)" } : undefined}
               />
               <span className="flex-1 truncate">{item.label}</span>
               {item.chevron && (
@@ -55,7 +63,7 @@ export function AppSidebar({ user }: { user: SessionUser }) {
             </>
           );
           return item.href && !item.soon ? (
-            <Link key={item.label} href={item.href} aria-current={active ? "page" : undefined} className={className}>
+            <Link key={item.label} href={item.href} aria-current={isActive ? "page" : undefined} className={className}>
               {content}
             </Link>
           ) : (
@@ -64,6 +72,16 @@ export function AppSidebar({ user }: { user: SessionUser }) {
             </span>
           );
         })}
+        {active === "marketplace" && (
+          <div className="ml-7 mt-1 flex flex-col gap-0.5 border-l border-[#e5e7eb] pl-3">
+            <Link href="/marketplace" className="rounded-md px-2 py-1.5 text-sm font-medium leading-5 text-primary-500">
+              Your listing
+            </Link>
+            <span className="cursor-not-allowed rounded-md px-2 py-1.5 text-sm leading-5 text-muted opacity-60" title="Coming soon">
+              Collection
+            </span>
+          </div>
+        )}
       </nav>
 
       <div className="border-t border-[#e5e7eb] p-4">

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { MarketplaceSignedInPage } from "@/components/marketplace/MarketplaceSignedInPage";
+import { getPremiumStatus, getSessionUser } from "@/lib/auth/session";
 import { TopNav } from "@/components/landing/TopNav";
 import { BrowseCatalogueSection } from "@/components/landing/BrowseCatalogueSection";
 import { MobileAppSection } from "@/components/landing/MobileAppSection";
@@ -20,10 +22,25 @@ export const metadata: Metadata = {
 export default async function MarketplacePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string | string[] }>;
+  searchParams: Promise<{
+    q?: string | string[];
+    page?: string;
+    category?: string;
+    issuer?: string | string[];
+    premium?: string;
+  }>;
 }) {
-  // `/marketplace?q=` (e.g. shared links) lands on the full results list, which owns paging and states.
-  const query = parseQueryParam((await searchParams).q);
+  const sp = await searchParams;
+  const user = await getSessionUser();
+  if (user) {
+    const premium =
+      (await getPremiumStatus(user)) ||
+      (process.env.NODE_ENV !== "production" && sp.premium === "1");
+    return <MarketplaceSignedInPage user={user} premium={premium} searchParams={sp} />;
+  }
+
+  // Logged-out: `/marketplace?q=` lands on the full results list.
+  const query = parseQueryParam(sp.q);
   if (query) redirect(`/marketplace/all?q=${encodeURIComponent(query)}`);
   const rows = await Promise.all(MARKETPLACE_LISTING_ROWS.map((row) => loadListingRow(row.slug, 4)));
   return (
