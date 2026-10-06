@@ -40,7 +40,7 @@ Timeline: `coinzy-web-timeline.html` (browser + localStorage) and `coinzy-web-ti
 | Path | Entry | Figma | Notes |
 | --- | --- | --- | --- |
 | `/` | `app/page.tsx` | `1526:302784` | Marketing landing; redirects to `/home` when `coinzy_session` is set |
-| `/home` | `app/home/page.tsx` | `1898:205770` | Post-sign-in free-user dashboard (`components/home/`); requires session |
+| `/home` | `app/home/page.tsx` | `1898:205770` | Post-sign-in free-user dashboard (`components/home/`); requires session. Live data: marketplace rows, Coin of the day (first of `coins-of-the-day`; "Unlock N more" only when N>0; honest empty state if the API fails), Global catalogue (3 live archetypes → `/catalogue/coin/[id]`; static `HOME_CATALOGUE_FALLBACK` only on API failure) |
 | `/marketplace` | `app/marketplace/page.tsx` | `793:77834` | Rows via `MARKETPLACE_LISTING_ROWS`; live row loader |
 | `/marketplace/[slug]` | `app/marketplace/[slug]/page.tsx` | `793:77612` | `lib/marketplace/categories.ts`; page size 20 |
 | `/marketplace/listing/[id]` | `app/marketplace/listing/[id]/page.tsx` | `843:15466` | Seller panel; mailto/tel |
@@ -71,8 +71,10 @@ Active nav: `components/landing/NavLinks.tsx` (`usePathname`).
 
 - `lib/api/coinzy.ts` — **server-only**. Catalogue origin `COINZY_API_ORIGIN` → `https://coins-api.trackzio.com`; marketplace `COINZY_MARKETPLACE_API_ORIGIN` → `https://coins-api-prod.trackzio.com`. Guest token per backend; never send to browser. Auth at `/auth/*`, data at `/api/*`.
 - `fetchArchetypes` / `fetchFilterValues` / `fetchArchetypeDetails` / `fetchListingDetails` / `fetchAllListings` — see file for cache tags (`archetype-details`, `listing-details`, `marketplace-listings`).
+- `fetchCoinsOfTheDay(todayKey())` — `GET /archetypes/coins-of-the-day` (3 ULTRA_RARE archetypes, details-shaped; `estimatedPrice` is often `{}` → UI shows "NA"). `unstable_cache` keyed by UTC day (6h TTL, tag `coins-of-the-day`); empty answers throw so they're never cached. Only `/home` uses it (no other Figma node calls for it; premium variant is timeline task 5).
+- `fetchArchetypes({ pageNo: 0, pageSize: 3 })` on `/home` — list items carry `archetypeId, name, issuer, rarity, imageUrls` only (no year / `estimatedPrice`), so card subtitle = issuer (falls back to price span or issuer · year if the API ever sends them).
 - `lib/catalogue/categories.ts` / `lib/marketplace/categories.ts` — slug → regex/filter rules.
-- `lib/catalogue/coinDetails.ts` — grade labels, price ranges; accepts string **or** number API fields.
+- `lib/catalogue/coinDetails.ts` — grade labels, price ranges; accepts string **or** number API fields; `estimatedSpan` = lowest–highest across all grades.
 - `lib/auth/client.ts` → browser; cookies set only by the auth route handler.
 - `lib/auth/session.ts` — server helper; reads `coinzy_session` and decodes display name/email from the JWT.
 

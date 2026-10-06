@@ -3,7 +3,7 @@
 Figma file: `YV6ArWhD2eVlLPH6M090gc` (canvas `793:76525`). Node IDs below are for `get_design_context`.
 
 ## Homepage / signed-in (Timeline task 4)
-- [x] Free user dashboard — `1898:205770` → `app/home/page.tsx` (post login/signup/guest; `/` and `/auth` redirect when `coinzy_session` is set)
+- [x] Free user dashboard — `1898:205770` → `app/home/page.tsx` (post login/signup/guest; `/` and `/auth` redirect when `coinzy_session` is set; Coin of the day + Global catalogue widgets use live API)
 - [ ] Premium Coin of the Day / premium home variant (timeline task 5)
 
 ## Landing (`Landing page/main`)
