@@ -4,7 +4,8 @@ Figma file: `YV6ArWhD2eVlLPH6M090gc` (canvas `793:76525`). Node IDs below are fo
 
 ## Homepage / signed-in (Timeline task 4)
 - [x] Free user dashboard — `1898:205770` → `app/home/page.tsx` (post login/signup/guest; `/` and `/auth` redirect when `coinzy_session` is set; Coin of the day + Global catalogue widgets use live API)
-- [ ] Premium Coin of the Day / premium home variant (timeline task 5)
+- [x] Coin of the Day drawer (free user) — `1248:123835` → `components/home/CoinOfTheDayDrawer.tsx` (opened by "Learn more" on `/home`; live `coins-of-the-day` data)
+- [ ] Premium Coin of the Day / premium home variant (timeline task 5) — no Figma for unlocked/multi-coin state yet
 
 ## Landing (`Landing page/main`)
 - [x] Landing page/opt2 — `1050:196584` → `app/page.tsx`
