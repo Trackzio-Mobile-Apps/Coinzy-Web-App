@@ -6,11 +6,16 @@ import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 
 import { useRouter } from "next/navigation";
 import { goHome, submitAuth } from "@/lib/auth/client";
 import { authHref } from "@/lib/auth/returnTo";
+import { AUTH_FIELD_COPY, authErrorsFromReason, type AuthFieldErrors, type AuthFormMode } from "@/lib/auth/messages";
 import { WelcomeActions } from "./WelcomeActions";
 
-export type AuthMode = "welcome" | "signup" | "login" | "forgot" | "otp" | "reset";
-type Errors = Partial<Record<"name" | "email" | "password" | "confirm" | "otp", string>>;
-const primary = "flex h-9 w-full items-center justify-center rounded-button bg-primary-500 px-4 text-sm font-medium leading-5 text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50";
+export type AuthMode = "welcome" | AuthFormMode;
+type Errors = AuthFieldErrors;
+
+const primary =
+  "flex h-9 w-full items-center justify-center rounded-button bg-primary-500 px-4 text-sm font-medium leading-5 text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50";
+const primaryError =
+  "flex h-9 w-full items-center justify-center rounded-button bg-[#c4a5a7] px-4 text-sm font-medium leading-5 text-white disabled:cursor-not-allowed";
 const titles = { signup: "Continue with Email", login: "Log in", forgot: "Forgot password", otp: "Forgot password", reset: "Create a new password" };
 
 function Field({ label, name, value, onChange, error, invalid = false, password = false, hiddenIcon = "eye-off.svg", placeholder, autoComplete }: {
@@ -21,12 +26,12 @@ function Field({ label, name, value, onChange, error, invalid = false, password 
   const id = `auth-${name}`;
   return (
     <div className="space-y-2">
-      <label htmlFor={id} className={`block text-sm font-medium leading-5 ${error ? "text-[#ff3b00]" : "text-ink"}`}>{label}</label>
+      <label htmlFor={id} className={`block text-sm font-medium leading-5 ${error ? "text-[#db340b]" : "text-ink"}`}>{label}</label>
       <div className="relative">
-        <input id={id} name={name} type={password && !visible ? "password" : name === "email" ? "email" : "text"} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} autoComplete={autoComplete} aria-invalid={!!error || invalid} aria-describedby={error ? `${id}-error` : undefined} className={`h-9 w-full rounded-lg border bg-white px-3 text-sm leading-5 text-muted placeholder:text-[#a4a4a7] focus:outline-2 focus:outline-offset-1 focus:outline-primary-500 ${password ? "pr-10" : ""} ${error || invalid ? "border-[#ff3b00]" : "border-[#e5e5e5]"}`} />
+        <input id={id} name={name} type={password && !visible ? "password" : name === "email" ? "email" : "text"} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} autoComplete={autoComplete} aria-invalid={!!error || invalid} aria-describedby={error ? `${id}-error` : undefined} className={`h-9 w-full rounded-lg border bg-white px-3 text-sm leading-5 text-ink placeholder:text-[#a4a4a7] focus:outline-2 focus:outline-offset-1 focus:outline-primary-500 ${password ? "pr-10" : ""} ${error || invalid ? "border-[#db340b]" : "border-[#e5e5e5]"}`} />
         {password && <button type="button" aria-label={`${visible ? "Hide" : "Show"} ${label.toLowerCase()}`} aria-pressed={visible} onClick={() => setVisible(!visible)} className="absolute right-2 top-1/2 flex size-6 -translate-y-1/2 items-center justify-center rounded focus-visible:outline-2 focus-visible:outline-primary-500"><Image src={`/assets/auth/${visible ? (hiddenIcon === "eye.svg" ? "eye-off.svg" : "eye.svg") : hiddenIcon}`} alt="" width={16} height={16} /></button>}
       </div>
-      {error && <p id={`${id}-error`} role="alert" className="text-sm leading-5 text-[#ff3b00]">{error}</p>}
+      {error && <p id={`${id}-error`} role="alert" className="text-sm leading-5 text-[#db340b]">{error}</p>}
     </div>
   );
 }
@@ -82,14 +87,16 @@ export function AuthFlow({ mode, next: returnTo = null }: { mode: AuthMode; next
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); if (pending) return; setNotice("");
     const next: Errors = {};
-    if (mode === "signup" && !name.trim()) next.name = "Enter your name.";
-    if (["signup", "login", "forgot"].includes(mode) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) next.email = "Enter a valid email address.";
-    if (["signup", "reset"].includes(mode) && password.length < 8) next.password = "Use at least 8 characters.";
-    if (mode === "login" && !password) next.password = "Enter your password.";
-    if (mode === "reset" && password !== confirm) next.confirm = "The passwords you entered do not match";
+    if (mode === "signup" && !name.trim()) next.name = AUTH_FIELD_COPY.nameRequired;
+    if (["signup", "login", "forgot"].includes(mode) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      next.email = AUTH_FIELD_COPY.emailInvalid;
+    }
+    if (["signup", "reset"].includes(mode) && password.length < 8) next.password = AUTH_FIELD_COPY.passwordMinLength;
+    if (mode === "login" && !password) next.password = AUTH_FIELD_COPY.passwordRequired;
+    if (mode === "reset" && password !== confirm) next.confirm = AUTH_FIELD_COPY.passwordMismatch;
     if (Object.keys(next).length) { setErrors(next); return; }
     if (mode === "otp") {
-      if (digits.some((digit) => !digit)) { setErrors({ otp: "Enter the 6-digit code." }); return; }
+      if (digits.some((digit) => !digit)) { setErrors({ otp: AUTH_FIELD_COPY.otpRequired }); return; }
       setToastVisible(true); navigate("reset"); return;
     }
     if (mode === "reset" && (!email || digits.some((digit) => !digit))) { setNotice("Request a reset code and enter it before changing your password."); return; }
@@ -101,7 +108,21 @@ export function AuthFlow({ mode, next: returnTo = null }: { mode: AuthMode; next
       else if (mode === "reset") { setToastVisible(false); setDigits(Array(6).fill("")); setPassword(""); setConfirm(""); setNotice("Password changed. You can now log in."); }
       else { setPassword(""); goHome(returnTo); }
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Unable to complete authentication.");
+      const reason = error instanceof Error ? error.message : "Unable to complete authentication.";
+      if (mode === "login" || mode === "signup" || mode === "reset") {
+        const { fields, notice: apiNotice } = authErrorsFromReason(mode, reason);
+        if (Object.keys(fields).length) {
+          setErrors(fields);
+          setNotice("");
+          if (fields.otp && mode === "reset") navigate("otp");
+          return;
+        }
+        if (apiNotice) {
+          setNotice(apiNotice);
+          return;
+        }
+      }
+      setNotice(reason);
     } finally { setPending(false); }
 
   }
@@ -114,14 +135,45 @@ export function AuthFlow({ mode, next: returnTo = null }: { mode: AuthMode; next
         <div className="space-y-8">
           <div className="space-y-2"><h1 className="text-2xl font-medium leading-8 text-ink">{titles[mode]}</h1>{mode === "otp" ? <p className="text-sm leading-5 text-[#737373]">We sent a 6-digit code to <strong>{email || "your email"}</strong></p> : <p className="text-sm leading-5 text-[#737373]">{description}</p>}</div>
           <form noValidate onSubmit={submit} className="space-y-4">
-            {mode === "otp" ? <div className="space-y-2"><p id="otp-label" className="text-sm font-medium leading-5">Enter your OTP</p><div role="group" aria-labelledby="otp-label" className="flex gap-2">{digits.map((digit, index) => <input key={index} ref={(element) => { inputs.current[index] = element; }} aria-label={`OTP digit ${index + 1}`} aria-invalid={!!errors.otp} aria-describedby={errors.otp ? "otp-error" : undefined} inputMode="numeric" autoComplete={index === 0 ? "one-time-code" : "off"} value={digit} onChange={(e) => updateDigits(index, e.target.value)} onPaste={(e) => { e.preventDefault(); updateDigits(index, e.clipboardData.getData("text")); }} onKeyDown={(e) => otpKey(index, e)} onFocus={(e) => e.target.select()} className={`size-8 min-w-0 rounded-lg border text-center text-sm outline-primary-500 ${errors.otp ? "border-[#ff3b00]" : "border-[#e5e5e5]"}`} />)}</div>{errors.otp && <p id="otp-error" role="alert" className="text-sm leading-5 text-[#ff3b00]">{errors.otp}</p>}</div> : <div className="space-y-3">
+            {mode === "otp" ? (
+              <div className="space-y-2">
+                <p id="otp-label" className={`text-sm font-medium leading-5 ${errors.otp ? "text-[#db340b]" : ""}`}>Enter your OTP</p>
+                <div role="group" aria-labelledby="otp-label" className="flex gap-2">
+                  {digits.map((digit, index) => (
+                    <input
+                      key={index}
+                      ref={(element) => { inputs.current[index] = element; }}
+                      aria-label={`OTP digit ${index + 1}`}
+                      aria-invalid={!!errors.otp}
+                      aria-describedby={errors.otp ? "otp-error" : undefined}
+                      inputMode="numeric"
+                      autoComplete={index === 0 ? "one-time-code" : "off"}
+                      value={digit}
+                      onChange={(e) => updateDigits(index, e.target.value)}
+                      onPaste={(e) => { e.preventDefault(); updateDigits(index, e.clipboardData.getData("text")); }}
+                      onKeyDown={(e) => otpKey(index, e)}
+                      onFocus={(e) => e.target.select()}
+                      className={`size-8 min-w-0 rounded-lg border text-center text-sm text-ink outline-primary-500 ${errors.otp ? "border-[#db340b]" : "border-[#e5e5e5]"}`}
+                    />
+                  ))}
+                </div>
+                {errors.otp && <p id="otp-error" role="alert" className="text-sm leading-5 text-[#db340b]">{errors.otp}</p>}
+              </div>
+            ) : (
+            <div className="space-y-3">
               {mode === "signup" && <Field label="Name" name="name" value={name} onChange={(value) => { setName(value); clear("name"); }} error={errors.name} placeholder="Enter your name" autoComplete="name" />}
               {["signup", "login", "forgot"].includes(mode) && <Field label="Email address" name="email" value={email} onChange={(value) => { setEmail(value); clear("email"); }} error={errors.email} placeholder="Enter your email address" autoComplete="email" />}
               {["signup", "login", "reset"].includes(mode) && <Field key={`${mode}-password`} label={mode === "signup" ? "Create password" : mode === "reset" ? "New password" : "Enter password"} name="password" value={password} onChange={(value) => { setPassword(value); clear("password"); clear("confirm"); }} error={errors.password} invalid={mode === "reset" && !!errors.confirm} password hiddenIcon={mode === "signup" ? "eye.svg" : "eye-off.svg"} placeholder={mode === "signup" ? "Create your password" : mode === "reset" ? "Enter your new password" : "Enter your password"} autoComplete={mode === "login" ? "current-password" : "new-password"} />}
               {mode === "reset" && <Field label="Confirm new password" name="confirm" value={confirm} onChange={(value) => { setConfirm(value); clear("confirm"); }} error={errors.confirm} password placeholder="Confirm your new password" autoComplete="new-password" />}
-            </div>}
+            </div>)}
             <div className={mode === "login" ? "space-y-3" : "space-y-4"}>
-              <button type="submit" disabled={pending || Object.values(errors).some(Boolean) || (mode === "otp" && digits.some((digit) => !digit))} className={primary}>{pending ? "Please wait…" : mode === "signup" ? "Create account" : mode === "login" ? "Log in" : mode === "forgot" ? "Send code" : mode === "otp" ? "Continue" : "Change password"}</button>
+              <button
+                type="submit"
+                disabled={pending || Object.values(errors).some(Boolean) || (mode === "otp" && digits.some((digit) => !digit))}
+                className={Object.values(errors).some(Boolean) ? primaryError : primary}
+              >
+                {pending ? "Please wait…" : mode === "signup" ? "Create account" : mode === "login" ? "Log in" : mode === "forgot" ? "Send code" : mode === "otp" ? "Continue" : "Change password"}
+              </button>
               {mode === "login" && <div className="flex items-center justify-between gap-2 text-xs leading-4"><label className="flex items-center gap-2"><input type="checkbox" checked={remember} onChange={(event) => setRemember(event.target.checked)} className="size-4 accent-primary-500" />Remember me</label><Link href={authHref("forgot", returnTo)} replace className="rounded-lg px-2 py-1 font-medium text-primary-500">Forgot password</Link></div>}
               {mode === "forgot" && <Link href={authHref("login", returnTo)} replace className="flex h-9 items-center justify-center rounded-button border border-[#e5e5e5] text-sm font-medium">Cancel</Link>}
               {mode === "otp" && <div className="flex flex-wrap items-center justify-center gap-2 text-xs leading-4 text-[#6a7282]"><span>Don’t receive code?</span><span className="tabular-nums">00:{String(countdown).padStart(2, "0")}s</span><button type="button" disabled={pending || countdown > 0} onClick={resend} className="rounded-lg px-2 py-1 font-medium text-primary-500 disabled:opacity-50">Re-send</button></div>}

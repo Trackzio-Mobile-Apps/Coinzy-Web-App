@@ -8,6 +8,9 @@ const PICE = `${MC}coin-british-india-pice.png`;
 export const PLAY_STORE_URL =
   "https://play.google.com/store/apps/details?id=com.coinzy.trackzio";
 
+export const COINZY_PRIVACY_URL = "https://trackzio.com/privacy-policy-coinzy";
+export const COINZY_TERMS_URL = "https://trackzio.com/coinzy%3A-terms";
+
 export type NavLink = {
   label: string;
   href: string;

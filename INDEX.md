@@ -51,7 +51,7 @@ Timeline: `coinzy-web-timeline.html` (browser + localStorage) and `coinzy-web-ti
 | `/other-apps` | `app/other-apps/page.tsx` | `876:23169` | `lib/otherApps.ts` |
 | `/blogs` | `app/blogs/page.tsx` | `822:23268` | `?category=` / `?show=` |
 | `/blogs/[slug]` | `app/blogs/[slug]/page.tsx` | `828:40221` | Static `lib/blogs.ts` |
-| `/auth` | `app/auth/page.tsx` | task 3 nodes | `AuthFlow`; modes via `?mode=` |
+| `/auth` | `app/auth/page.tsx` | task 3 nodes | `AuthFlow`; modes via `?mode=`; field errors `lib/auth/messages.ts` (Figma `1758:124172`); Terms/Privacy → `COINZY_*_URL` in `lib/constants.ts` |
 | `/api/auth/[action]` | `app/api/auth/[action]/route.ts` | — | Proxy only; HTTP-only cookies |
 
 Active nav: `components/landing/NavLinks.tsx` (`usePathname`).

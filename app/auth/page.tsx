@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { LogoMark } from "@/components/landing/TopNav";
 import { AuthFlow, type AuthMode } from "@/components/auth/AuthFlow";
 import { ReloadOnRestore } from "@/components/auth/ReloadOnRestore";
-import { PLAY_STORE_URL } from "@/lib/constants";
+import { COINZY_PRIVACY_URL, COINZY_TERMS_URL, PLAY_STORE_URL } from "@/lib/constants";
 import { getSessionUser } from "@/lib/auth/session";
 import { authHref, safeReturnPath } from "@/lib/auth/returnTo";
 
@@ -57,10 +57,18 @@ export default async function AuthPage({ searchParams }: { searchParams: Promise
             <Image src="/assets/auth/back.svg" alt="" width={16} height={16} />Back
           </Link>
           <AuthFlow mode={mode} next={next} />
-          {(mode === "welcome" || mode === "signup") && <p className="text-center text-xs font-light leading-4 text-muted">
-            By continuing you agree to our <span className="font-medium underline">Terms of Service</span> and<br />
-            <span className="font-medium underline">Privacy Policy</span>
-          </p>}
+          {(mode === "welcome" || mode === "signup") && (
+            <p className="text-center text-xs font-light leading-4 text-muted">
+              By continuing you agree to our{" "}
+              <a href={COINZY_TERMS_URL} target="_blank" rel="noopener noreferrer" className="font-medium underline">
+                Terms of Service
+              </a>{" "}
+              and<br />
+              <a href={COINZY_PRIVACY_URL} target="_blank" rel="noopener noreferrer" className="font-medium underline">
+                Privacy Policy
+              </a>
+            </p>
+          )}
         </section>
       </main>
     </div>
