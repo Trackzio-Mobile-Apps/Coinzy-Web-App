@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { ReloadOnRestore } from "@/components/auth/ReloadOnRestore";
 import { TopNav } from "@/components/landing/TopNav";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { IdentifyDemoSection } from "@/components/landing/IdentifyDemoSection";
@@ -17,6 +18,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <ReloadOnRestore />
       <TopNav />
       <main className="bg-cream">
         <HeroSection />

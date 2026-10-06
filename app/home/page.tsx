@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { ReloadOnRestore } from "@/components/auth/ReloadOnRestore";
 import { AppSidebar } from "@/components/home/AppSidebar";
 import { HomeDashboard, moneyFromListingPrice } from "@/components/home/HomeDashboard";
 import { getSessionUser } from "@/lib/auth/session";
@@ -44,6 +45,7 @@ export default async function SignedInHomePage() {
 
   return (
     <div className="flex h-svh overflow-hidden bg-white">
+      <ReloadOnRestore />
       <AppSidebar user={user} />
       <HomeDashboard
         user={user}

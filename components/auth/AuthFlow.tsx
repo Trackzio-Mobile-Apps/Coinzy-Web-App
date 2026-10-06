@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
-import { submitAuth } from "@/lib/auth/client";
+import { goHome, submitAuth } from "@/lib/auth/client";
 import { WelcomeActions } from "./WelcomeActions";
 
 export type AuthMode = "welcome" | "signup" | "login" | "forgot" | "otp" | "reset";
@@ -55,7 +55,9 @@ export function AuthFlow({ mode }: { mode: AuthMode }) {
     return () => clearTimeout(timer);
   }, [mode, countdown]);
   const clear = (field: keyof Errors) => setErrors((previous) => ({ ...previous, [field]: undefined }));
-  const navigate = (next: AuthMode) => router.push(`/auth?mode=${next}`);
+  // Auth steps *replace* the history entry: the whole wizard is one entry, so browser Back leaves it instead of
+  // walking through stale steps (the on-page "Back" link handles step-back deterministically).
+  const navigate = (next: AuthMode) => router.replace(`/auth?mode=${next}`);
   const resend = async () => {
     if (pending || countdown > 0) return;
     setPending(true); setNotice("");
@@ -96,7 +98,7 @@ export function AuthFlow({ mode }: { mode: AuthMode }) {
       await submitAuth(mode as "signup" | "login" | "forgot" | "reset", { email, password, name, remember, code: digits.join("") });
       if (mode === "forgot") { setDigits(Array(6).fill("")); setCountdown(30); navigate("otp"); }
       else if (mode === "reset") { setToastVisible(false); setDigits(Array(6).fill("")); setPassword(""); setConfirm(""); setNotice("Password changed. You can now log in."); }
-      else { setPassword(""); router.push("/home"); router.refresh(); }
+      else { setPassword(""); goHome(); }
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Unable to complete authentication.");
     } finally { setPending(false); }
@@ -119,12 +121,12 @@ export function AuthFlow({ mode }: { mode: AuthMode }) {
             </div>}
             <div className={mode === "login" ? "space-y-3" : "space-y-4"}>
               <button type="submit" disabled={pending || Object.values(errors).some(Boolean) || (mode === "otp" && digits.some((digit) => !digit))} className={primary}>{pending ? "Please wait…" : mode === "signup" ? "Create account" : mode === "login" ? "Log in" : mode === "forgot" ? "Send code" : mode === "otp" ? "Continue" : "Change password"}</button>
-              {mode === "login" && <div className="flex items-center justify-between gap-2 text-xs leading-4"><label className="flex items-center gap-2"><input type="checkbox" checked={remember} onChange={(event) => setRemember(event.target.checked)} className="size-4 accent-primary-500" />Remember me</label><Link href="/auth?mode=forgot" className="rounded-lg px-2 py-1 font-medium text-primary-500">Forgot password</Link></div>}
-              {mode === "forgot" && <Link href="/auth?mode=login" className="flex h-9 items-center justify-center rounded-button border border-[#e5e5e5] text-sm font-medium">Cancel</Link>}
+              {mode === "login" && <div className="flex items-center justify-between gap-2 text-xs leading-4"><label className="flex items-center gap-2"><input type="checkbox" checked={remember} onChange={(event) => setRemember(event.target.checked)} className="size-4 accent-primary-500" />Remember me</label><Link href="/auth?mode=forgot" replace className="rounded-lg px-2 py-1 font-medium text-primary-500">Forgot password</Link></div>}
+              {mode === "forgot" && <Link href="/auth?mode=login" replace className="flex h-9 items-center justify-center rounded-button border border-[#e5e5e5] text-sm font-medium">Cancel</Link>}
               {mode === "otp" && <div className="flex flex-wrap items-center justify-center gap-2 text-xs leading-4 text-[#6a7282]"><span>Don’t receive code?</span><span className="tabular-nums">00:{String(countdown).padStart(2, "0")}s</span><button type="button" disabled={pending || countdown > 0} onClick={resend} className="rounded-lg px-2 py-1 font-medium text-primary-500 disabled:opacity-50">Re-send</button></div>}
             </div>
-            {(mode === "signup" || mode === "login") && <><Separator /><div className="flex justify-center"><button type="button" aria-label={`${mode === "login" ? "Log in" : "Sign up"} with Google`} disabled title="Google sign-in is not available yet." className="flex size-14 items-center justify-center rounded-full border border-[#e5e5e5] disabled:cursor-not-allowed disabled:opacity-50"><Image src="/assets/auth/google.png" alt="" width={24} height={24} /></button></div><div className="flex items-center justify-center gap-1 text-xs leading-4 text-[#6a7282]"><p>{mode === "signup" ? "Already have an account?" : "Don’t have an account?"}</p><Link href={`/auth?mode=${mode === "signup" ? "login" : "signup"}`} className="rounded-lg px-2 py-1 font-medium text-primary-500">{mode === "signup" ? "Log in" : "Sign up"}</Link></div></>}
-            {notice && <p role="status" className="text-center text-sm leading-5 text-muted">{notice}{mode === "reset" && notice === "Password changed. You can now log in." && <Link href="/auth?mode=login" className="mt-2 block font-medium text-primary-500">Log in</Link>}</p>}
+            {(mode === "signup" || mode === "login") && <><Separator /><div className="flex justify-center"><button type="button" aria-label={`${mode === "login" ? "Log in" : "Sign up"} with Google`} disabled title="Google sign-in is not available yet." className="flex size-14 items-center justify-center rounded-full border border-[#e5e5e5] disabled:cursor-not-allowed disabled:opacity-50"><Image src="/assets/auth/google.png" alt="" width={24} height={24} /></button></div><div className="flex items-center justify-center gap-1 text-xs leading-4 text-[#6a7282]"><p>{mode === "signup" ? "Already have an account?" : "Don’t have an account?"}</p><Link href={`/auth?mode=${mode === "signup" ? "login" : "signup"}`} replace className="rounded-lg px-2 py-1 font-medium text-primary-500">{mode === "signup" ? "Log in" : "Sign up"}</Link></div></>}
+            {notice && <p role="status" className="text-center text-sm leading-5 text-muted">{notice}{mode === "reset" && notice === "Password changed. You can now log in." && <Link href="/auth?mode=login" replace className="mt-2 block font-medium text-primary-500">Log in</Link>}</p>}
           </form>
         </div>
       </div>

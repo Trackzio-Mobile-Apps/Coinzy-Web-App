@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { submitAuth } from "@/lib/auth/client";
+import { goHome, submitAuth } from "@/lib/auth/client";
 
 const PROVIDERS = [
   { name: "Google", asset: "google.png", width: 24, height: 24 },
@@ -19,7 +19,7 @@ export function WelcomeActions() {
   async function guest() {
     if (pending) return;
     setPending(true); setNotice("");
-    try { await submitAuth("guest"); router.push("/home"); router.refresh(); }
+    try { await submitAuth("guest"); goHome(); }
     catch (error) { setNotice(error instanceof Error ? error.message : "Unable to start a guest session."); }
     finally { setPending(false); }
   }
@@ -34,7 +34,7 @@ export function WelcomeActions() {
           <div className="space-y-4">
             <div className="space-y-3">
               {PROVIDERS.map((provider) => (
-                <button key={provider.name} type="button" disabled={provider.name === "Google" || pending} title={provider.name === "Google" ? "Google sign-in is not available yet." : undefined} onClick={() => router.push("/auth?mode=signup")} className="flex h-10 w-full items-center justify-center gap-2 rounded-button border border-[#e5e5e5] bg-white px-4 text-sm font-medium leading-5 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500">
+                <button key={provider.name} type="button" disabled={provider.name === "Google" || pending} title={provider.name === "Google" ? "Google sign-in is not available yet." : undefined} onClick={() => router.replace("/auth?mode=signup")} className="flex h-10 w-full items-center justify-center gap-2 rounded-button border border-[#e5e5e5] bg-white px-4 text-sm font-medium leading-5 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500">
                   <span className="flex size-6 shrink-0 items-center justify-center">
                     <Image src={`/assets/auth/${provider.asset}`} alt="" width={provider.width} height={provider.height} />
                   </span>
@@ -51,7 +51,7 @@ export function WelcomeActions() {
           </div>
           <div className="flex h-6 items-center justify-center gap-1 text-xs leading-4">
             <p className="text-[#6a7282]">Already have an account?</p>
-            <Link href="/auth?mode=login" className="rounded-lg px-2 py-1 font-medium text-primary-500 hover:text-primary-700">Log in</Link>
+            <Link href="/auth?mode=login" replace className="rounded-lg px-2 py-1 font-medium text-primary-500 hover:text-primary-700">Log in</Link>
           </div>
         </div>
       </div>

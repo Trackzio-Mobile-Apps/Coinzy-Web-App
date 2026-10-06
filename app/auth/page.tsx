@@ -4,6 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { LogoMark } from "@/components/landing/TopNav";
 import { AuthFlow, type AuthMode } from "@/components/auth/AuthFlow";
+import { ReloadOnRestore } from "@/components/auth/ReloadOnRestore";
 import { PLAY_STORE_URL } from "@/lib/constants";
 import { getSessionUser } from "@/lib/auth/session";
 
@@ -23,6 +24,7 @@ export default async function AuthPage({ searchParams }: { searchParams: Promise
 
   return (
     <div className="min-h-screen bg-white">
+      <ReloadOnRestore />
       <header className="flex h-16 items-center justify-between border-b border-border-light px-4 sm:px-8">
         <Link href="/" className="flex items-center gap-2 border-r border-border-light pr-4 sm:w-[222px] sm:pr-6">
           <LogoMark />
@@ -32,7 +34,7 @@ export default async function AuthPage({ searchParams }: { searchParams: Promise
           </div>
         </Link>
         <div className="flex items-center gap-3">
-          <Link href="/auth?mode=login" className="rounded-button px-4 py-2 text-sm font-medium leading-5">Log in</Link>
+          <Link href="/auth?mode=login" replace className="rounded-button px-4 py-2 text-sm font-medium leading-5">Log in</Link>
           <Link href={PLAY_STORE_URL} className="rounded-button bg-primary-500 px-3 py-1.5 text-sm font-medium leading-5 text-white hover:bg-primary-700">Get the App</Link>
         </div>
       </header>
@@ -48,7 +50,7 @@ export default async function AuthPage({ searchParams }: { searchParams: Promise
           </div>
         </section>
         <section aria-label="Account access" className={`relative flex min-h-[746px] flex-col items-center justify-center gap-6 px-4 py-20 sm:px-8 ${mode === "welcome" ? "lg:pb-0 lg:pt-16" : "lg:py-0"} ${mode === "signup" ? "bg-[#f7f7f7]" : ""}`}>
-          <Link href={backHref} className="absolute left-6 top-6 inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium leading-4 text-muted">
+          <Link href={backHref} replace={mode !== "welcome"} className="absolute left-6 top-6 inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium leading-4 text-muted">
             <Image src="/assets/auth/back.svg" alt="" width={16} height={16} />Back
           </Link>
           <AuthFlow mode={mode} />
