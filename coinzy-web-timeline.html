@@ -28,7 +28,7 @@ const seed=[
 ['Expert evaluation','Existing requests','Progress, report, cancellation and deadline extension',8,'C',8],
 ['Global Catalogue','Browse catalogue','Done: live API coin grid, category filters, pagination and name search (?q=, composes with category filters; the API matches whole coin names only; search UI is not in Figma, built on the dashboard search pill)',6,'D',0],
 ['Global Catalogue','Coin details','Done: live coin information, estimated value, grades and tabs; premium state pending (no Figma node exists for it)',4,'D',10],
-['Marketplace','Browse listings','Done: live marketplace rows, category listing pages and pagination; search/filter controls pending',6,'D',11],
+['Marketplace','Browse listings','Done: live marketplace rows, category listing pages, pagination and title search (?q=, case-insensitive whole words; search UI is not in Figma, built on the dashboard search pill); /home marketplace chips and search work; filter/sort UI pending (no Figma node exists)',6,'D',11],
 ['Marketplace','Listing details','Done: live listing, seller details and email/phone contact; logged-out Contact Seller auth pop-up belongs to task 3',4,'D',12],
 ['Marketplace','Create listings','Manual listing and listing through AI Identification',8,'D',13],
 ['Collections','Browse collections','Overview, coin grid, filters and details',6,'E',7],
@@ -43,9 +43,9 @@ const seed=[
 ];
 const key='coinzy-web-timeline-v1';
 // Default progress by task index (status checked 6 Oct 2026: free-user dashboard + Premium upsell modal done; Premium home variant, multi-coin Coin of the Day and daily-limit alert built behind a dev-only preview).
-const DEFAULT_PROGRESS={0:100,1:100,2:75,3:100,4:60,9:100,10:75,11:50,12:100,22:100};
+const DEFAULT_PROGRESS={0:100,1:100,2:75,3:100,4:60,9:100,10:75,11:100,12:100,22:100};
 // Recorded completion for tasks done by default (index -> date); tasks finished before 6 Oct were recorded on 5 Oct.
-const DEFAULT_DONE={0:'2026-10-05',1:'2026-10-05',3:'2026-10-06',9:'2026-10-06',12:'2026-10-05',22:'2026-10-05'};
+const DEFAULT_DONE={0:'2026-10-05',1:'2026-10-05',3:'2026-10-06',9:'2026-10-06',11:'2026-10-06',12:'2026-10-05',22:'2026-10-05'};
 const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
 const initial=()=>({asOf:today(),start:'2026-10-05',rate:2,tasks:seed.map((x,i)=>({id:i+1,section:x[0],name:x[1],detail:x[2],screens:x[3],agent:x[4],after:x[5],progress:DEFAULT_PROGRESS[i]||0,completedOn:DEFAULT_DONE[i]||''}))});
 let state;try{state=JSON.parse(localStorage.getItem(key))||initial()}catch{state=initial()}
@@ -58,6 +58,7 @@ if(Array.isArray(state.tasks))state.tasks.forEach(t=>{if(Number(t.id)===3&&!t.au
 // Task text refreshed 6 Oct 2026 (one-time, keeps browser-edited estimates).
 if(Array.isArray(state.tasks))state.tasks.forEach(t=>{if([3,4,5].includes(Number(t.id))&&!t.statusOct6){t.detail=seed[Number(t.id)-1][2];t.statusOct6=true}});
 if(Array.isArray(state.tasks))state.tasks.forEach(t=>{if([10,11].includes(Number(t.id))&&!t.catalogueOct6){t.detail=seed[Number(t.id)-1][2];t.catalogueOct6=true}});
+if(Array.isArray(state.tasks))state.tasks.forEach(t=>{if(Number(t.id)===12&&!t.marketplaceOct6){t.detail=seed[11][2];t.marketplaceOct6=true}});
 if(Array.isArray(state.tasks))state.tasks.forEach(t=>{if(Number(t.id)===5&&!t.premiumOct6){t.detail=seed[4][2];t.premiumOct6=true}});
 state.asOf=state.asOf||today();
 // The forecast never starts in the past: roll a stale saved date forward to today.
@@ -92,7 +93,7 @@ function calculate(){
  const weeks=last?Math.max(0,Math.ceil((Math.floor((last-start)/86400000)+1)/7)):0;
  return {start,last,weeks,effort,count,progress:planned?Math.round(weighted/planned*100):0};
 }
-function save(){localStorage.setItem(key,JSON.stringify({start:state.start,asOf:state.asOf,rate:state.rate,tasks:state.tasks.map(({id,section,name,detail,screens,agent,after,progress,completedOn,authScopeUpdated,authApisUpdated,statusOct6,premiumOct6,catalogueOct6})=>({id,section,name,detail,screens,agent,after,progress,completedOn,authScopeUpdated,authApisUpdated,statusOct6,premiumOct6,catalogueOct6}))}))}
+function save(){localStorage.setItem(key,JSON.stringify({start:state.start,asOf:state.asOf,rate:state.rate,tasks:state.tasks.map(({id,section,name,detail,screens,agent,after,progress,completedOn,authScopeUpdated,authApisUpdated,statusOct6,premiumOct6,catalogueOct6,marketplaceOct6})=>({id,section,name,detail,screens,agent,after,progress,completedOn,authScopeUpdated,authApisUpdated,statusOct6,premiumOct6,catalogueOct6,marketplaceOct6}))}))}
 const sortedTasks=()=>[...state.tasks].sort((a,b)=>(Number(b.progress)||0)-(Number(a.progress)||0)||Number(a.id)-Number(b.id));
 function render(){const x=calculate(),tasks=sortedTasks();$('start').value=state.start;$('asOf').value=state.asOf;$('rate').value=state.rate;$('screensTotal').textContent=x.count;$('effort').textContent=x.effort;$('weeks').textContent=x.weeks;$('finish').textContent=fmt(x.last);$('progressTotal').textContent=x.progress+'%';
  $('taskRows').innerHTML=tasks.map(t=>`<tr data-id="${t.id}"><td>${t.id}</td><td><input data-field="section" value="${esc(t.section)}"></td><td><input data-field="name" value="${esc(t.name)}"></td><td><input data-field="detail" value="${esc(t.detail)}"></td><td><input data-field="screens" type="number" min="0" step="1" value="${t.screens??''}"></td><td><input data-field="agent" value="${esc(t.agent)}" style="width:65px"></td><td><input data-field="after" type="number" min="0" max="${t.id-1}" value="${t.after||0}"></td><td><input data-field="progress" type="number" min="0" max="100" value="${t.progress||0}"></td><td>${t.days===0&&Number(t.progress)>=100?'0':t.days||'—'}</td><td class="date">${fmt(t.begin)}</td><td class="date">${fmt(t.end)}</td><td><input data-field="completedOn" type="date" value="${esc(t.completedOn||'')}" ${Number(t.progress)<100?'disabled':''}></td><td class="${Number(t.progress)>=100?'done':!t.plannedDays||t.blocked?'pending':''}">${taskStatus(t)}</td></tr>`).join('');
