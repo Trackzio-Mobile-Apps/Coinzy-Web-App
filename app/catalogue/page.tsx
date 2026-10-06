@@ -6,20 +6,25 @@ import { PageHero } from "@/components/ui/PageHero";
 import { CategoryRowSection } from "@/components/catalogue/CategoryRowSection";
 import { BrowseAllCoinsSection } from "@/components/catalogue/BrowseAllCoinsSection";
 import { WebappCTASection } from "@/components/marketplace/WebappCTASection";
+import { parsePageParam, parseQueryParam } from "@/lib/backNav";
 import { CATALOGUE_INDIA_CATEGORIES, CATALOGUE_US_CATEGORIES } from "@/lib/constants";
 
-export const metadata: Metadata = {
-  title: "Global Catalogue | Coinzy AI",
-  description: "200,000+ coins from every era and country, with value ranges backed by NGC and PCGS data.",
-};
+type Props = { searchParams: Promise<{ page?: string; q?: string | string[] }> };
 
-export default async function CataloguePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ page?: string }>;
-}) {
-  const { page } = await searchParams;
-  const pageNo = Math.max(1, Number.parseInt(page ?? "1", 10) || 1);
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const query = parseQueryParam((await searchParams).q);
+  return {
+    title: query ? `“${query}” | Global Catalogue | Coinzy AI` : "Global Catalogue | Coinzy AI",
+    description: "200,000+ coins from every era and country, with value ranges backed by NGC and PCGS data.",
+    // Search result pages are thin and unbounded — keep them out of the index.
+    ...(query && { robots: { index: false, follow: true } }),
+  };
+}
+
+export default async function CataloguePage({ searchParams }: Props) {
+  const { page, q } = await searchParams;
+  const pageNo = parsePageParam(page);
+  const query = parseQueryParam(q);
   return (
     <>
       <TopNav />
@@ -45,7 +50,7 @@ export default async function CataloguePage({
           viewAllHref="/catalogue/indian-coins"
         />
         <WebappCTASection />
-        <BrowseAllCoinsSection page={pageNo} />
+        <BrowseAllCoinsSection page={pageNo} query={query} />
         <MobileAppSection />
       </main>
       <Footer />

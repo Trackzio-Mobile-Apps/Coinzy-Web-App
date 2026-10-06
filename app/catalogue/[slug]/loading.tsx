@@ -1,3 +1,4 @@
+import { CoinGridSkeleton } from "@/components/catalogue/CoinGridSkeleton";
 import { TopNav } from "@/components/landing/TopNav";
 
 /** Instant skeleton while a view-all page fetches from the catalogue API (mirrors the page layout). */
@@ -23,18 +24,7 @@ export default function Loading() {
                 ))}
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-[repeat(5,211px)]">
-              {Array.from({ length: 20 }, (_, i) => (
-                <div
-                  key={i}
-                  className="flex h-[262.5px] flex-col items-center gap-2 rounded-[var(--radius-inner)] border-[0.5px] border-border-neutral bg-white p-4"
-                >
-                  <div className="size-[136px] rounded-full bg-coin-well" />
-                  <div className="h-4 w-full rounded bg-black/[0.06]" />
-                  <div className="h-4 w-2/3 self-start rounded bg-black/[0.05]" />
-                </div>
-              ))}
-            </div>
+            <CoinGridSkeleton count={20} />
           </div>
         </section>
       </main>

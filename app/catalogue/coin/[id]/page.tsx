@@ -11,7 +11,7 @@ import { CoinPhotos, DetailsBreadcrumb } from "@/components/catalogue/DetailsPar
 import { CoinDetailsSkeleton } from "@/components/catalogue/CoinDetailsSkeleton";
 import { CoinDetailTabs, EstimatedValueBanner, TableRow } from "@/components/catalogue/CoinDetailsInteractive";
 import { fetchArchetypeDetails, isArchetypeId } from "@/lib/api/coinzy";
-import { FROM_HOME, pagedHref, parsePageParam } from "@/lib/backNav";
+import { FROM_HOME, pagedHref, parsePageParam, parseQueryParam } from "@/lib/backNav";
 import { getCategory } from "@/lib/catalogue/categories";
 import { coinTitle, detailTabs, gradePrices, overviewRows } from "@/lib/catalogue/coinDetails";
 import { COIN_DETAILS_CATEGORIES } from "@/lib/constants";
@@ -19,7 +19,7 @@ import { COIN_DETAILS_CATEGORIES } from "@/lib/constants";
 const ICONS = "/assets/catalogue";
 const DETAIL_ICONS = "/assets/coin-details";
 
-type Params = { params: Promise<{ id: string }>; searchParams: Promise<{ from?: string; fromPage?: string }> };
+type Params = { params: Promise<{ id: string }>; searchParams: Promise<{ from?: string; fromPage?: string; fromQ?: string | string[] }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const coin = await fetchArchetypeDetails((await params).id).catch(() => null);
@@ -32,7 +32,18 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 }
 
 /** Breadcrumb + details: streams in after the API responds; `CoinDetailsSkeleton` shows meanwhile. */
-async function CoinDetailsContent({ id, from, fromPage }: { id: string; from?: string; fromPage: number }) {
+async function CoinDetailsContent({
+  id,
+  from,
+  fromPage,
+  fromQuery,
+}: {
+  id: string;
+  from?: string;
+  fromPage: number;
+  /** Search term of the list the visitor came from. */
+  fromQuery: string;
+}) {
   const coin = await fetchArchetypeDetails(id);
   if (!coin) notFound();
 
@@ -43,10 +54,10 @@ async function CoinDetailsContent({ id, from, fromPage }: { id: string; from?: s
     from === FROM_HOME
       ? [{ href: "/home", label: "Home" }]
       : from === "catalogue"
-        ? [{ href: `${pagedHref("/catalogue", fromPage)}#browse-all`, label: "Global Catalogue" }]
+        ? [{ href: `${pagedHref("/catalogue", fromPage, fromQuery)}#browse-all`, label: "Global Catalogue" }]
         : [
             { href: "/catalogue", label: "Global Catalogue" },
-            ...(category ? [{ href: pagedHref(`/catalogue/${category.slug}`, fromPage), label: category.crumb }] : []),
+            ...(category ? [{ href: pagedHref(`/catalogue/${category.slug}`, fromPage, fromQuery), label: category.crumb }] : []),
           ];
   const title = coinTitle(coin);
   const grades = gradePrices(coin.estimatedPrice);
@@ -138,7 +149,7 @@ async function CoinDetailsContent({ id, from, fromPage }: { id: string; from?: s
 
 /** Catalogue coin details — Figma `Landing page/CataloguePage/DetailsPage` (797:35810). */
 export default async function CatalogueCoinPage({ params, searchParams }: Params) {
-  const [{ id }, { from, fromPage }] = await Promise.all([params, searchParams]);
+  const [{ id }, { from, fromPage, fromQ }] = await Promise.all([params, searchParams]);
   // Malformed ids 404 straight away (real status code); unknown ids 404 inside the stream.
   if (!isArchetypeId(id)) notFound();
 
@@ -149,7 +160,7 @@ export default async function CatalogueCoinPage({ params, searchParams }: Params
         <section className="mx-auto w-full max-w-[1440px] px-6 pt-20 lg:px-[160px]">
           {/* Page shell renders immediately; the key re-shows the loader when moving between coins. */}
           <Suspense key={id} fallback={<CoinDetailsSkeleton />}>
-            <CoinDetailsContent id={id} from={from} fromPage={parsePageParam(fromPage)} />
+            <CoinDetailsContent id={id} from={from} fromPage={parsePageParam(fromPage)} fromQuery={parseQueryParam(fromQ)} />
           </Suspense>
         </section>
 
