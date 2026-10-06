@@ -3,6 +3,7 @@ import Link from "next/link";
 import { FallbackImage } from "@/components/ui/FallbackImage";
 import { CoinPlaceholder } from "@/components/ui/CoinPlaceholder";
 import { PremiumCountdown } from "@/components/home/PremiumCountdown";
+import { CoinOfTheDayDrawer, type CoinOfTheDayDrawerCoin } from "@/components/home/CoinOfTheDayDrawer";
 import {
   HOME_CATALOGUE_FALLBACK,
   HOME_MARKETPLACE_FALLBACK,
@@ -34,6 +35,8 @@ type Cotd = {
   images: string[];
   /** Today's other coins, hidden behind Premium for free users. */
   lockedCount: number;
+  /** Content of the "Learn more" drawer (Figma 1248:123835). */
+  drawer: CoinOfTheDayDrawerCoin;
 };
 
 type CatalogueRow = { id?: string; name: string; price: string; image: string | null };
@@ -321,13 +324,11 @@ export function HomeDashboard({
                         {`Unlock ${cotd.lockedCount} more with Premium`}
                       </p>
                     )}
-                    <Link
-                      href={cotd.id ? withFrom(`/catalogue/coin/${cotd.id}`, FROM_HOME) : "/catalogue"}
-                      className="flex items-center justify-center gap-1 text-xs font-medium leading-4 text-ink"
-                    >
-                      Learn more
-                      <Image src={`${A}/icon-chevron.svg`} alt="" width={16} height={16} />
-                    </Link>
+                    <CoinOfTheDayDrawer
+                      coin={cotd.drawer}
+                      detailsHref={cotd.id ? withFrom(`/catalogue/coin/${cotd.id}`, FROM_HOME) : "/catalogue"}
+                      lockedCount={cotd.lockedCount}
+                    />
                   </div>
                 </>
               ) : (

@@ -11,7 +11,7 @@ import {
   todayKey,
   type Archetype,
 } from "@/lib/api/coinzy";
-import { estimatedSpan } from "@/lib/catalogue/coinDetails";
+import { coinDrawerSections, estimatedSpan } from "@/lib/catalogue/coinDetails";
 
 export const metadata: Metadata = {
   title: "Home | Coinzy AI",
@@ -69,6 +69,11 @@ export default async function SignedInHomePage() {
                 price: estimatedSpan(cotd.estimatedPrice) ?? "NA",
                 images: (cotd.imageUrls ?? []).filter(Boolean).slice(0, 2),
                 lockedCount: lockedCotd.length,
+                drawer: {
+                  title: cotd.name,
+                  images: (cotd.imageUrls ?? []).filter(Boolean).slice(0, 2),
+                  sections: coinDrawerSections(cotd),
+                },
               }
             : null
         }
