@@ -71,6 +71,22 @@ export function formatRange(raw: string | number | null | undefined): string | n
   return lo === hi ? usd(lo) : `${usd(lo)} – ${usd(hi)}`;
 }
 
+/** Lowest–highest value across every grade ("$3.50 – $290"), or null when no grade has a price. */
+export function estimatedSpan(estimated: ArchetypeDetails["estimatedPrice"]): string | null {
+  if (!estimated) return null;
+  const nums = Object.values(estimated).flatMap((raw) =>
+    typeof raw === "number"
+      ? [raw]
+      : String(raw ?? "")
+          .split("-")
+          .map((p) => Number.parseFloat(p.replace(/[^0-9.]/g, ""))),
+  ).filter((n) => Number.isFinite(n));
+  if (!nums.length) return null;
+  const lo = Math.min(...nums);
+  const hi = Math.max(...nums);
+  return lo === hi ? usd(lo) : `${usd(lo)} – ${usd(hi)}`;
+}
+
 /** Known grades in condition order, then any unrecognised codes the API returns. */
 export function gradePrices(estimated: ArchetypeDetails["estimatedPrice"]): GradePrice[] {
   if (!estimated) return [];

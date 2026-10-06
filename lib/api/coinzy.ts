@@ -86,7 +86,11 @@ export type Archetype = {
   archetypeId: string;
   name: string;
   issuer?: string;
+  rarity?: string;
   imageUrls: string[];
+  // The list endpoint currently omits these (details-only); typed so cards can use them if it ever sends them.
+  yearOfMinting?: string | number | null;
+  estimatedPrice?: ArchetypeDetails["estimatedPrice"];
 };
 
 export type ArchetypePage = {
@@ -318,14 +322,25 @@ export const fetchListingFilterValues = unstable_cache(
   { revalidate: 3600, tags: ["marketplace-listings"] },
 );
 
-/** `GET /archetypes/coins-of-the-day` — three ULTRA_RARE archetypes, cached per calendar day. */
+/**
+ * `GET /archetypes/coins-of-the-day` — three random ULTRA_RARE archetypes; the backend rotates them
+ * per calendar day. `day` (YYYY-MM-DD) is part of the cache key so the list rolls over at midnight
+ * instead of living on for a flat 24h from whenever it was first fetched. The 6h TTL only bounds
+ * server-timezone drift. Empty answers throw so they are never cached.
+ */
 export const fetchCoinsOfTheDay = unstable_cache(
-  async (): Promise<ArchetypeDetails[]> => {
-    const json = await apiFetch<{ data: ArchetypeDetails[] }>("/archetypes/coins-of-the-day", {
+  // `_day` only exists to key the cache entry.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async (_day: string): Promise<ArchetypeDetails[]> => {
+    const json = await apiFetch<{ data: ArchetypeDetails[] | null }>("/archetypes/coins-of-the-day", {
       revalidate: 0,
     });
-    return json.data ?? [];
+    if (!json.data?.length) throw new Error("Coins of the day came back empty");
+    return json.data;
   },
   ["coins-of-the-day"],
-  { revalidate: 86400, tags: ["coins-of-the-day"] },
+  { revalidate: 6 * 3600, tags: ["coins-of-the-day"] },
 );
+
+/** Today's UTC date, used as the `fetchCoinsOfTheDay` cache key. */
+export const todayKey = () => new Date().toISOString().slice(0, 10);
