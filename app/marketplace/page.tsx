@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { TopNav } from "@/components/landing/TopNav";
 import { BrowseCatalogueSection } from "@/components/landing/BrowseCatalogueSection";
 import { MobileAppSection } from "@/components/landing/MobileAppSection";
@@ -7,6 +8,8 @@ import { PageHero } from "@/components/ui/PageHero";
 import { ListingRowSection } from "@/components/marketplace/ListingRowSection";
 import { WebappCTASection } from "@/components/marketplace/WebappCTASection";
 import { MARKETPLACE_BROWSE_CATEGORIES, MARKETPLACE_LISTING_ROWS } from "@/lib/constants";
+import { CatalogueSearch } from "@/components/catalogue/CatalogueSearch";
+import { parseQueryParam } from "@/lib/backNav";
 import { loadListingRow } from "@/lib/marketplace/categories";
 
 export const metadata: Metadata = {
@@ -14,7 +17,14 @@ export const metadata: Metadata = {
   description: "Buy and sell coins from verified sellers on Coinzy.",
 };
 
-export default async function MarketplacePage() {
+export default async function MarketplacePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string | string[] }>;
+}) {
+  // `/marketplace?q=` (e.g. shared links) lands on the full results list, which owns paging and states.
+  const query = parseQueryParam((await searchParams).q);
+  if (query) redirect(`/marketplace/all?q=${encodeURIComponent(query)}`);
   const rows = await Promise.all(MARKETPLACE_LISTING_ROWS.map((row) => loadListingRow(row.slug, 4)));
   return (
     <>
@@ -34,6 +44,18 @@ export default async function MarketplacePage() {
             cards={rows[i]}
             viewAllHref={`/marketplace/${row.slug}`}
             from="marketplace"
+            // Search isn't in Figma; it sits beside the first row's "View all" so the layout keeps its rhythm.
+            headerExtra={
+              i === 0 ? (
+                <CatalogueSearch
+                  action="/marketplace/all"
+                  query=""
+                  placeholder="Search listings..."
+                  label="Search marketplace listings by title"
+                  className="sm:w-[260px]"
+                />
+              ) : undefined
+            }
           />
         ))}
         <WebappCTASection />

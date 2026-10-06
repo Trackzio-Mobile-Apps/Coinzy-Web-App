@@ -21,11 +21,11 @@ import {
   overviewRows,
   type CoinSpec,
 } from "@/lib/catalogue/coinDetails";
-import { FROM_HOME, pagedHref, parsePageParam } from "@/lib/backNav";
+import { FROM_HOME, pagedHref, parsePageParam, parseQueryParam } from "@/lib/backNav";
 import { MARKETPLACE_BROWSE_CATEGORIES } from "@/lib/constants";
 import { getMarketplaceCategory } from "@/lib/marketplace/categories";
 
-type Params = { params: Promise<{ id: string }>; searchParams: Promise<{ from?: string; fromPage?: string }> };
+type Params = { params: Promise<{ id: string }>; searchParams: Promise<{ from?: string; fromPage?: string; fromQ?: string | string[] }> };
 
 /** Listing coin facts in the shared `CoinSpec` shape (falls back to the listing title). */
 function listingCoin(l: ListingDetails): CoinSpec {
@@ -57,7 +57,18 @@ function SectionTable({ heading, rows }: { heading: string; rows: { label: strin
 }
 
 /** Breadcrumb + listing details: streams in after the API responds; the skeleton shows meanwhile. */
-async function ListingDetailsContent({ id, from, fromPage }: { id: string; from?: string; fromPage: number }) {
+async function ListingDetailsContent({
+  id,
+  from,
+  fromPage,
+  fromQuery,
+}: {
+  id: string;
+  from?: string;
+  fromPage: number;
+  /** Search term of the list the visitor came from. */
+  fromQuery: string;
+}) {
   const listing = await fetchListingDetails(id);
   if (!listing) notFound();
 
@@ -80,7 +91,7 @@ async function ListingDetailsContent({ id, from, fromPage }: { id: string; from?
         : [
             { href: "/marketplace", label: "Marketplace" },
             category
-              ? { href: pagedHref(`/marketplace/${category.slug}`, fromPage), label: category.crumb }
+              ? { href: pagedHref(`/marketplace/${category.slug}`, fromPage, fromQuery), label: category.crumb }
               : { href: "/marketplace/all", label: "All listings" },
           ];
 
@@ -128,7 +139,7 @@ async function ListingDetailsContent({ id, from, fromPage }: { id: string; from?
 
 /** Marketplace listing details — Figma `Landing page/MarketplacePage/CoinListings/DetailsPage` (843:15466). */
 export default async function MarketplaceListingPage({ params, searchParams }: Params) {
-  const [{ id }, { from, fromPage }] = await Promise.all([params, searchParams]);
+  const [{ id }, { from, fromPage, fromQ }] = await Promise.all([params, searchParams]);
   if (!isArchetypeId(id)) notFound();
 
   return (
@@ -137,7 +148,7 @@ export default async function MarketplaceListingPage({ params, searchParams }: P
       <main className="bg-cream">
         <section className="mx-auto w-full max-w-[1440px] px-6 pb-20 pt-20 lg:px-[160px] lg:pb-[184px]">
           <Suspense key={id} fallback={<CoinDetailsSkeleton sidebar="seller" />}>
-            <ListingDetailsContent id={id} from={from} fromPage={parsePageParam(fromPage)} />
+            <ListingDetailsContent id={id} from={from} fromPage={parsePageParam(fromPage)} fromQuery={parseQueryParam(fromQ)} />
           </Suspense>
         </section>
 

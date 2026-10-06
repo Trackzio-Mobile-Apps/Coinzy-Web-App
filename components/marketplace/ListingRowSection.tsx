@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ParchmentBackground } from "@/components/ui/ParchmentBackground";
@@ -16,6 +17,8 @@ interface ListingRowSectionProps {
   viewAllHref: string;
   /** Origin passed to listing links so the listing page can link back (see `lib/backNav.ts`). */
   from?: string;
+  /** Extra control rendered before "View all" (marketplace search on the first row). */
+  headerExtra?: ReactNode;
 }
 
 function CoinSlot({ src }: { src?: string }) {
@@ -38,7 +41,7 @@ function CoinSlot({ src }: { src?: string }) {
 }
 
 /** Figma marketplace row (793:77834): title + "View all", four listing cards with a coin pair each. */
-export function ListingRowSection({ title, variant, wellClassName, cards, viewAllHref, from }: ListingRowSectionProps) {
+export function ListingRowSection({ title, variant, wellClassName, cards, viewAllHref, from, headerExtra }: ListingRowSectionProps) {
   if (!cards.length) return null;
   return (
     <SectionShell
@@ -48,13 +51,16 @@ export function ListingRowSection({ title, variant, wellClassName, cards, viewAl
       <div className="relative space-y-5">
         <div className="flex items-end justify-between gap-4">
           <h2 className="text-2xl font-medium leading-8 text-ink">{title}</h2>
-          <Link
-            href={viewAllHref}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-[var(--radius-button)] px-3 py-1.5 text-sm font-medium leading-5 text-primary-500 hover:text-primary-700"
-          >
-            View all
-            <Image src="/assets/landing-page/icons/shared/arrow-right.svg" alt="" width={16} height={16} />
-          </Link>
+          <div className="flex shrink-0 items-center gap-3">
+            {headerExtra}
+            <Link
+              href={viewAllHref}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-[var(--radius-button)] px-3 py-1.5 text-sm font-medium leading-5 text-primary-500 hover:text-primary-700"
+            >
+              View all
+              <Image src="/assets/landing-page/icons/shared/arrow-right.svg" alt="" width={16} height={16} />
+            </Link>
+          </div>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

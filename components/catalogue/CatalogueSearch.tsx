@@ -8,7 +8,7 @@ import { MAX_QUERY_LENGTH, parseQueryParam } from "@/lib/backNav";
 const ICONS = "/assets/catalogue";
 
 /**
- * Catalogue search box (the only client piece of the search flow).
+ * Catalogue / marketplace search box (the only client piece of the search flow).
  *
  * Not in the catalogue Figma frames — it reuses the search pill from the dashboard's marketplace panel
  * (`1898:205770`: 24px, rounded-lg, #e5e5e5 border, 14px magnifier, 12px text). Submit-on-Enter rather than
@@ -21,6 +21,8 @@ export function CatalogueSearch({
   query,
   hash = "",
   className = "",
+  placeholder = "Search coins by name...",
+  label = "Search the catalogue by coin name",
 }: {
   /** List route the search applies to (`/catalogue`, `/catalogue/american-coins`). */
   action: string;
@@ -29,6 +31,9 @@ export function CatalogueSearch({
   /** Optional `#anchor` to land on after submitting. */
   hash?: string;
   className?: string;
+  placeholder?: string;
+  /** Accessible name for the input (no visible label in the designs). */
+  label?: string;
 }) {
   const router = useRouter();
   const [value, setValue] = useState(query);
@@ -55,7 +60,7 @@ export function CatalogueSearch({
       className={`relative flex h-6 w-full max-w-[345px] items-center rounded-lg border border-[#e5e5e5] bg-white px-2 focus-within:border-primary-500 ${className}`}
     >
       <label htmlFor={inputId} className="sr-only">
-        Search the catalogue by coin name
+        {label}
       </label>
       <Image src={`${ICONS}/icon-search.svg`} alt="" width={14} height={14} />
       <input
@@ -66,7 +71,7 @@ export function CatalogueSearch({
         maxLength={MAX_QUERY_LENGTH}
         autoComplete="off"
         enterKeyHint="search"
-        placeholder="Search coins by name..."
+        placeholder={placeholder}
         onChange={(e) => setValue(e.target.value)}
         // Explicit Enter so it also works for synthetic key events (automation); real Enter submits once.
         onKeyDown={(e) => {

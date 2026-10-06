@@ -23,6 +23,8 @@ type MarketplaceCategoryDef = {
 
 const US = /united states|\bamerica\b|\(us territories|oregon/i;
 const INDIA = /\bindia\b|\bindian\b|gwalior|hyderabad|east india company/i;
+// Same UK patterns as the catalogue; "British India" is intentionally *not* British coins.
+const UK = /^(United Kingdom|Great Britain|Kingdom of Great Britain|England|Kingdom of England)\b|\(United Kingdom/;
 const GOLD = /^gold\b/i;
 const SILVER = /silver/i;
 
@@ -34,6 +36,8 @@ export const MARKETPLACE_CATEGORIES = {
   "us-gold-coins": { title: "US gold coins", crumb: "US gold coins", issuer: US, material: GOLD },
   "roman-coins": { title: "Ancient Roman coins", crumb: "Ancient Roman coins", issuer: /\bRoman\b/ },
   "american-coins": { title: "American coins", crumb: "American coins", issuer: US },
+  // Home dashboard chip (Figma 1898:205770 labels it "British coins"). Empty until a UK-issuer listing exists.
+  "british-coins": { title: "British coins", crumb: "British coins", issuer: UK },
   "wheat-pennies": {
     title: "Wheat pennies",
     crumb: "Wheat pennies",
@@ -62,6 +66,8 @@ export type ListingCard = {
   price: string | null;
   /** Front + back photos (seller uploads). */
   images: string[];
+  /** Catalogue entry the seller's coin was identified as (source of year / issuer / rarity). */
+  archetypeId: string | null;
 };
 
 const toCard = (l: ListingSummary): ListingCard => ({
@@ -70,6 +76,7 @@ const toCard = (l: ListingSummary): ListingCard => ({
   title: l.title,
   price: formatPrice(l.price),
   images: l.imageUrls.filter(Boolean),
+  archetypeId: l.archetypeId ?? null,
 });
 
 /** Resolve a category into the `fetchAll` body; `null` = a filter matched no values (empty category). */
@@ -90,14 +97,27 @@ async function buildListingFilters(def: MarketplaceCategoryDef): Promise<Record<
   return Object.values(filters).some((v) => v.length === 0) ? null : filters;
 }
 
-/** One page of a category, newest first. Throws if the API is down (callers show an error state). */
+/**
+ * One page of a category, newest first, optionally narrowed by a text `search`. Throws if the API is down
+ * (callers show an error state, never sample listings).
+ *
+ * `POST /marketplace/listing/fetchAll?search=` is a case-insensitive **whole-word** match on the title
+ * (plurals fold: "Cent" = "Cents"; several words are OR-ed; "Linc" matches nothing). A category's own
+ * `search` (wheat pennies → "Lincoln") takes the API slot when there is no visitor query; with one, the
+ * visitor's term goes to the API and the category word is applied to the titles afterwards.
+ */
 export async function loadListingPage(
   def: MarketplaceCategoryDef,
   page: number,
   pageSize: number,
+  search = "",
 ): Promise<{ cards: ListingCard[]; totalCount: number; totalPages: number; page: number }> {
   const filters = await buildListingFilters(def);
-  const all = filters ? await fetchAllListings(filters, def.search ?? "") : [];
+  let all = filters ? await fetchAllListings(filters, search || def.search || "") : [];
+  if (search && def.search) {
+    const needle = def.search.toLowerCase();
+    all = all.filter((l) => l.title.toLowerCase().includes(needle));
+  }
   const totalPages = Math.max(1, Math.ceil(all.length / pageSize));
   const current = Math.min(Math.max(1, page), totalPages);
   return {

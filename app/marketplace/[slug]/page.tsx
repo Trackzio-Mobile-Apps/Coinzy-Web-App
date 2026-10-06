@@ -5,26 +5,37 @@ import { TopNav } from "@/components/landing/TopNav";
 import { BrowseCatalogueSection } from "@/components/landing/BrowseCatalogueSection";
 import { MobileAppSection } from "@/components/landing/MobileAppSection";
 import { Footer } from "@/components/landing/Footer";
+import { CatalogueEmpty } from "@/components/catalogue/CatalogueEmpty";
+import { CatalogueSearch } from "@/components/catalogue/CatalogueSearch";
 import { Pagination } from "@/components/catalogue/CoinGrid";
 import { DetailsBreadcrumb } from "@/components/catalogue/DetailsParts";
 import { ListingGrid } from "@/components/marketplace/ListingGrid";
 import { SellBar } from "@/components/marketplace/SellBar";
 import { WebappCTASection } from "@/components/marketplace/WebappCTASection";
+import { pagedHref, parsePageParam, parseQueryParam } from "@/lib/backNav";
 import { getMarketplaceCategory, loadListingPage } from "@/lib/marketplace/categories";
 import { MARKETPLACE_BROWSE_CATEGORIES } from "@/lib/constants";
 
 const PAGE_SIZE = 20; // Figma 793:77612: 4 rows × 5 cards
 
-type Params = { params: Promise<{ slug: string }>; searchParams: Promise<{ page?: string }> };
+type Params = {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ page?: string; q?: string | string[] }>;
+};
 
-export async function generateMetadata({ params }: Params): Promise<Metadata> {
+const SEARCH_HINT =
+  "Search matches whole words in listing titles, such as “Dollar”, “Lincoln” or “Cents”. Check the spelling or try a broader word.";
+
+export async function generateMetadata({ params, searchParams }: Params): Promise<Metadata> {
   const category = getMarketplaceCategory((await params).slug);
-  return category
-    ? {
-        title: `${category.title} for sale | Marketplace | Coinzy AI`,
-        description: `Browse ${category.title.toLowerCase()} listed by collectors on the Coinzy marketplace.`,
-      }
-    : {};
+  if (!category) return {};
+  const query = parseQueryParam((await searchParams).q);
+  return {
+    title: `${query ? `“${query}” in ` : ""}${category.title} for sale | Marketplace | Coinzy AI`,
+    description: `Browse ${category.title.toLowerCase()} listed by collectors on the Coinzy marketplace.`,
+    // Search result pages are thin and unbounded — keep them out of the index.
+    ...(query && { robots: { index: false, follow: true } }),
+  };
 }
 
 function GridSkeleton() {
@@ -50,21 +61,31 @@ function GridSkeleton() {
   );
 }
 
-async function ListingResults({ slug, page }: { slug: string; page: number }) {
+async function ListingResults({ slug, page, query }: { slug: string; page: number; query: string }) {
   const category = getMarketplaceCategory(slug)!;
+  const base = `/marketplace/${slug}`;
   let result: Awaited<ReturnType<typeof loadListingPage>>;
   try {
-    result = await loadListingPage(category, page, PAGE_SIZE);
+    result = await loadListingPage(category, page, PAGE_SIZE, query);
   } catch (err) {
     console.error(err);
-    return (
+    return query ? (
+      <CatalogueEmpty query={query} clearHref={base} unavailable />
+    ) : (
       <p className="py-16 text-center text-sm text-muted">
         The marketplace is temporarily unavailable. Please try again in a moment.
       </p>
     );
   }
   if (!result.cards.length) {
-    return (
+    return query ? (
+      <CatalogueEmpty
+        query={query}
+        scope={slug === "all" ? undefined : category.title}
+        clearHref={base}
+        hint={SEARCH_HINT}
+      />
+    ) : (
       <p className="py-16 text-center text-sm text-muted">
         No {category.title.toLowerCase()} are listed right now — check back soon, or list one yourself below.
       </p>
@@ -72,14 +93,20 @@ async function ListingResults({ slug, page }: { slug: string; page: number }) {
   }
   return (
     <div className="flex flex-col gap-10">
-      <ListingGrid cards={result.cards} from={slug} fromPage={result.page} />
+      {query && (
+        <p role="status" className="-mb-2 font-jakarta text-xs text-neutral-400">
+          <span className="font-bold text-muted">{result.totalCount.toLocaleString("en-US")}</span>{" "}
+          {result.totalCount === 1 ? "result" : "results"} for “{query}”
+        </p>
+      )}
+      <ListingGrid cards={result.cards} from={slug} fromPage={result.page} fromQuery={query} />
       {result.totalPages > 1 && (
         <div className="flex justify-center">
           <Pagination
             page={result.page}
             totalPages={result.totalPages}
             visible={6}
-            href={(n) => `/marketplace/${slug}?page=${n}`}
+            href={(n) => pagedHref(base, n, query)}
           />
         </div>
       )}
@@ -89,21 +116,33 @@ async function ListingResults({ slug, page }: { slug: string; page: number }) {
 
 /** Marketplace listings — Figma `Landing page/MarketplacePage/CoinListings` (793:77612). */
 export default async function MarketplaceCategoryPage({ params, searchParams }: Params) {
-  const [{ slug }, { page }] = await Promise.all([params, searchParams]);
+  const [{ slug }, { page, q }] = await Promise.all([params, searchParams]);
   const category = getMarketplaceCategory(slug);
   if (!category) notFound();
-  const requested = Math.max(1, Number.parseInt(page ?? "1", 10) || 1);
+  const requested = parsePageParam(page);
+  const query = parseQueryParam(q);
 
   return (
     <>
       <TopNav />
       <main className="bg-cream">
         <section className="mx-auto w-full max-w-[1440px] px-6 pb-20 pt-20 lg:px-[160px] lg:pb-[184px]">
-          <DetailsBreadcrumb ancestors={[{ href: "/marketplace", label: "Marketplace" }]} current={category.crumb} />
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <DetailsBreadcrumb ancestors={[{ href: "/marketplace", label: "Marketplace" }]} current={category.crumb} />
+            {/* Search isn't in this Figma frame; same pill as the dashboard's marketplace search. */}
+            <CatalogueSearch
+              key={query}
+              action={`/marketplace/${slug}`}
+              query={query}
+              placeholder="Search listings..."
+              label="Search marketplace listings by title"
+              className="sm:w-[260px]"
+            />
+          </div>
           <h1 className="sr-only">{category.title} for sale</h1>
           <div className="mt-10">
-            <Suspense key={`${slug}-${requested}`} fallback={<GridSkeleton />}>
-              <ListingResults slug={slug} page={requested} />
+            <Suspense key={`${slug}|${query}|${requested}`} fallback={<GridSkeleton />}>
+              <ListingResults slug={slug} page={requested} query={query} />
             </Suspense>
           </div>
           <div className="mt-20 flex justify-center lg:mt-[124px]">

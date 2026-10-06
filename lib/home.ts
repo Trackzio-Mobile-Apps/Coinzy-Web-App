@@ -37,7 +37,7 @@ export type HomeNavItem = {
 export const MARKETPLACE_CHIPS = [
   { label: "All", slug: "all" },
   { label: "American coins", slug: "american-coins" },
-  { label: "British coins", slug: "world-coins" },
+  { label: "British coins", slug: "british-coins" },
   { label: "Rare coins", slug: "rare-coins" },
   { label: "Gold coins", slug: "gold-coins" },
 ] as const;

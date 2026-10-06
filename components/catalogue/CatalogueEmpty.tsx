@@ -9,6 +9,7 @@ export function CatalogueEmpty({
   scope,
   clearHref,
   unavailable = false,
+  hint = "Search matches whole coin names, such as “Dollar”, “Denarius” or “Morgan Dollar”. Check the spelling or try a broader name.",
 }: {
   query: string;
   /** Category name when searching inside a view-all page, e.g. "American coins". */
@@ -16,6 +17,8 @@ export function CatalogueEmpty({
   clearHref: string;
   /** The API failed (as opposed to a genuine zero-hit search). */
   unavailable?: boolean;
+  /** One-line help under a zero-hit search. */
+  hint?: string;
 }) {
   return (
     <div role="status" className="flex flex-col items-center gap-3 py-16 text-center">
@@ -39,8 +42,7 @@ export function CatalogueEmpty({
           </p>
           {query && (
             <p className="max-w-[420px] text-sm leading-5 text-muted">
-              Search matches whole coin names, such as “Dollar”, “Denarius” or “Morgan Dollar”. Check the spelling or try a
-              broader name.
+              {hint}
             </p>
           )}
         </>

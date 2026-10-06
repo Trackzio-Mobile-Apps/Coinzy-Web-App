@@ -13,12 +13,15 @@ export function ListingCard({
   priority = false,
   from,
   fromPage,
+  fromQuery,
 }: {
   card: ListingCardData;
   priority?: boolean;
   /** Origin list, so the listing page can link back to it (see `lib/backNav.ts`). */
   from?: string;
   fromPage?: number;
+  /** Search term of that list (round-trips as `?fromQ=`). */
+  fromQuery?: string;
 }) {
   return (
     <article className="relative flex w-full min-w-[164px] flex-col items-center gap-6 rounded-[12px] border-[0.5px] border-border-neutral bg-white px-2 pb-4 pt-2 transition-shadow hover:shadow-md xl:w-[211px]">
@@ -42,7 +45,7 @@ export function ListingCard({
       <div className="flex w-full flex-col gap-2 px-1">
         <h3 className="line-clamp-2 h-[47px] text-base leading-6 text-ink">
           {/* Stretched link: whole card opens the listing. */}
-          <Link href={withFrom(card.href, from, fromPage)} className="after:absolute after:inset-0 after:rounded-[12px]">
+          <Link href={withFrom(card.href, from, fromPage, fromQuery)} className="after:absolute after:inset-0 after:rounded-[12px]">
             {card.title}
           </Link>
         </h3>
@@ -53,11 +56,21 @@ export function ListingCard({
 }
 
 /** 5-up grid (Figma: 211px cards, 16px column gap, 32px row gap). */
-export function ListingGrid({ cards, from, fromPage }: { cards: ListingCardData[]; from?: string; fromPage?: number }) {
+export function ListingGrid({
+  cards,
+  from,
+  fromPage,
+  fromQuery,
+}: {
+  cards: ListingCardData[];
+  from?: string;
+  fromPage?: number;
+  fromQuery?: string;
+}) {
   return (
     <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-[repeat(5,211px)] xl:justify-between">
       {cards.map((card, i) => (
-        <ListingCard key={card.id} card={card} priority={i < 5} from={from} fromPage={fromPage} />
+        <ListingCard key={card.id} card={card} priority={i < 5} from={from} fromPage={fromPage} fromQuery={fromQuery} />
       ))}
     </div>
   );
