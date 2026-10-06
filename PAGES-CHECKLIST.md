@@ -30,8 +30,9 @@ All auth entry/sign-up prompts are tracked here, regardless of the page that tri
 - [ ] Pop-up/Feed — `908:39186`
 - [ ] Pop-up/ExpertEvaluation (free user → "Get expert evaluation") — `908:39439`, `1796:203077`
 - [ ] Pop-up/ListingCoin (logged-out → "Post a listing") — `908:39567`
-- [ ] Pop-up/ContactSeller (logged-out) — `905:38594`
+- [ ] Pop-up/ContactSeller (logged-out auth modal) — `905:38594` *(current: `/auth?next=` from listing; not this modal)*
 - [ ] Pop-up/ListingCoin — `905:38801`
+- [x] Contact details modal (signed-in "Contact seller") — `1356:164759` → `ContactDetailsDialog` on `/marketplace/listing/[id]`
 - [ ] Pop-up/ContactSeller — `908:43240`
 - [ ] Pop-up — `908:39058`
 - [ ] Pop-up/ExpertEvaluation — `1796:203244`
