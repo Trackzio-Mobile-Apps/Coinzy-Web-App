@@ -23,16 +23,16 @@ Figma: `YV6ArWhD2eVlLPH6M090gc` · MCP server name `figma`.
 | Home (marketing) | 100% | India landing `1526:302784`; logged-in users redirect to `/home` |
 | Signed-in home | 100% | Free-user dashboard Figma `1898:205770` → `/home` |
 | Feature landings | 100% | Marketplace, Catalogue, view-all, Other apps, Blogs list + article |
-| Account access | ~75% | Email/guest/forgot/reset live; Google off; entry pop-ups pending |
+| Account access | 100% | Email/guest/forgot/reset + error UI + Trackzio legal links; logged-out → `/auth?next=` (no `908`/`905` modals); Google off |
 | Catalogue browse | 100% | Live API grid, category filters, pagination, name search (`?q=`; not in Figma, API matches whole names only) |
-| Coin details | ~75% | Live API; premium state pending — no Figma node exists for it |
+| Coin details | 100% | Live API; Premium tab gating (`1348:137792` / `1341:249499`); signed-in shell; wishlist API on hearts |
 | Marketplace browse | 100% | Live prod listings, category pages, pagination, title search (`?q=`), `/home` panel chips + search; Figma has no filter/sort UI (none built) |
 | Listing details | 100% | Email/phone contact |
 | Blogs | 100% | 6 static posts |
-| Premium experience | 60% | Task 5; Premium home, multi-coin Coin of the Day and daily-limit alert built (dev-only `?premium=1` preview; no documented plan flag); Premium coin details + expert prompt pending |
-| Identification | 0% | Tasks 6–7; not started |
+| Premium experience | ~75% | Task 5; home + CoTD Premium UI + catalogue Premium tabs (`?premium=1` dev preview); pending: real entitlement JWT, expert prompt |
+| Identification | ~95% | Full flow through add-to-collection (API-backed); remaining: error toasts `1493:236892`, camera slider polish `1828:206846` |
 
-Timeline: `coinzy-web-timeline.html` (browser + localStorage) and `coinzy-web-timeline.xlsx`. HTML `sortedTasks()` orders by progress then ID; XLSX progress = Detailed Timeline col G (row = task id + 1). Last synced 6 Oct 2026 (task 4 done 6 Oct; tasks 1, 2, 13, 23 done 5 Oct; forecast finish 29 Oct, 24% overall). XLSX Detailed Timeline must stay in task-ID order (formulas read earlier rows by position); only Weekly View is sorted (progress, then ID). Git history is all dated 6 Oct, so completion dates before that come from the timeline's own records.
+Timeline: `coinzy-web-timeline.html` (browser + localStorage) and `coinzy-web-timeline.xlsx`. HTML `sortedTasks()` orders by progress then ID; last synced 6 Oct 2026 (tasks 3–4, 10–11 catalogue details + wishlist; task 5 ~75%). XLSX Detailed Timeline must stay in task-ID order; only Weekly View is sorted (progress, then ID).
 
 ---
 
@@ -47,12 +47,18 @@ Timeline: `coinzy-web-timeline.html` (browser + localStorage) and `coinzy-web-ti
 | `/marketplace/listing/[id]` | `app/marketplace/listing/[id]/page.tsx` | `843:15466` | Seller panel; mailto/tel |
 | `/catalogue` | `app/catalogue/page.tsx` | `797:30404` | Browse-all live (`?page=`, `?q=`); `CatalogueSearch` beside "View all", results in Suspense + skeleton |
 | `/catalogue/[slug]` | `app/catalogue/[slug]/page.tsx` | `797:33107` | Filter rules → `fetchAll`; `?q=` search + `?page=`; search pill left of the chips; count/grid stream behind Suspense |
-| `/catalogue/coin/[id]` | `app/catalogue/coin/[id]/page.tsx` | `797:35810` | `?from=` (+`fromPage`, `fromQ`) breadcrumb; Suspense stream |
+| `/catalogue/coin/[id]` | `app/catalogue/coin/[id]/page.tsx` | `797:35810` · `1348:137792` · `1341:249499` | `?from=` (+`fromPage`, `fromQ`); tab Premium gate; session → sidebar + header; `?premium=1` dev preview |
 | `/other-apps` | `app/other-apps/page.tsx` | `876:23169` | `lib/otherApps.ts` |
 | `/blogs` | `app/blogs/page.tsx` | `822:23268` | `?category=` / `?show=` |
 | `/blogs/[slug]` | `app/blogs/[slug]/page.tsx` | `828:40221` | Static `lib/blogs.ts` |
 | `/auth` | `app/auth/page.tsx` | task 3 nodes | `AuthFlow`; modes via `?mode=`; field errors `lib/auth/messages.ts` (Figma `1758:124172`); Terms/Privacy → `COINZY_*_URL` in `lib/constants.ts` |
 | `/api/auth/[action]` | `app/api/auth/[action]/route.ts` | — | Proxy only; HTTP-only cookies |
+| `/api/catalogue/wishlist/[id]` | `app/api/catalogue/wishlist/[id]/route.ts` | — | `PUT` add / `DELETE` remove → catalogue `archetypes/wishlist/*` with `coinzy_session` |
+| `/identify` | `app/identify/page.tsx` | `1831:219131` | Session required; client flow in `components/identify/IdentifyApp.tsx`. Dev: `?debug=1` or **Load sample photos** → `public/assets/identify/debug/` (India 5₹ 1994 pair) |
+| `/identify/coin/[id]` | `app/identify/coin/[id]/page.tsx` | `1828:206836` | Archetype photos (DB) + right rail user uploads from `sessionStorage`; collection flow in `IdentifyCoinClient` / `IdentifyCollectionUI` |
+| `/api/coin/add` | `app/api/coin/add/route.ts` | — | Session `POST /coin/add` (identify collection save) |
+| `/api/collections/fetchAll` | `app/api/collections/fetchAll/route.ts` | — | Session `GET /collections/fetchAll` (identified/owned + private lists for select modal) |
+| `/api/ai/identify-v2` | `app/api/ai/identify-v2/route.ts` | — | Multipart `files` (×2) → `COINZY_API_ORIGIN` `/ai/identify-v2` with `coinzy_session` |
 
 Active nav: `components/landing/NavLinks.tsx` (`usePathname`).
 
@@ -83,7 +89,7 @@ Active nav: `components/landing/NavLinks.tsx` (`usePathname`).
 - `CoinOfTheDayDrawer` takes an optional `pro` prop (`ProDrawerControls`: index/count/left, prev/next, `onShowMore`) for the Premium state: name row arrows, "Show more coins" + "{n} more coins for today", no lock line. `onShowMore()` returning `"limit"` closes the drawer and opens `DailyLimitDialog`.
 - `components/home/DailyLimitDialog.tsx` — client; "Oops!" daily-limit alert (Figma `1912:211426`, the "final popup"): shown when a Premium user presses "Show more coins" with 0 left. Single "Okay"/X close; no purchase or subscription flow. Focus returns to "Learn more".
 - `components/home/CoinThumb.tsx` — shared `CoinThumb` (round 40/tile 60) + `CoinFacts` used by free and Premium panels.
-- `/home` sidebar (`components/home/AppSidebar.tsx`, items in `lib/home.ts` `HOME_NAV`): only items with an `href` are links (Home, Marketplace, Global Catalogue). Pages that don't exist yet (Identify, Expert analysis, Collection, Feed, Settings) are `soon: true` → disabled `<span>` ("Coming soon"); add `href` and drop `soon` when each page ships. Landing top-nav "Identify" is `/#identify` so it works from sub-pages. Known open: footer "About" and social icons still `#`.
+- `/home` sidebar (`components/home/AppSidebar.tsx`, items in `lib/sidebarNav.ts`): **Identify** → `/identify`. Still `soon: true`: Expert analysis, Collection, Feed, Settings. Landing top-nav "Identify" is `/#identify` so it works from sub-pages. Known open: footer "About" and social icons still `#`.
 - `fetchArchetypes({ pageNo: 0, pageSize: 3 })` on `/home` — list items carry `archetypeId, name, issuer, rarity, imageUrls` only (no year / `estimatedPrice`), so card subtitle = issuer (falls back to price span or issuer · year if the API ever sends them).
 - `lib/catalogue/categories.ts` / `lib/marketplace/categories.ts` — slug → regex/filter rules.
 - `lib/catalogue/coinDetails.ts` — grade labels, price ranges; accepts string **or** number API fields; `estimatedSpan` = lowest–highest across all grades.
@@ -98,6 +104,7 @@ Runtime under `public/assets/<area>/` (landing numbered folders `01-top-nav`…`
 
 ## Gotchas (keep)
 
+- **Local dev:** Use **http://localhost:3000** only. If Next picks another port, stop duplicate `npm run dev` processes, free 3000, then restart once. After `npm run build` while dev was running (or random 500s / `.next` ENOENT), stop dev → `rm -rf .next` → `npm run dev` again.
 - Fonts: Geist/Jakarta `next/font` variables must sit on `<html>` — `--font-sans` in `@theme` resolves on `:root`.
 - Figma icon exports are unreliable (hearts/arcs/wrong hashes). Prefer hand-written Hugeicons (`icons/shared/`, area folders). Eyeball MCP downloads.
 - After replacing an image under the same name, delete `.next/cache/images`.
@@ -114,7 +121,7 @@ Runtime under `public/assets/<area>/` (landing numbered folders `01-top-nav`…`
 - **Never `router.back()`** — in-page back controls are deterministic `<Link>`s; the browser Back button works because every list/pager/filter control is a pushing `<Link>`.
 - **Details pages** take `?from=<origin>[&fromPage=N]` (`lib/backNav.ts`: `withFrom`, `pagedHref`, `parsePageParam`, `parseQueryParam`). Searched catalogue lists also pass `fromQ=<term>`, so the breadcrumb/back link returns to the same results. `catalogue/coin/[id]`: `home`, `catalogue` (→ `/catalogue?q=&page=N#browse-all`), or a view-all slug (→ `/catalogue/<slug>?q=&page=N`). `marketplace/listing/[id]`: `home`, `marketplace`, or a marketplace slug (+page). `blogs/[slug]` takes `?category=&show=` (validated; makes article pages dynamic) so the breadcrumb returns to the exact list. `/home` widgets pass `from=home` (breadcrumb "Home" → `/home`). New list → details links must pass `from`/`fromPage`.
 - **Auth wizard = one history entry**: step changes inside `/auth` use `router.replace` / `<Link replace>`; the on-page "Back" link (explicit hrefs) steps back. After login/signup/guest, `goHome(next?)` (`lib/auth/client.ts`) does `window.location.replace(safeReturnPath(next) ?? "/home")` (hard load clears the SPA router cache). `/auth?next=` carries a validated same-origin return path (`lib/auth/returnTo.ts` — blocks `/auth`, `/api`, open redirects). Marketplace listing **Contact seller** sends logged-out visitors to `/auth?next=/marketplace/listing/<id>?…` so they land back on the listing after sign-in. Entries before `/auth` (e.g. landing `/`) still redirect to `/home` once — unavoidable while `/` and `/auth` redirect signed-in users.
-- **Marketplace listing — Contact seller** (Figma `1356:164759`): signed-in viewers (guests included) open `ContactDetailsDialog` (phone, email, Send email). Logged-out visitors never receive `contactEmail` / `phoneNumber` in the RSC payload (`app/marketplace/listing/[id]/page.tsx` redacts before props); seller fields show "Log in to view" and the button links to auth with `next`. Checklist nodes `905:38594` / `908:43240` (logged-out **auth** pop-up) are still pending if product wants a modal instead of `/auth`.
+- **Marketplace listing — Contact seller** (Figma `1356:164759`): signed-in viewers (guests included) open `ContactDetailsDialog` (phone, email, Send email). Logged-out visitors never receive `contactEmail` / `phoneNumber` in the RSC payload (`app/marketplace/listing/[id]/page.tsx` redacts before props); seller fields show "Log in to view" and the button links to auth with `next`. Logged-out **auth** modals (`905:38594`, `908:43240`) are out of scope on web — `/auth?next=` is intentional.
 - `/`, `/auth`, `/home` read `coinzy_session` via `cookies()` → dynamic, `Cache-Control: no-store` (verified). `ReloadOnRestore` reloads them on bfcache restore (`pageshow.persisted`). No sign-out exists yet: when added, use a hard navigation to `/` (not `router.push`) so the router cache can't show a signed-in `/home`.
 - Blogs "Load more" uses `replace` so repeated clicks don't stack history entries.
 

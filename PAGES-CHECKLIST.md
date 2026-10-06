@@ -9,7 +9,7 @@ Figma file: `YV6ArWhD2eVlLPH6M090gc` (canvas `793:76525`). Node IDs below are fo
 - [x] Premium home — `1584:205526` → `/home` Premium variant (`HomeDashboard premium`); gated by `getPremiumStatus` + dev-only `?premium=1` (no documented plan flag yet)
 - [x] Premium Coin of the Day (multi-coin panel + drawer) — `1248:98330` → `components/home/PremiumCoinOfTheDay.tsx`, `CoinOfTheDayDrawer` `pro` variant
 - [x] Premium daily-limit alert ("final popup") — `1912:211426` → `components/home/DailyLimitDialog.tsx`
-- [ ] Premium timeline task 5 remainder: real entitlement flag, Premium coin details state, expert prompt
+- [ ] Premium timeline task 5 remainder: real entitlement flag, expert prompt
 
 ## Landing (`Landing page/main`)
 - [x] Landing page/opt2 — `1050:196584` → `app/page.tsx`
@@ -25,23 +25,16 @@ Figma file: `YV6ArWhD2eVlLPH6M090gc` (canvas `793:76525`). Node IDs below are fo
 - [x] New password UI — `1425:310892` → `/auth?mode=reset` (backend reset + matching-password validation; OTP is verified on submission)
 - [x] Auth error UI — section `1758:124172` (unregistered email, incorrect password, invalid OTP, mismatched passwords)
 - [x] Connect email signup/login, guest, forgot/reset APIs and HTTP-only session cookies — contract in `docs/auth-api.md`
-- [ ] Google sign-in — disabled for now by user decision
-All auth entry/sign-up prompts are tracked here, regardless of the page that triggers them. Identification screens remain in timeline tasks 6-7; feature-specific evaluation/premium behavior remains in its own task.
-- [ ] Pop-up/Feed — `908:39186`
-- [ ] Pop-up/ExpertEvaluation (free user → "Get expert evaluation") — `908:39439`, `1796:203077`
-- [ ] Pop-up/ListingCoin (logged-out → "Post a listing") — `908:39567`
-- [ ] Pop-up/ContactSeller (logged-out auth modal) — `905:38594` *(current: `/auth?next=` from listing; not this modal)*
-- [ ] Pop-up/ListingCoin — `905:38801`
+- [ ] Google sign-in — disabled for now by user decision (not planned on web)
+- [x] **Logged-out auth entry** — product uses full-page `/auth` with `?next=` (not Figma `908:*` / `905:*` modals; those pop-ups are **out of scope** for web)
 - [x] Contact details modal (signed-in "Contact seller") — `1356:164759` → `ContactDetailsDialog` on `/marketplace/listing/[id]`
-- [ ] Pop-up/ContactSeller — `908:43240`
-- [ ] Pop-up — `908:39058`
-- [ ] Pop-up/ExpertEvaluation — `1796:203244`
-- [ ] SignUp pop-up / Pop-up/ExpertEvaluation — `1385:258887`
+
+Figma auth modals (`908:39186`, `908:39439`, `908:39567`, `905:38594`, `905:38801`, `908:43240`, etc.) are Android/design reference only — web does not implement them. Identification screens remain in timeline tasks 6–7.
 
 ## Marketplace
 - [x] MarketplacePage (logged out) — `793:77834` → `app/marketplace/page.tsx` when no session (landing rows + browse)
 - [x] Signed-in marketplace browse — `1356:154252` → `MarketplaceSignedInPage` on `/marketplace` when session present; `filterItems` → `MarketplaceFilterPanel`; category slugs redirect here with `?category=`
-- [x] MarketplacePage/CoinListings (logged out) — `793:77612` → `app/marketplace/[slug]/page.tsx` (live prod API; slugs in `lib/marketplace/categories.ts`; title search `?q=` — search UI not in this Figma frame, built on the dashboard search pill; SellBar `1715:31687` → sign-in until `908:39567`)
+- [x] MarketplacePage/CoinListings (logged out) — `793:77612` → `app/marketplace/[slug]/page.tsx` (live prod API; slugs in `lib/marketplace/categories.ts`; title search `?q=` — search UI not in this Figma frame, built on the dashboard search pill; SellBar `1715:31687` → `/auth?next=` when logged out)
 - [x] CoinListings/DetailsPage — `843:15466` → `app/marketplace/listing/[id]/page.tsx` (live prod API; linked from listing grids + marketplace rows; breadcrumb round-trips `?fromQ=`)
 - [x] `/home` marketplace panel chips + search (`1898:205770`) — chips filter live rows; "British coins" → `british-coins` (empty today)
 
@@ -49,7 +42,9 @@ All auth entry/sign-up prompts are tracked here, regardless of the page that tri
 - [x] CataloguePage — `797:30404` → `app/catalogue/page.tsx` (+ name search `?q=`; Figma shows no search UI — built on the dashboard search pill, see INDEX.md)
 - [x] CataloguePage/SelectedCategory — `797:33107` → `app/catalogue/[slug]/page.tsx` (live API filters; chip row `1386:252333`; `?q=` search composes with the category)
 - [x] CataloguePage/DetailsPage — `797:35810` → `app/catalogue/coin/[id]/page.tsx` (live `getDetails` API; breadcrumb round-trips `?fromQ=`)
-- [ ] Coin details Premium state — no Figma node exists in the Global Catalogue section; blocked until a design is supplied
+- [x] Catalogue coin details (signed-in, free) — `1348:137792` → blurred tabs + inline Premium overlay on Design & Material / History / Rarity
+- [x] Catalogue coin details (signed-in, Premium) — `1341:249499` → full tabs; dev preview `?premium=1` when signed in (same as `/home`)
+- [x] Wishlist heart on catalogue grid + coin details — `PUT/DELETE /archetypes/wishlist/*` via `/api/catalogue/wishlist/[id]`; logged-out → `/auth?next=`
 
 ## Blogs
 - [x] BlogsPage — `822:23268` → `app/blogs/page.tsx` (category chips + load more via URL params)
@@ -58,10 +53,16 @@ All auth entry/sign-up prompts are tracked here, regardless of the page that tri
 ## Our other apps
 - [x] Our other apps page — `876:23169` → `app/other-apps/page.tsx` ("Explore" → trackzio.com/apps/*, "Get the app" → Google Play; TCG/Vinyl/Birds "Coming soon")
 
-## Identification flow (section `1383:260617`)
-- [ ] Home/upload screens — `1384:271196`, `1764:318890`
-- [ ] Flow screens — `1385:257835`, `1385:254453`, `1385:257231`, `1385:256844`, `1385:255092`, `1783:32153`, `1385:256563`
-- [ ] Flow screens with modal — `1777:325493`, `1781:45466`, `1385:255412`, `1385:256180`
+## Identification flow (section `1831:219131`)
+- [x] Signed-in upload + analyse + match list — `/identify` (Figma row: `1828:206837` … `1831:215037`)
+- [x] Result coin details + collection prompt — `/identify/coin/[id]` (reuse catalogue details; `1498:259534`, `1492:255248`)
+- [x] API — `POST /api/ai/identify-v2` proxy → catalogue `POST /ai/identify-v2`
+- [x] Analyse progress `1828:206840`, top matches `1831:215037`, result details `1828:206836`, collection drawer/modals `1301:153660` / `1500:287598`, added toast `1498:257365`
+- [x] Collection add — `GET /api/collections/fetchAll` + `POST /api/coin/add` proxies; select modal (identified / owned / private); own-coin → owned locked; `isIdentified` always `true`
+- [ ] Pixel polish vs remaining frame variants (camera slider `1828:206846`, error toasts `1493:236892`)
+
+## Identification flow (legacy section `1383:260617`)
+- Superseded by `1831:219131` for signed-in webapp; keep for historical node refs only.
 
 ## Not in Figma (from `COINZY-WEB-SPEC.md` Phase 1)
 - [ ] Pricing, FAQ, Download, Privacy/Terms — design needed or skip

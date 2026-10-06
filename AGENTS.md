@@ -41,7 +41,7 @@ INDEX.md             living project map — update when pages/APIs change
 7. **Figma SVG exports are often wrong** (hearts, arcs, wrong layer hashes). Prefer hand-written Hugeicons under `public/assets/...` or `icons/shared/`. Eyeball every downloaded asset.
 8. **After replacing an image under the same filename**, delete `.next/cache/images` or the optimizer keeps serving the old bytes.
 9. **No new deps** unless required; prefer the existing stack. No Inter/Roboto defaults — use theme tokens from `@theme`.
-10. **Google auth is disabled** by product decision. Do not re-enable without an explicit ask. Shared auth entry pop-ups are still pending.
+10. **Google auth is disabled** on web by product decision. Do not re-enable without an explicit ask. **Shared auth entry pop-ups** (Figma `908:*` / `905:*`) are **not built on web** — logged-out CTAs use `/auth?next=` instead.
 
 ## Coding conventions
 
@@ -62,7 +62,7 @@ INDEX.md             living project map — update when pages/APIs change
 
 ## What not to build yet
 
-Identification camera flow, Google sign-in, auth entry pop-ups, pricing/FAQ/download/legal pages (unless asked), and Phase-3 parity features from `COINZY-WEB-SPEC.md`. Prefer completing checklist items over inventing scope.
+Identification camera flow, Google sign-in, pricing/FAQ/download/legal pages on this domain (unless asked), and Phase-3 parity features from `COINZY-WEB-SPEC.md`. Prefer completing checklist items over inventing scope.
 
 ## When finishing work
 

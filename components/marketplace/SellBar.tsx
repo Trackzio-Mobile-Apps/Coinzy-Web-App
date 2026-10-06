@@ -5,7 +5,7 @@ import { authHref } from "@/lib/auth/returnTo";
 /**
  * "Want to sell your coin?" bar (Figma 1715:31687; same on home 1526:304316): 24px radius,
  * 12% wine border, tag badge, fixed 260.586px text block + 240px gap, outline "List a coin".
- * Logged-out visitors go to sign-in (pop-up flow pending Figma 905:38801).
+ * Logged-out visitors go to `/auth?next=` (web does not use Figma auth modals).
  */
 export function SellBar({
   className = "",
