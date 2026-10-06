@@ -39,11 +39,11 @@ All auth entry/sign-up prompts are tracked here, regardless of the page that tri
 - [ ] SignUp pop-up / Pop-up/ExpertEvaluation — `1385:258887`
 
 ## Marketplace
-- [x] MarketplacePage — `793:77834` → `app/marketplace/page.tsx`
-- [x] MarketplacePage/CoinListings — `793:77612` → `app/marketplace/[slug]/page.tsx` (live prod API; slugs in `lib/marketplace/categories.ts`; title search `?q=` — Figma shows no search/filter/sort UI, built on the dashboard search pill)
+- [x] MarketplacePage (logged out) — `793:77834` → `app/marketplace/page.tsx` when no session (landing rows + browse)
+- [x] Signed-in marketplace browse — `1356:154252` → `MarketplaceSignedInPage` on `/marketplace` when session present; `filterItems` → `MarketplaceFilterPanel`; category slugs redirect here with `?category=`
+- [x] MarketplacePage/CoinListings (logged out) — `793:77612` → `app/marketplace/[slug]/page.tsx` (live prod API; slugs in `lib/marketplace/categories.ts`; title search `?q=` — search UI not in this Figma frame, built on the dashboard search pill; SellBar `1715:31687` → sign-in until `908:39567`)
 - [x] CoinListings/DetailsPage — `843:15466` → `app/marketplace/listing/[id]/page.tsx` (live prod API; linked from listing grids + marketplace rows; breadcrumb round-trips `?fromQ=`)
 - [x] `/home` marketplace panel chips + search (`1898:205770`) — chips filter live rows; "British coins" → `british-coins` (empty today)
-- [ ] Marketplace filter/sort UI — no Figma node exists; blocked until a design is supplied
 
 ## Global Catalogue
 - [x] CataloguePage — `797:30404` → `app/catalogue/page.tsx` (+ name search `?q=`; Figma shows no search UI — built on the dashboard search pill, see INDEX.md)
