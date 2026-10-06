@@ -43,9 +43,10 @@ All auth entry/sign-up prompts are tracked here, regardless of the page that tri
 - [x] CoinListings/DetailsPage — `843:15466` → `app/marketplace/listing/[id]/page.tsx` (live prod API; linked from listing grids + marketplace rows)
 
 ## Global Catalogue
-- [x] CataloguePage — `797:30404` → `app/catalogue/page.tsx`
-- [x] CataloguePage/SelectedCategory — `797:33107` → `app/catalogue/[slug]/page.tsx` (live API filters)
-- [x] CataloguePage/DetailsPage — `797:35810` → `app/catalogue/coin/[id]/page.tsx` (live `getDetails` API)
+- [x] CataloguePage — `797:30404` → `app/catalogue/page.tsx` (+ name search `?q=`; Figma shows no search UI — built on the dashboard search pill, see INDEX.md)
+- [x] CataloguePage/SelectedCategory — `797:33107` → `app/catalogue/[slug]/page.tsx` (live API filters; chip row `1386:252333`; `?q=` search composes with the category)
+- [x] CataloguePage/DetailsPage — `797:35810` → `app/catalogue/coin/[id]/page.tsx` (live `getDetails` API; breadcrumb round-trips `?fromQ=`)
+- [ ] Coin details Premium state — no Figma node exists in the Global Catalogue section; blocked until a design is supplied
 
 ## Blogs
 - [x] BlogsPage — `822:23268` → `app/blogs/page.tsx` (category chips + load more via URL params)
