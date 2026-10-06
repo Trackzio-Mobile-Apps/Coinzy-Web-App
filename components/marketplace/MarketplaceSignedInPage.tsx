@@ -12,6 +12,11 @@ import type { SessionUser } from "@/lib/auth/session";
 import { parsePageParam, parseQueryParam } from "@/lib/backNav";
 import { MARKETPLACE_PAGE_CATEGORIES } from "@/lib/constants";
 import { loadSignedInBrowse } from "@/lib/marketplace/categories";
+import {
+  LISTING_FILTER_FIELDS,
+  parseListingFilterParams,
+  type ListingFilterValues,
+} from "@/lib/marketplace/listingFilters";
 
 const PAGE_SIZE = 16;
 const A = "/assets/marketplace";
@@ -34,28 +39,57 @@ export async function MarketplaceSignedInPage({
 }: {
   user: SessionUser;
   premium: boolean;
-  searchParams: { page?: string; q?: string | string[]; category?: string; issuer?: string | string[] };
+  searchParams: Record<string, string | string[] | undefined> & { page?: string; q?: string | string[]; category?: string };
 }) {
   const query = parseQueryParam(searchParams.q);
   const page = parsePageParam(searchParams.page);
   const category = typeof searchParams.category === "string" ? searchParams.category : undefined;
-  const issuerRaw = searchParams.issuer;
-  const issuerFilters = (Array.isArray(issuerRaw) ? issuerRaw : issuerRaw ? [issuerRaw] : []).map((s) => s.trim()).filter(Boolean);
+  const userFilters = parseListingFilterParams(searchParams);
+  const userFiltersBody: Record<string, string[]> = {};
+  for (const [k, v] of Object.entries(userFilters)) {
+    if (v?.length) userFiltersBody[k] = v;
+  }
 
-  const [browse, filterValues] = await Promise.all([
-    loadSignedInBrowse({ categorySlug: category, search: query, page, pageSize: PAGE_SIZE, issuerFilters }).catch(() => ({
-      cards: [],
-      totalCount: 0,
-      totalPages: 1,
-      page: 1,
-    })),
-    fetchListingFilterValues(["issuer"]).catch(() => ({ issuer: [] as string[] })),
+  const emptyOptions = (): ListingFilterValues => ({
+    issuer: [],
+    ruler: [],
+    material: [],
+    shape: [],
+    yearOfMinting: [],
+    mintLocation: [],
+    rarity: [],
+  });
+
+  const [browse, filterRaw] = await Promise.all([
+    loadSignedInBrowse({ categorySlug: category, search: query, page, pageSize: PAGE_SIZE, userFilters: userFiltersBody }).catch(
+      () => ({
+        cards: [],
+        totalCount: 0,
+        totalPages: 1,
+        page: 1,
+      }),
+    ),
+    fetchListingFilterValues([...LISTING_FILTER_FIELDS]).catch(() => null),
   ]);
+
+  const filterOptions: ListingFilterValues = filterRaw
+    ? {
+        issuer: filterRaw.issuer ?? [],
+        ruler: filterRaw.ruler ?? [],
+        material: filterRaw.material ?? [],
+        shape: filterRaw.shape ?? [],
+        yearOfMinting: filterRaw.yearOfMinting ?? [],
+        mintLocation: filterRaw.mintLocation ?? [],
+        rarity: filterRaw.rarity ?? [],
+      }
+    : emptyOptions();
 
   const baseParams = new URLSearchParams();
   if (query) baseParams.set("q", query);
   if (category) baseParams.set("category", category);
-  for (const i of issuerFilters) baseParams.append("issuer", i);
+  for (const key of LISTING_FILTER_FIELDS) {
+    for (const v of userFilters[key] ?? []) baseParams.append(key, v);
+  }
 
   const showing = browse.cards.length;
   const total = browse.totalCount;
@@ -152,7 +186,7 @@ export async function MarketplaceSignedInPage({
           </main>
 
           <Suspense fallback={<div className="w-[266px] shrink-0 border-l border-[#e5e7eb] bg-white" />}>
-            <MarketplaceFilterPanel issuers={filterValues.issuer} rulerSamples={[]} />
+            <MarketplaceFilterPanel options={filterOptions} />
           </Suspense>
         </div>
       </div>

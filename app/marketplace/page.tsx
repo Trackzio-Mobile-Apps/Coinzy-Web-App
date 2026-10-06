@@ -22,13 +22,7 @@ export const metadata: Metadata = {
 export default async function MarketplacePage({
   searchParams,
 }: {
-  searchParams: Promise<{
-    q?: string | string[];
-    page?: string;
-    category?: string;
-    issuer?: string | string[];
-    premium?: string;
-  }>;
+  searchParams: Promise<Record<string, string | string[] | undefined> & { premium?: string }>;
 }) {
   const sp = await searchParams;
   const user = await getSessionUser();

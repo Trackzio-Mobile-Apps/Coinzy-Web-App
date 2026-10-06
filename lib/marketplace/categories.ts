@@ -128,36 +128,49 @@ export async function loadListingPage(
   };
 }
 
+function mergeCategoryAndUserFilters(
+  built: Record<string, string[]> | null,
+  user: Record<string, string[]>,
+): Record<string, string[]> | null {
+  const out: Record<string, string[]> = { ...(built ?? {}) };
+  for (const [key, userVals] of Object.entries(user)) {
+    if (!userVals.length) continue;
+    const catVals = out[key];
+    if (catVals?.length) {
+      const merged = catVals.filter((v) => userVals.includes(v));
+      if (!merged.length) return null;
+      out[key] = merged;
+    } else {
+      out[key] = userVals;
+    }
+  }
+  return out;
+}
+
 /**
- * Signed-in marketplace browse (`1356:154252`): category slug + title search + optional issuer filters from the URL.
+ * Signed-in marketplace browse (`1356:154252`): category slug + search + filter arrays from the URL
+ * (`GET /marketplace/listing/filterItems` options, `POST …/fetchAll` body).
  */
 export async function loadSignedInBrowse({
   categorySlug,
   search,
   page,
   pageSize,
-  issuerFilters = [],
+  userFilters = {},
 }: {
   categorySlug?: string;
   search: string;
   page: number;
   pageSize: number;
-  issuerFilters?: string[];
+  userFilters?: Record<string, string[]>;
 }): Promise<{ cards: ListingCard[]; totalCount: number; totalPages: number; page: number }> {
   const slug =
     categorySlug && categorySlug in MARKETPLACE_CATEGORIES ? (categorySlug as MarketplaceSlug) : "all";
   const def = MARKETPLACE_CATEGORIES[slug];
   const built = await buildListingFilters(def);
-  let issuerList: string[] | undefined;
-  if (issuerFilters.length) {
-    issuerList =
-      built?.issuer?.length
-        ? built.issuer.filter((i) => issuerFilters.includes(i))
-        : issuerFilters;
-    if (!issuerList.length) return { cards: [], totalCount: 0, totalPages: 1, page: 1 };
-  }
-  const filters: Record<string, string[]> = { ...(built ?? {}), ...(issuerList ? { issuer: issuerList } : {}) };
-  if (!built && slug !== "all" && !issuerFilters.length) {
+  const filters = mergeCategoryAndUserFilters(built, userFilters);
+  if (filters === null) return { cards: [], totalCount: 0, totalPages: 1, page: 1 };
+  if (!built && slug !== "all" && !Object.keys(userFilters).length) {
     return { cards: [], totalCount: 0, totalPages: 1, page: 1 };
   }
   const categorySearch = "search" in def ? def.search : undefined;

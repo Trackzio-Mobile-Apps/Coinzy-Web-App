@@ -15,13 +15,14 @@ import { SellBar } from "@/components/marketplace/SellBar";
 import { WebappCTASection } from "@/components/marketplace/WebappCTASection";
 import { pagedHref, parsePageParam, parseQueryParam } from "@/lib/backNav";
 import { getMarketplaceCategory, loadListingPage } from "@/lib/marketplace/categories";
+import { LISTING_FILTER_FIELDS } from "@/lib/marketplace/listingFilters";
 import { MARKETPLACE_BROWSE_CATEGORIES } from "@/lib/constants";
 
 const PAGE_SIZE = 20; // Figma 793:77612: 4 rows × 5 cards
 
 type Params = {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ page?: string; q?: string | string[]; issuer?: string | string[] }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
 const SEARCH_HINT =
@@ -123,16 +124,19 @@ export default async function MarketplaceCategoryPage({ params, searchParams }: 
     if (slug && slug !== "all") p.set("category", slug);
     const q = parseQueryParam(sp.q);
     if (q) p.set("q", q);
-    if (sp.page && sp.page !== "1") p.set("page", sp.page);
-    const issuers = sp.issuer;
-    if (Array.isArray(issuers)) issuers.forEach((i) => p.append("issuer", i));
-    else if (issuers) p.set("issuer", issuers);
+    const pageNum = parsePageParam(Array.isArray(sp.page) ? sp.page[0] : sp.page);
+    if (pageNum > 1) p.set("page", String(pageNum));
+    for (const key of LISTING_FILTER_FIELDS) {
+      const raw = sp[key];
+      if (Array.isArray(raw)) raw.forEach((v) => p.append(key, v));
+      else if (raw) p.append(key, raw);
+    }
     redirect(p.size ? `/marketplace?${p}` : "/marketplace");
   }
   const { page, q } = sp;
   const category = getMarketplaceCategory(slug);
   if (!category) notFound();
-  const requested = parsePageParam(page);
+  const requested = parsePageParam(Array.isArray(page) ? page[0] : page);
   const query = parseQueryParam(q);
 
   return (
