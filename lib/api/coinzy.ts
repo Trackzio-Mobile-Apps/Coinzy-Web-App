@@ -87,6 +87,7 @@ export type Archetype = {
   name: string;
   issuer?: string;
   rarity?: string;
+  isWishlisted?: boolean;
   imageUrls: string[];
   // The list endpoint currently omits these (details-only); typed so cards can use them if it ever sends them.
   yearOfMinting?: string | number | null;
@@ -179,6 +180,7 @@ export type ArchetypeDetails = {
   /** Grade code (F, VF, XF, AU, UNC…) → USD range like "3.50-6.70", or a single number (newer archetypes). */
   estimatedPrice: Record<string, string | number> | null;
   imageUrls: string[];
+  isWishlisted?: boolean;
   marketplace?: { buy?: { isAvailable: boolean; listingCount: number } };
 };
 

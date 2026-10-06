@@ -30,9 +30,14 @@ export async function getPremiumStatus(user: SessionUser | null): Promise<boolea
   return false;
 }
 
+/** Raw session JWT for server-side catalogue calls (wishlist, user-scoped fetch). Never send to the client. */
+export async function getSessionToken(): Promise<string | null> {
+  return (await cookies()).get("coinzy_session")?.value ?? null;
+}
+
 /** Read the HTTP-only session cookie and surface display fields from the JWT payload. */
 export async function getSessionUser(): Promise<SessionUser | null> {
-  const token = (await cookies()).get("coinzy_session")?.value;
+  const token = await getSessionToken();
   if (!token) return null;
   const payload = decodeJwtPayload(token);
   if (!payload) return { name: "Guest", email: "", isGuest: true };

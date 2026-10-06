@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { AppSidebar } from "@/components/home/AppSidebar";
 import { TopNav } from "@/components/landing/TopNav";
+import { MarketplaceAppHeader } from "@/components/marketplace/MarketplaceAppHeader";
+import { getPremiumStatus, getSessionUser } from "@/lib/auth/session";
 import { BrowseCatalogueSection } from "@/components/landing/BrowseCatalogueSection";
 import { MobileAppSection } from "@/components/landing/MobileAppSection";
 import { Footer } from "@/components/landing/Footer";
@@ -11,15 +14,21 @@ import { CoinPhotos, DetailsBreadcrumb } from "@/components/catalogue/DetailsPar
 import { CoinDetailsSkeleton } from "@/components/catalogue/CoinDetailsSkeleton";
 import { CoinDetailTabs, EstimatedValueBanner, TableRow } from "@/components/catalogue/CoinDetailsInteractive";
 import { fetchArchetypeDetails, isArchetypeId } from "@/lib/api/coinzy";
+import { fetchArchetypeDetailsForSession } from "@/lib/api/coinzy-session";
+import { getSessionToken } from "@/lib/auth/session";
+import { WishlistHeart } from "@/components/catalogue/WishlistHeart";
+import { withFrom } from "@/lib/backNav";
 import { FROM_HOME, pagedHref, parsePageParam, parseQueryParam } from "@/lib/backNav";
 import { getCategory } from "@/lib/catalogue/categories";
 import { coinTitle, detailTabs, gradePrices, overviewRows } from "@/lib/catalogue/coinDetails";
 import { COIN_DETAILS_CATEGORIES } from "@/lib/constants";
 
-const ICONS = "/assets/catalogue";
 const DETAIL_ICONS = "/assets/coin-details";
 
-type Params = { params: Promise<{ id: string }>; searchParams: Promise<{ from?: string; fromPage?: string; fromQ?: string | string[] }> };
+type Params = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ from?: string; fromPage?: string; fromQ?: string | string[]; premium?: string }>;
+};
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const coin = await fetchArchetypeDetails((await params).id).catch(() => null);
@@ -37,15 +46,21 @@ async function CoinDetailsContent({
   from,
   fromPage,
   fromQuery,
+  premium,
 }: {
   id: string;
   from?: string;
   fromPage: number;
   /** Search term of the list the visitor came from. */
   fromQuery: string;
+  premium: boolean;
 }) {
-  const coin = await fetchArchetypeDetails(id);
+  const sessionToken = await getSessionToken();
+  const coin =
+    (sessionToken ? await fetchArchetypeDetailsForSession(id, sessionToken) : null) ?? (await fetchArchetypeDetails(id));
   if (!coin) notFound();
+  const wishlisted = Boolean(coin.isWishlisted);
+  const wishlistReturn = withFrom(`/catalogue/coin/${id}`, from, fromPage, fromQuery);
 
   // Breadcrumb trail = where the visitor came from (`?from=` + `?fromPage=`, see `lib/backNav.ts`):
   // the dashboard, the /catalogue browse-all pager, or a view-all category page — each at its exact page.
@@ -53,6 +68,8 @@ async function CoinDetailsContent({
   const ancestors =
     from === FROM_HOME
       ? [{ href: "/home", label: "Home" }]
+      : from === "identify"
+        ? [{ href: "/identify", label: "Identify" }]
       : from === "catalogue"
         ? [{ href: `${pagedHref("/catalogue", fromPage, fromQuery)}#browse-all`, label: "Global Catalogue" }]
         : [
@@ -76,19 +93,12 @@ async function CoinDetailsContent({
           <div className="flex w-full flex-col gap-6 rounded-2xl bg-white p-4">
             <div className="flex min-h-8 items-center justify-between gap-4">
               <h1 className="text-2xl font-semibold leading-8 text-ink">{title}</h1>
-              <button
-                type="button"
-                aria-label="Add to wishlist"
+              <WishlistHeart
+                archetypeId={id}
+                initialWishlisted={wishlisted}
+                returnTo={wishlistReturn}
                 className="flex size-6 shrink-0 items-center justify-center"
-              >
-                <Image
-                  src={`${ICONS}/icon-heart.svg`}
-                  alt=""
-                  width={22}
-                  height={20}
-                  className="h-[19.5px] w-[21.5px]"
-                />
-              </button>
+              />
             </div>
 
             <div className="flex flex-col gap-8 sm:flex-row sm:items-start">
@@ -108,7 +118,7 @@ async function CoinDetailsContent({
             </div>
           </div>
 
-          <CoinDetailTabs tabs={detailTabs(coin)} />
+          <CoinDetailTabs tabs={detailTabs(coin)} premium={premium} />
         </div>
 
         <aside className="flex w-full shrink-0 flex-col gap-4 sm:flex-row lg:w-[268px] lg:flex-col">
@@ -147,22 +157,49 @@ async function CoinDetailsContent({
   );
 }
 
-/** Catalogue coin details — Figma `Landing page/CataloguePage/DetailsPage` (797:35810). */
+/** Catalogue coin details — marketing `797:35810`; signed-in free/premium `1348:137792` / `1341:249499`. */
 export default async function CatalogueCoinPage({ params, searchParams }: Params) {
-  const [{ id }, { from, fromPage, fromQ }] = await Promise.all([params, searchParams]);
+  const [{ id }, sp] = await Promise.all([params, searchParams]);
+  const { from, fromPage, fromQ } = sp;
   // Malformed ids 404 straight away (real status code); unknown ids 404 inside the stream.
   if (!isArchetypeId(id)) notFound();
+
+  const user = await getSessionUser();
+  const premium =
+    !!user &&
+    ((await getPremiumStatus(user)) || (process.env.NODE_ENV !== "production" && sp.premium === "1"));
+
+  const details = (
+    <Suspense key={id} fallback={<CoinDetailsSkeleton />}>
+      <CoinDetailsContent
+        id={id}
+        from={from}
+        fromPage={parsePageParam(fromPage)}
+        fromQuery={parseQueryParam(fromQ)}
+        premium={premium}
+      />
+    </Suspense>
+  );
+
+  if (user) {
+    return (
+      <div className="flex h-svh overflow-hidden bg-white">
+        <AppSidebar user={user} active="catalogue" />
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-[#f7f7f8]">
+          <MarketplaceAppHeader user={user} premium={premium} />
+          <main className="min-w-0 flex-1 overflow-y-auto px-8 py-6">
+            <div className="mx-auto w-full max-w-[1122px]">{details}</div>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
       <TopNav />
       <main className="bg-cream">
-        <section className="mx-auto w-full max-w-[1440px] px-6 pt-20 lg:px-[160px]">
-          {/* Page shell renders immediately; the key re-shows the loader when moving between coins. */}
-          <Suspense key={id} fallback={<CoinDetailsSkeleton />}>
-            <CoinDetailsContent id={id} from={from} fromPage={parsePageParam(fromPage)} fromQuery={parseQueryParam(fromQ)} />
-          </Suspense>
-        </section>
+        <section className="mx-auto w-full max-w-[1440px] px-6 pt-20 lg:px-[160px]">{details}</section>
 
         <BrowseCatalogueSection
           label="Browse Catalogue"

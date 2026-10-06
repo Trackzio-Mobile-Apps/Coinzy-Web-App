@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useId, useState } from "react";
 import type { GradePrice, TableGroup } from "@/lib/catalogue/coinDetails";
+import { CatalogueDetailsPremiumOverlay } from "@/components/catalogue/CatalogueDetailsPremiumOverlay";
 
 const ICONS = "/assets/coin-details";
 
@@ -90,9 +91,12 @@ export function TableRow({ label, value, gapClassName }: { label: string; value:
 export function CoinDetailTabs({
   tabs,
   className = "",
+  premium = true,
 }: {
   tabs: { label: string; groups: TableGroup[] }[];
   className?: string;
+  /** When false, tab bodies are blurred with the Premium overlay (Figma `1348:137792`). */
+  premium?: boolean;
 }) {
   const baseId = useId();
   const [active, setActive] = useState(0);
@@ -125,27 +129,32 @@ export function CoinDetailTabs({
         </div>
       </div>
 
-      {tabs.map((tab, i) => (
-        <div
-          key={tab.label}
-          role="tabpanel"
-          id={`${baseId}-panel-${i}`}
-          aria-labelledby={`${baseId}-tab-${i}`}
-          hidden={i !== active}
-          className="flex flex-col gap-5"
-        >
-          {tab.groups.map((group) => (
-            <div key={group.heading} className="flex flex-col gap-2">
-              <h3 className="text-lg font-medium leading-7 text-ink">{group.heading}</h3>
-              <div className="flex flex-col">
-                {group.rows.map((row) => (
-                  <TableRow key={row.label} {...row} gapClassName="gap-6 lg:gap-[140px]" />
-                ))}
-              </div>
+      <div className="relative min-h-[280px]">
+        <div className={premium ? undefined : "pointer-events-none select-none blur-[6px]"}>
+          {tabs.map((tab, i) => (
+            <div
+              key={tab.label}
+              role="tabpanel"
+              id={`${baseId}-panel-${i}`}
+              aria-labelledby={`${baseId}-tab-${i}`}
+              hidden={i !== active}
+              className="flex flex-col gap-5"
+            >
+              {tab.groups.map((group) => (
+                <div key={group.heading} className="flex flex-col gap-2">
+                  <h3 className="text-lg font-medium leading-7 text-ink">{group.heading}</h3>
+                  <div className="flex flex-col">
+                    {group.rows.map((row) => (
+                      <TableRow key={row.label} {...row} gapClassName="gap-6 lg:gap-[140px]" />
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           ))}
         </div>
-      ))}
+        {!premium && <CatalogueDetailsPremiumOverlay />}
+      </div>
     </div>
   );
 }

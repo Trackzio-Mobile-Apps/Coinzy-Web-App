@@ -3,14 +3,24 @@ import Link from "next/link";
 import { CoinPlaceholder } from "@/components/ui/CoinPlaceholder";
 import { FallbackImage } from "@/components/ui/FallbackImage";
 import { fetchArchetypesCached } from "@/lib/api/coinzy";
+import { fetchArchetypesForSession } from "@/lib/api/coinzy-session";
+import { getSessionToken } from "@/lib/auth/session";
 import { withFrom } from "@/lib/backNav";
+import { WishlistHeart } from "@/components/catalogue/WishlistHeart";
 import { searchVariants } from "@/lib/catalogue/search";
 import { CATALOGUE_COINS } from "@/lib/constants";
 
 const ICONS = "/assets/catalogue";
 
 /** `href` is only set for live API coins (the static fallbacks have no details page). */
-export type GridCoin = { id: string; image: string; title: string; remote: boolean; href?: string };
+export type GridCoin = {
+  id: string;
+  image: string;
+  title: string;
+  remote: boolean;
+  href?: string;
+  isWishlisted?: boolean;
+};
 
 /**
  * Load one page of catalogue coins. With `search`, the term is tried in a few spellings (see
@@ -31,14 +41,19 @@ export async function loadCoins({
 }): Promise<{ coins: GridCoin[]; totalPages: number; totalCount: number; live: boolean }> {
   try {
     const pageNo = page - 1;
+    const sessionToken = await getSessionToken();
+    const loadPage = async (term?: string) => {
+      if (sessionToken) {
+        return fetchArchetypesForSession({ token: sessionToken, pageNo, pageSize, search: term, filters });
+      }
+      return fetchArchetypesCached({ pageNo, pageSize, search: term, filters });
+    };
     let res;
     if (search) {
-      const results = await Promise.all(
-        searchVariants(search).map((term) => fetchArchetypesCached({ pageNo, pageSize, search: term, filters })),
-      );
+      const results = await Promise.all(searchVariants(search).map((term) => loadPage(term)));
       res = results.find((r) => r.totalCount > 0) ?? results[0];
     } else {
-      res = await fetchArchetypesCached({ pageNo, pageSize, filters });
+      res = await loadPage();
     }
     return {
       coins: res.items.map((a) => ({
@@ -47,6 +62,7 @@ export async function loadCoins({
         title: a.name,
         remote: Boolean(a.imageUrls[0]),
         href: `/catalogue/coin/${a.archetypeId}`,
+        isWishlisted: Boolean(a.isWishlisted),
       })),
       totalPages: Math.max(1, Math.ceil(res.totalCount / pageSize)),
       totalCount: res.totalCount,
@@ -65,7 +81,15 @@ export async function loadCoins({
 }
 
 /** Figma "Coin card / Wishlist" (71:30445): 211×262.5, 136px coin, 2-line title, heart top-right. */
-export function CoinCard({ image, title, remote, href, priority = false }: GridCoin & { priority?: boolean }) {
+export function CoinCard({
+  id,
+  image,
+  title,
+  remote,
+  href,
+  isWishlisted = false,
+  priority = false,
+}: GridCoin & { priority?: boolean }) {
   return (
     <article className="relative flex h-[262.5px] transition-shadow has-[a]:hover:shadow-md w-full min-w-[164px] flex-col items-center gap-2 rounded-[var(--radius-inner)] border-[0.5px] border-border-neutral bg-white p-4 xl:w-[211px]">
       {/* Neutral disc behind API photos while loading; broken links (a few S3 files 404) swap to the placeholder coin. */}
@@ -93,13 +117,9 @@ export function CoinCard({ image, title, remote, href, priority = false }: GridC
           title
         )}
       </p>
-      <button
-        type="button"
-        aria-label="Add to wishlist"
-        className="absolute right-[7.5px] top-[7.5px] z-10 flex size-6 items-center justify-center"
-      >
-        <Image src={`${ICONS}/icon-heart.svg`} alt="" width={22} height={20} className="h-[19.5px] w-[21.5px]" />
-      </button>
+      {href ? (
+        <WishlistHeart archetypeId={id} initialWishlisted={isWishlisted} />
+      ) : null}
     </article>
   );
 }
