@@ -39,8 +39,10 @@ All auth entry/sign-up prompts are tracked here, regardless of the page that tri
 
 ## Marketplace
 - [x] MarketplacePage — `793:77834` → `app/marketplace/page.tsx`
-- [x] MarketplacePage/CoinListings — `793:77612` → `app/marketplace/[slug]/page.tsx` (live prod API; slugs in `lib/marketplace/categories.ts`)
-- [x] CoinListings/DetailsPage — `843:15466` → `app/marketplace/listing/[id]/page.tsx` (live prod API; linked from listing grids + marketplace rows)
+- [x] MarketplacePage/CoinListings — `793:77612` → `app/marketplace/[slug]/page.tsx` (live prod API; slugs in `lib/marketplace/categories.ts`; title search `?q=` — Figma shows no search/filter/sort UI, built on the dashboard search pill)
+- [x] CoinListings/DetailsPage — `843:15466` → `app/marketplace/listing/[id]/page.tsx` (live prod API; linked from listing grids + marketplace rows; breadcrumb round-trips `?fromQ=`)
+- [x] `/home` marketplace panel chips + search (`1898:205770`) — chips filter live rows; "British coins" → `british-coins` (empty today)
+- [ ] Marketplace filter/sort UI — no Figma node exists; blocked until a design is supplied
 
 ## Global Catalogue
 - [x] CataloguePage — `797:30404` → `app/catalogue/page.tsx` (+ name search `?q=`; Figma shows no search UI — built on the dashboard search pill, see INDEX.md)
