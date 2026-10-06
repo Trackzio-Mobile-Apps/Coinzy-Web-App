@@ -8,8 +8,8 @@ const A = "/assets/blogs";
 const softBadge = "rounded-full bg-[#e8e8e8] font-medium text-muted";
 
 /** Figma "Blogs card" (885:27125): 510px, 24px padding, 218px image, tags, title, 3-line excerpt, date + ↗. */
-export function BlogCard({ post }: { post: BlogPost }) {
-  const href = `/blogs/${post.slug}`;
+export function BlogCard({ post, listQuery }: { post: BlogPost; listQuery?: string }) {
+  const href = `/blogs/${post.slug}${listQuery ? `?${listQuery}` : ""}`;
   return (
     <article className="relative flex h-[510px] flex-col overflow-hidden rounded-[14px] bg-white py-6 shadow-[0_0_0_1px_rgba(10,10,10,0.1)] transition-shadow hover:shadow-[0_0_0_1px_rgba(10,10,10,0.1),0_8px_24px_-12px_rgba(0,0,0,0.25)]">
       <div className="flex flex-1 flex-col gap-6 px-6">
@@ -85,11 +85,12 @@ export function BlogSectionHeader({
   );
 }
 
-export function BlogGrid({ posts }: { posts: BlogPost[] }) {
+/** `listQuery` = the blogs list state (`category=…&show=…`) carried to the article so its breadcrumb returns there. */
+export function BlogGrid({ posts, listQuery }: { posts: BlogPost[]; listQuery?: string }) {
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
       {posts.map((post) => (
-        <BlogCard key={post.slug} post={post} />
+        <BlogCard key={post.slug} post={post} listQuery={listQuery} />
       ))}
     </div>
   );

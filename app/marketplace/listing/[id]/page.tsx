@@ -21,9 +21,11 @@ import {
   overviewRows,
   type CoinSpec,
 } from "@/lib/catalogue/coinDetails";
+import { FROM_HOME, pagedHref, parsePageParam } from "@/lib/backNav";
 import { MARKETPLACE_BROWSE_CATEGORIES } from "@/lib/constants";
+import { getMarketplaceCategory } from "@/lib/marketplace/categories";
 
-type Params = { params: Promise<{ id: string }> };
+type Params = { params: Promise<{ id: string }>; searchParams: Promise<{ from?: string; fromPage?: string }> };
 
 /** Listing coin facts in the shared `CoinSpec` shape (falls back to the listing title). */
 function listingCoin(l: ListingDetails): CoinSpec {
@@ -55,7 +57,7 @@ function SectionTable({ heading, rows }: { heading: string; rows: { label: strin
 }
 
 /** Breadcrumb + listing details: streams in after the API responds; the skeleton shows meanwhile. */
-async function ListingDetailsContent({ id }: { id: string }) {
+async function ListingDetailsContent({ id, from, fromPage }: { id: string; from?: string; fromPage: number }) {
   const listing = await fetchListingDetails(id);
   if (!listing) notFound();
 
@@ -68,10 +70,24 @@ async function ListingDetailsContent({ id }: { id: string }) {
   const price = formatPrice(listing.price);
   const images = listing.imageUrls.length ? listing.imageUrls : (listing.coinDetails?.imageUrls ?? []);
 
+  // Breadcrumb trail = where the visitor came from (`?from=` + `?fromPage=`, see `lib/backNav.ts`).
+  const category = from ? getMarketplaceCategory(from) : null;
+  const ancestors =
+    from === FROM_HOME
+      ? [{ href: "/home", label: "Home" }]
+      : from === "marketplace"
+        ? [{ href: "/marketplace", label: "Marketplace" }]
+        : [
+            { href: "/marketplace", label: "Marketplace" },
+            category
+              ? { href: pagedHref(`/marketplace/${category.slug}`, fromPage), label: category.crumb }
+              : { href: "/marketplace/all", label: "All listings" },
+          ];
+
   return (
     <>
       {/* Breadcrumb (Figma 843:15472) */}
-      <DetailsBreadcrumb ancestors={[{ href: "/marketplace", label: "Marketplace" }, { href: "/marketplace/all", label: "All listings" }]} current={title} />
+      <DetailsBreadcrumb ancestors={ancestors} current={title} />
 
       {/* Details (Figma 863:29439) */}
       <div className="mt-10 flex flex-col items-start gap-4 lg:flex-row">
@@ -111,8 +127,8 @@ async function ListingDetailsContent({ id }: { id: string }) {
 }
 
 /** Marketplace listing details — Figma `Landing page/MarketplacePage/CoinListings/DetailsPage` (843:15466). */
-export default async function MarketplaceListingPage({ params }: Params) {
-  const { id } = await params;
+export default async function MarketplaceListingPage({ params, searchParams }: Params) {
+  const [{ id }, { from, fromPage }] = await Promise.all([params, searchParams]);
   if (!isArchetypeId(id)) notFound();
 
   return (
@@ -121,7 +137,7 @@ export default async function MarketplaceListingPage({ params }: Params) {
       <main className="bg-cream">
         <section className="mx-auto w-full max-w-[1440px] px-6 pb-20 pt-20 lg:px-[160px] lg:pb-[184px]">
           <Suspense key={id} fallback={<CoinDetailsSkeleton sidebar="seller" />}>
-            <ListingDetailsContent id={id} />
+            <ListingDetailsContent id={id} from={from} fromPage={parsePageParam(fromPage)} />
           </Suspense>
         </section>
 

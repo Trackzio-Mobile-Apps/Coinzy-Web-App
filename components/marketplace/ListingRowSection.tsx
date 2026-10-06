@@ -4,6 +4,7 @@ import { ParchmentBackground } from "@/components/ui/ParchmentBackground";
 import { SectionShell } from "@/components/ui/SectionShell";
 import { CoinPlaceholder } from "@/components/ui/CoinPlaceholder";
 import { FallbackImage } from "@/components/ui/FallbackImage";
+import { withFrom } from "@/lib/backNav";
 import type { ListingCard } from "@/lib/marketplace/categories";
 
 interface ListingRowSectionProps {
@@ -13,6 +14,8 @@ interface ListingRowSectionProps {
   /** Live listings; each card shows the seller's front + back photos. */
   cards: ListingCard[];
   viewAllHref: string;
+  /** Origin passed to listing links so the listing page can link back (see `lib/backNav.ts`). */
+  from?: string;
 }
 
 function CoinSlot({ src }: { src?: string }) {
@@ -35,7 +38,7 @@ function CoinSlot({ src }: { src?: string }) {
 }
 
 /** Figma marketplace row (793:77834): title + "View all", four listing cards with a coin pair each. */
-export function ListingRowSection({ title, variant, wellClassName, cards, viewAllHref }: ListingRowSectionProps) {
+export function ListingRowSection({ title, variant, wellClassName, cards, viewAllHref, from }: ListingRowSectionProps) {
   if (!cards.length) return null;
   return (
     <SectionShell
@@ -66,7 +69,7 @@ export function ListingRowSection({ title, variant, wellClassName, cards, viewAl
               </div>
               <div className="space-y-2 px-1">
                 <h3 className="line-clamp-2 h-12 text-base leading-6 text-ink">
-                  <Link href={card.href} className="after:absolute after:inset-0 after:rounded-[var(--radius-inner)]">
+                  <Link href={withFrom(card.href, from)} className="after:absolute after:inset-0 after:rounded-[var(--radius-inner)]">
                     {card.title}
                   </Link>
                 </h3>

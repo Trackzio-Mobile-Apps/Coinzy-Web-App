@@ -10,6 +10,7 @@ import {
   MARKETPLACE_CHIPS,
 } from "@/lib/home";
 import type { SessionUser } from "@/lib/auth/session";
+import { FROM_HOME, withFrom } from "@/lib/backNav";
 
 const A = "/assets/home";
 
@@ -268,7 +269,7 @@ export function HomeDashboard({
                       <div className="shrink-0 text-right">
                         <p className="text-sm font-medium leading-5 text-ink">{row.price}</p>
                         <Link
-                          href={row.id ? `/marketplace/listing/${row.id}` : "/marketplace"}
+                          href={row.id ? withFrom(`/marketplace/listing/${row.id}`, FROM_HOME) : "/marketplace"}
                           className="text-xs font-medium leading-4 text-primary-500"
                         >
                           Buy coin
@@ -321,7 +322,7 @@ export function HomeDashboard({
                       </p>
                     )}
                     <Link
-                      href={cotd.id ? `/catalogue/coin/${cotd.id}` : "/catalogue"}
+                      href={cotd.id ? withFrom(`/catalogue/coin/${cotd.id}`, FROM_HOME) : "/catalogue"}
                       className="flex items-center justify-center gap-1 text-xs font-medium leading-4 text-ink"
                     >
                       Learn more
@@ -342,7 +343,7 @@ export function HomeDashboard({
                 {cat.map((item, i) => (
                   <li key={`${item.name}-${i}`}>
                     <Link
-                      href={item.id ? `/catalogue/coin/${item.id}` : "/catalogue"}
+                      href={item.id ? withFrom(`/catalogue/coin/${item.id}`, FROM_HOME) : "/catalogue"}
                       className="flex items-center gap-3"
                     >
                       <CoinThumb src={item.image} size={40} />

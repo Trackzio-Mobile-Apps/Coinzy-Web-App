@@ -33,6 +33,7 @@ export default async function MarketplacePage() {
             wellClassName={row.wellClassName}
             cards={rows[i]}
             viewAllHref={`/marketplace/${row.slug}`}
+            from="marketplace"
           />
         ))}
         <WebappCTASection />

@@ -26,13 +26,13 @@ export default async function BlogsPage({ searchParams }: Params) {
   const filtered = category ? SORTED_POSTS.filter((p) => p.tags[0] === category) : SORTED_POSTS;
   const visible = Math.max(PAGE_SIZE, Number.parseInt(show ?? "", 10) || PAGE_SIZE);
   const posts = filtered.slice(0, visible);
-  const href = (c?: string, n?: number) => {
+  const query = (c?: string, n?: number) => {
     const qs = new URLSearchParams();
     if (c) qs.set("category", c);
     if (n) qs.set("show", String(n));
-    const q = qs.toString();
-    return `/blogs${q ? `?${q}` : ""}#posts`;
+    return qs.toString();
   };
+  const href = (c?: string, n?: number) => `/blogs${query(c, n) ? `?${query(c, n)}` : ""}#posts`;
 
   return (
     <>
@@ -72,7 +72,7 @@ export default async function BlogsPage({ searchParams }: Params) {
 
           <div className="mt-5">
             {posts.length ? (
-              <BlogGrid posts={posts} />
+              <BlogGrid posts={posts} listQuery={query(category, visible > PAGE_SIZE ? visible : undefined)} />
             ) : (
               <p className="py-16 text-center text-sm text-muted">No posts in this category yet — check back soon.</p>
             )}
@@ -83,6 +83,7 @@ export default async function BlogsPage({ searchParams }: Params) {
               <Link
                 href={href(category, visible + PAGE_SIZE)}
                 scroll={false}
+                replace
                 className="rounded-[10px] border border-[#e5e5e5] bg-white px-4 py-2 text-sm font-medium leading-5 text-[#0a0a0a] hover:bg-neutral-50"
               >
                 Load more posts

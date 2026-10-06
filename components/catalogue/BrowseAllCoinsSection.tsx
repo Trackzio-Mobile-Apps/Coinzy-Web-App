@@ -30,7 +30,7 @@ export async function BrowseAllCoinsSection({ page = 1 }: { page?: number }) {
               <Image src="/assets/landing-page/icons/shared/arrow-right.svg" alt="" width={16} height={16} />
             </Link>
           </div>
-          <CoinGrid coins={coins} />
+          <CoinGrid coins={coins} from="catalogue" fromPage={current} />
         </div>
         <Pagination page={current} totalPages={totalPages} href={(n) => `?page=${n}#browse-all`} />
       </div>

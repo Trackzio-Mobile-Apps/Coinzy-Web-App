@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CoinPlaceholder } from "@/components/ui/CoinPlaceholder";
 import { FallbackImage } from "@/components/ui/FallbackImage";
 import { fetchArchetypes } from "@/lib/api/coinzy";
+import { withFrom } from "@/lib/backNav";
 import { CATALOGUE_COINS } from "@/lib/constants";
 
 const ICONS = "/assets/catalogue";
@@ -85,15 +86,18 @@ export function CoinCard({ image, title, remote, href, priority = false }: GridC
   );
 }
 
-/** `from` = view-all slug, passed on so the details page breadcrumb can link back to it. */
-export function CoinGrid({ coins, from }: { coins: GridCoin[]; from?: string }) {
+/**
+ * `from` = origin list (view-all slug or `"catalogue"`) and `fromPage` its page number, passed on so the
+ * details page breadcrumb/back button return to the exact list state.
+ */
+export function CoinGrid({ coins, from, fromPage }: { coins: GridCoin[]; from?: string; fromPage?: number }) {
   return (
     <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-[repeat(5,211px)]">
       {coins.map((coin, i) => (
         <CoinCard
           key={coin.id}
           {...coin}
-          href={coin.href && from ? `${coin.href}?from=${from}` : coin.href}
+          href={coin.href ? withFrom(coin.href, from, fromPage) : undefined}
           priority={i < 5}
         />
       ))}

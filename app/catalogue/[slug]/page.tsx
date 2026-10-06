@@ -93,7 +93,7 @@ export default async function CatalogueCategoryPage({ params, searchParams }: Pa
               </div>
 
               {coins.length ? (
-                <CoinGrid coins={coins} from={category.slug} />
+                <CoinGrid coins={coins} from={category.slug} fromPage={current} />
               ) : (
                 <p className="py-16 text-center text-sm text-muted">No coins found in this category yet.</p>
               )}

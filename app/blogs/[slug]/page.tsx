@@ -5,9 +5,9 @@ import { TopNav } from "@/components/landing/TopNav";
 import { Footer } from "@/components/landing/Footer";
 import { DetailsBreadcrumb } from "@/components/catalogue/DetailsParts";
 import { ArticleBody, BlogGrid, BlogSectionHeader } from "@/components/blogs/BlogParts";
-import { BLOG_POSTS, formatBlogDate, getPost, readTime, relatedPosts, type BlogAuthor } from "@/lib/blogs";
+import { BLOG_CATEGORIES, BLOG_POSTS, formatBlogDate, getPost, readTime, relatedPosts, type BlogAuthor } from "@/lib/blogs";
 
-type Params = { params: Promise<{ slug: string }> };
+type Params = { params: Promise<{ slug: string }>; searchParams: Promise<{ category?: string; show?: string }> };
 
 export function generateStaticParams() {
   return BLOG_POSTS.map((p) => ({ slug: p.slug }));
@@ -37,16 +37,24 @@ function Avatar({ author, size }: { author: BlogAuthor; size: "sm" | "lg" }) {
 }
 
 /** Blog article — Figma `Landing page/BlogsPage/Read` (828:40221). */
-export default async function BlogArticlePage({ params }: Params) {
-  const post = getPost((await params).slug);
+export default async function BlogArticlePage({ params, searchParams }: Params) {
+  const [{ slug }, { category, show }] = await Promise.all([params, searchParams]);
+  const post = getPost(slug);
   if (!post) notFound();
+
+  // Breadcrumb returns to the exact blogs list state (category filter + "load more" count) the reader came from.
+  const listQs = new URLSearchParams();
+  if (BLOG_CATEGORIES.some((c) => c === category)) listQs.set("category", category!);
+  const shown = Number.parseInt(show ?? "", 10);
+  if (shown > 0) listQs.set("show", String(shown));
+  const listHref = `/blogs${listQs.size ? `?${listQs}` : ""}#posts`;
 
   return (
     <>
       <TopNav />
       <main className="bg-cream">
         <article className="mx-auto w-full max-w-[1440px] px-6 pb-20 pt-20 lg:px-[160px]">
-          <DetailsBreadcrumb ancestors={[{ href: "/blogs", label: "Blogs" }]} current={post.title} />
+          <DetailsBreadcrumb ancestors={[{ href: listHref, label: "Blogs" }]} current={post.title} />
 
           {/* Title, category, author (Figma 851:24614) */}
           <header className="mt-8 flex flex-col gap-5">

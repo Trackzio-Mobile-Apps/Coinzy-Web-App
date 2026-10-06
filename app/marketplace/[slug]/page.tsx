@@ -72,7 +72,7 @@ async function ListingResults({ slug, page }: { slug: string; page: number }) {
   }
   return (
     <div className="flex flex-col gap-10">
-      <ListingGrid cards={result.cards} />
+      <ListingGrid cards={result.cards} from={slug} fromPage={result.page} />
       {result.totalPages > 1 && (
         <div className="flex justify-center">
           <Pagination

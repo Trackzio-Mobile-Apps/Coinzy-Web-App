@@ -11,6 +11,7 @@ import { CoinPhotos, DetailsBreadcrumb } from "@/components/catalogue/DetailsPar
 import { CoinDetailsSkeleton } from "@/components/catalogue/CoinDetailsSkeleton";
 import { CoinDetailTabs, EstimatedValueBanner, TableRow } from "@/components/catalogue/CoinDetailsInteractive";
 import { fetchArchetypeDetails, isArchetypeId } from "@/lib/api/coinzy";
+import { FROM_HOME, pagedHref, parsePageParam } from "@/lib/backNav";
 import { getCategory } from "@/lib/catalogue/categories";
 import { coinTitle, detailTabs, gradePrices, overviewRows } from "@/lib/catalogue/coinDetails";
 import { COIN_DETAILS_CATEGORIES } from "@/lib/constants";
@@ -18,7 +19,7 @@ import { COIN_DETAILS_CATEGORIES } from "@/lib/constants";
 const ICONS = "/assets/catalogue";
 const DETAIL_ICONS = "/assets/coin-details";
 
-type Params = { params: Promise<{ id: string }>; searchParams: Promise<{ from?: string }> };
+type Params = { params: Promise<{ id: string }>; searchParams: Promise<{ from?: string; fromPage?: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const coin = await fetchArchetypeDetails((await params).id).catch(() => null);
@@ -31,12 +32,22 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 }
 
 /** Breadcrumb + details: streams in after the API responds; `CoinDetailsSkeleton` shows meanwhile. */
-async function CoinDetailsContent({ id, from }: { id: string; from?: string }) {
+async function CoinDetailsContent({ id, from, fromPage }: { id: string; from?: string; fromPage: number }) {
   const coin = await fetchArchetypeDetails(id);
   if (!coin) notFound();
 
-  // Breadcrumb ancestor: the view-all page the visitor came from (`?from=slug`), if any.
+  // Breadcrumb trail = where the visitor came from (`?from=` + `?fromPage=`, see `lib/backNav.ts`):
+  // the dashboard, the /catalogue browse-all pager, or a view-all category page — each at its exact page.
   const category = from ? getCategory(from) : null;
+  const ancestors =
+    from === FROM_HOME
+      ? [{ href: "/home", label: "Home" }]
+      : from === "catalogue"
+        ? [{ href: `${pagedHref("/catalogue", fromPage)}#browse-all`, label: "Global Catalogue" }]
+        : [
+            { href: "/catalogue", label: "Global Catalogue" },
+            ...(category ? [{ href: pagedHref(`/catalogue/${category.slug}`, fromPage), label: category.crumb }] : []),
+          ];
   const title = coinTitle(coin);
   const grades = gradePrices(coin.estimatedPrice);
 
@@ -44,10 +55,7 @@ async function CoinDetailsContent({ id, from }: { id: string; from?: string }) {
     <>
       {/* Breadcrumb (Figma 797:38514) */}
       <DetailsBreadcrumb
-        ancestors={[
-          { href: "/catalogue", label: "Global Catalogue" },
-          ...(category ? [{ href: `/catalogue/${category.slug}`, label: category.crumb }] : []),
-        ]}
+        ancestors={ancestors}
         current={title}
       />
 
@@ -130,7 +138,7 @@ async function CoinDetailsContent({ id, from }: { id: string; from?: string }) {
 
 /** Catalogue coin details — Figma `Landing page/CataloguePage/DetailsPage` (797:35810). */
 export default async function CatalogueCoinPage({ params, searchParams }: Params) {
-  const [{ id }, { from }] = await Promise.all([params, searchParams]);
+  const [{ id }, { from, fromPage }] = await Promise.all([params, searchParams]);
   // Malformed ids 404 straight away (real status code); unknown ids 404 inside the stream.
   if (!isArchetypeId(id)) notFound();
 
@@ -141,7 +149,7 @@ export default async function CatalogueCoinPage({ params, searchParams }: Params
         <section className="mx-auto w-full max-w-[1440px] px-6 pt-20 lg:px-[160px]">
           {/* Page shell renders immediately; the key re-shows the loader when moving between coins. */}
           <Suspense key={id} fallback={<CoinDetailsSkeleton />}>
-            <CoinDetailsContent id={id} from={from} />
+            <CoinDetailsContent id={id} from={from} fromPage={parsePageParam(fromPage)} />
           </Suspense>
         </section>
 
