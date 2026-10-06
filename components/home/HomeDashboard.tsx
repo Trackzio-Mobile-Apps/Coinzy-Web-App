@@ -31,9 +31,33 @@ type Cotd = {
   year: string;
   price: string;
   images: string[];
+  /** Today's other coins, hidden behind Premium for free users. */
+  lockedCount: number;
 };
 
-type CatalogueRow = { id?: string; name: string; price: string; image: string };
+type CatalogueRow = { id?: string; name: string; price: string; image: string | null };
+
+/** Round coin photo; `null`/broken sources fall back to the placeholder coin. */
+function CoinThumb({ src, size }: { src: string | null; size: 40 | 60 }) {
+  return (
+    <div
+      className={`relative shrink-0 overflow-hidden rounded-full bg-[#f0ebe1] ${size === 60 ? "size-[60px]" : "size-10"}`}
+    >
+      {src ? (
+        <FallbackImage
+          src={src}
+          alt=""
+          width={size}
+          height={size}
+          className={size === 60 ? "size-[60px] object-cover" : "size-10 object-cover"}
+          fallback={<CoinPlaceholder size="sm" />}
+        />
+      ) : (
+        <CoinPlaceholder size="sm" />
+      )}
+    </div>
+  );
+}
 
 const rarityClass = {
   muted: "text-muted",
@@ -58,13 +82,7 @@ export function HomeDashboard({
 }) {
   const rows = listings.length ? listings : HOME_MARKETPLACE_FALLBACK;
   const cat = catalogue.length ? catalogue : HOME_CATALOGUE_FALLBACK;
-  const cotd = coinOfTheDay ?? {
-    name: "1909 - Small VDB Lincoln cent",
-    origin: "United States",
-    year: "1909",
-    price: "$3,200 - $4,150",
-    images: [`${A}/coin-of-day-a.png`, `${A}/coin-of-day-b.png`],
-  };
+  const cotd = coinOfTheDay;
   const greet = user.isGuest ? "Guest" : user.name.split(" ")[0] || user.name;
 
   return (
@@ -266,53 +284,56 @@ export function HomeDashboard({
           <aside className="hidden w-[268px] shrink-0 flex-col gap-4 xl:flex">
             <section className="rounded-2xl border-[0.5px] border-[#dfdfe0] bg-white px-[16.5px] py-[12.5px]">
               <h2 className="text-sm font-medium leading-5 text-ink">Coin of the day</h2>
-              <div className="mt-4 space-y-3">
-                <div className="flex items-center justify-center gap-6">
-                  {cotd.images.slice(0, 2).map((src, i) => (
-                    <div key={i} className="relative size-[60px] overflow-hidden rounded-full bg-[#f0ebe1]">
-                      <FallbackImage
-                        src={src}
-                        alt=""
-                        width={60}
-                        height={60}
-                        className="size-[60px] object-cover"
-                        fallback={<CoinPlaceholder size="sm" />}
-                      />
+              {cotd ? (
+                <>
+                  <div className="mt-4 space-y-3">
+                    <div className="flex items-center justify-center gap-6">
+                      {cotd.images.length ? (
+                        cotd.images.slice(0, 2).map((src, i) => <CoinThumb key={`${src}-${i}`} src={src} size={60} />)
+                      ) : (
+                        <CoinThumb src={null} size={60} />
+                      )}
                     </div>
-                  ))}
-                </div>
-                <div className="space-y-2">
-                  <p className="truncate text-sm font-medium leading-5 text-ink">{cotd.name}</p>
-                  <div className="space-y-1 text-xs leading-4 text-muted">
-                    <p>
-                      <span className="font-medium">Origin: </span>
-                      <span className="font-light">{cotd.origin}</span>
-                    </p>
-                    <p>
-                      <span className="font-medium">Year of Minting: </span>
-                      <span className="font-light">{cotd.year}</span>
-                    </p>
-                    <p>
-                      <span className="font-medium">Estimated price: </span>
-                      <span className="font-light">{cotd.price}</span>
-                    </p>
+                    <div className="space-y-2">
+                      <p className="truncate text-sm font-medium leading-5 text-ink">{cotd.name}</p>
+                      <div className="space-y-1 text-xs leading-4 text-muted">
+                        <p>
+                          <span className="font-medium">Origin: </span>
+                          <span className="font-light">{cotd.origin}</span>
+                        </p>
+                        <p>
+                          <span className="font-medium">Year of Minting: </span>
+                          <span className="font-light">{cotd.year}</span>
+                        </p>
+                        <p>
+                          <span className="font-medium">Estimated price: </span>
+                          <span className="font-light">{cotd.price}</span>
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-              <div className="my-4 h-px bg-[#ececec]" />
-              <div className="space-y-2.5">
-                <p className="flex items-center justify-center gap-1 text-xs font-light leading-4 text-muted">
-                  <Image src={`${A}/icon-lock.svg`} alt="" width={16} height={16} />
-                  Unlock 2 more with Premium
+                  <div className="my-4 h-px bg-[#ececec]" />
+                  <div className="space-y-2.5">
+                    {cotd.lockedCount > 0 && (
+                      <p className="flex items-center justify-center gap-1 text-xs font-light leading-4 text-muted">
+                        <Image src={`${A}/icon-lock.svg`} alt="" width={16} height={16} />
+                        {`Unlock ${cotd.lockedCount} more with Premium`}
+                      </p>
+                    )}
+                    <Link
+                      href={cotd.id ? `/catalogue/coin/${cotd.id}` : "/catalogue"}
+                      className="flex items-center justify-center gap-1 text-xs font-medium leading-4 text-ink"
+                    >
+                      Learn more
+                      <Image src={`${A}/icon-chevron.svg`} alt="" width={16} height={16} />
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                <p className="mt-4 text-center text-xs font-light leading-4 text-muted">
+                  Coin of the day is unavailable right now
                 </p>
-                <Link
-                  href={cotd.id ? `/catalogue/coin/${cotd.id}` : "/catalogue"}
-                  className="flex items-center justify-center gap-1 text-xs font-medium leading-4 text-ink"
-                >
-                  Learn more
-                  <Image src={`${A}/icon-chevron.svg`} alt="" width={16} height={16} />
-                </Link>
-              </div>
+              )}
             </section>
 
             <section className="rounded-2xl border-[0.5px] border-[#dfdfe0] bg-white px-[16.5px] py-[12.5px]">
@@ -324,16 +345,7 @@ export function HomeDashboard({
                       href={item.id ? `/catalogue/coin/${item.id}` : "/catalogue"}
                       className="flex items-center gap-3"
                     >
-                      <div className="relative size-10 shrink-0 overflow-hidden rounded-full bg-[#f0ebe1]">
-                        <FallbackImage
-                          src={item.image}
-                          alt=""
-                          width={40}
-                          height={40}
-                          className="size-10 object-cover"
-                          fallback={<CoinPlaceholder size="sm" />}
-                        />
-                      </div>
+                      <CoinThumb src={item.image} size={40} />
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-xs font-medium leading-4 text-ink">{item.name}</p>
                         <p className="truncate text-xs font-light leading-4 text-[#87878a]">{item.price}</p>
