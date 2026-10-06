@@ -6,7 +6,10 @@ Figma file: `YV6ArWhD2eVlLPH6M090gc` (canvas `793:76525`). Node IDs below are fo
 - [x] Free user dashboard — `1898:205770` → `app/home/page.tsx` (post login/signup/guest; `/` and `/auth` redirect when `coinzy_session` is set; Coin of the day + Global catalogue widgets use live API)
 - [x] Coin of the Day Premium upsell popup — `1248:114479` → `components/home/PremiumUpsellDialog.tsx` (opened from the home lock line and the drawer's "Show more coins")
 - [x] Coin of the Day drawer (free user) — `1248:123835` → `components/home/CoinOfTheDayDrawer.tsx` (opened by "Learn more" on `/home`; live `coins-of-the-day` data)
-- [ ] Premium Coin of the Day / premium home variant (timeline task 5) — no Figma for unlocked/multi-coin state yet
+- [x] Premium home — `1584:205526` → `/home` Premium variant (`HomeDashboard premium`); gated by `getPremiumStatus` + dev-only `?premium=1` (no documented plan flag yet)
+- [x] Premium Coin of the Day (multi-coin panel + drawer) — `1248:98330` → `components/home/PremiumCoinOfTheDay.tsx`, `CoinOfTheDayDrawer` `pro` variant
+- [x] Premium daily-limit alert ("final popup") — `1912:211426` → `components/home/DailyLimitDialog.tsx`
+- [ ] Premium timeline task 5 remainder: real entitlement flag, Premium coin details state, expert prompt
 
 ## Landing (`Landing page/main`)
 - [x] Landing page/opt2 — `1050:196584` → `app/page.tsx`
