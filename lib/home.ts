@@ -6,7 +6,7 @@
  */
 export const HOME_NAV: readonly HomeNavItem[] = [
   { label: "Home", href: "/home", icon: "home", active: true },
-  { label: "Identify coin", icon: "identify", soon: true },
+  { label: "Identify coin", href: "/identify", icon: "identify" },
   { label: "Expert analysis", icon: "expert", soon: true },
   { label: "Marketplace", href: "/marketplace", icon: "marketplace", chevron: true },
   { label: "Collection", icon: "collection", chevron: true, soon: true },

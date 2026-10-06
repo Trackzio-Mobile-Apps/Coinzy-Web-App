@@ -23,7 +23,7 @@ export function AppSidebar({
   active = "home",
 }: {
   user: SessionUser;
-  active?: "home" | "marketplace" | "catalogue";
+  active?: "home" | "identify" | "marketplace" | "catalogue";
 }) {
   const items = sidebarNav(active);
   return (

@@ -136,7 +136,7 @@ export function HomeDashboard({
                     </p>
                   </div>
                   <Link
-                    href="/auth"
+                    href="/identify"
                     className="inline-flex h-9 w-fit items-center justify-center rounded-button bg-primary-500 px-4 text-sm font-medium leading-5 text-[#fafafa] hover:bg-primary-700"
                   >
                     Analyse coin
