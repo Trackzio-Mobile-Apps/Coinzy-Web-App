@@ -1,5 +1,7 @@
 import Image from "next/image";
+import Link from "next/link";
 import type { ListingDetails } from "@/lib/api/coinzy";
+import { ContactSellerButton } from "./ContactSellerButton";
 
 const ICONS = "/assets/listing";
 
@@ -14,17 +16,32 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 /**
  * Figma "Details side panel / Marketplace - Buyer" (1285:114907): collapsible seller fields,
- * external links, and the "Contact seller" button (mail, else phone).
+ * external links, and the "Contact seller" button.
+ *
+ * Seller email and phone are only for signed-in viewers (`canContact`, guests included): for a visitor this component
+ * never reads them, so they are not in the HTML or the RSC payload, and "Contact seller" sends them to sign in (via
+ * `signInHref`, which returns them to this listing). For members the button opens the Contact details modal
+ * (Figma `1356:164759`).
  */
-export function SellerDetailsPanel({ seller, title }: { seller: ListingDetails["sellerDetails"]; title: string }) {
-  const email = seller?.contactEmail?.trim() || null;
-  const phone = seller?.phoneNumber?.trim() || null;
+export function SellerDetailsPanel({
+  seller,
+  title,
+  canContact,
+  signInHref,
+}: {
+  seller: ListingDetails["sellerDetails"];
+  title: string;
+  canContact: boolean;
+  signInHref: string;
+}) {
+  const email = canContact ? seller?.contactEmail?.trim() || null : null;
+  const phone = canContact ? seller?.phoneNumber?.trim() || null : null;
   const links = (seller?.externalLinks ?? []).filter((l) => /^https?:\/\//i.test(l));
-  const contactHref = email
-    ? `mailto:${email}?subject=${encodeURIComponent(`Coinzy listing: ${title}`)}`
-    : phone
-      ? `tel:${phone.replace(/[^\d+]/g, "")}`
-      : null;
+  const hiddenValue = (
+    <Link href={signInHref} className="text-primary-500 hover:underline">
+      Log in to view
+    </Link>
+  );
 
   return (
     <div className="flex w-full flex-col gap-5 rounded-[12px] border border-[#efefef] bg-white px-[17px] py-[13px] lg:w-[266px]">
@@ -42,8 +59,8 @@ export function SellerDetailsPanel({ seller, title }: { seller: ListingDetails["
           </summary>
           <dl className="mt-3 flex flex-col gap-4">
             <Field label="Name">{seller?.name?.trim() || "--"}</Field>
-            <Field label="Email">{email ?? "--"}</Field>
-            <Field label="Mobile no.">{phone ?? "--"}</Field>
+            <Field label="Email">{canContact ? (email ?? "--") : hiddenValue}</Field>
+            <Field label="Mobile no.">{canContact ? (phone ?? "--") : hiddenValue}</Field>
             <div className="flex flex-col gap-2">
               <dt className="text-xs font-medium leading-4 text-ink">Location</dt>
               <dd className="font-jakarta text-xs leading-[1.5] text-muted">{seller?.location?.trim() || "--"}</dd>
@@ -77,13 +94,15 @@ export function SellerDetailsPanel({ seller, title }: { seller: ListingDetails["
         </div>
       </div>
 
-      {contactHref ? (
-        <a
-          href={contactHref}
-          className="flex w-full items-center justify-center rounded-[10px] bg-primary-500 px-4 py-2 text-sm font-medium leading-5 text-[#fafafa] hover:bg-primary-700"
+      {!canContact ? (
+        <Link
+          href={signInHref}
+          className="flex w-full items-center justify-center rounded-[10px] bg-primary-500 px-4 py-2 text-sm font-medium leading-5 text-[#fafafa] hover:bg-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
         >
           Contact seller
-        </a>
+        </Link>
+      ) : email || phone ? (
+        <ContactSellerButton phone={phone} email={email} title={title} />
       ) : (
         <span
           aria-disabled

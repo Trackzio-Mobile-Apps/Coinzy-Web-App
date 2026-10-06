@@ -24,6 +24,8 @@ import {
 import { FROM_HOME, pagedHref, parsePageParam, parseQueryParam } from "@/lib/backNav";
 import { MARKETPLACE_BROWSE_CATEGORIES } from "@/lib/constants";
 import { getMarketplaceCategory } from "@/lib/marketplace/categories";
+import { getSessionUser } from "@/lib/auth/session";
+import { authHref } from "@/lib/auth/returnTo";
 
 type Params = { params: Promise<{ id: string }>; searchParams: Promise<{ from?: string; fromPage?: string; fromQ?: string | string[] }> };
 
@@ -69,8 +71,17 @@ async function ListingDetailsContent({
   /** Search term of the list the visitor came from. */
   fromQuery: string;
 }) {
-  const listing = await fetchListingDetails(id);
+  const [listing, viewer] = await Promise.all([fetchListingDetails(id), getSessionUser()]);
   if (!listing) notFound();
+
+  // Seller email/phone are for signed-in viewers only (guests included). Visitors are sent to sign in and come back here.
+  const returnQuery = new URLSearchParams();
+  if (from) returnQuery.set("from", from);
+  if (fromPage > 1) returnQuery.set("fromPage", String(fromPage));
+  if (fromQuery) returnQuery.set("fromQ", fromQuery);
+  // Redact up here (not just inside the panel) so the contact fields never enter any rendered props or payload.
+  const seller = viewer || !listing.sellerDetails ? listing.sellerDetails : { ...listing.sellerDetails, contactEmail: null, phoneNumber: null };
+  const returnPath = `/marketplace/listing/${id}${returnQuery.size ? `?${returnQuery}` : ""}`;
 
   const coin = listingCoin(listing);
   // Market estimate comes from the catalogue entry the seller's coin was identified as.
@@ -130,7 +141,12 @@ async function ListingDetailsContent({
         </div>
 
         <aside className="flex w-full shrink-0 flex-col lg:w-[268px]">
-          <SellerDetailsPanel seller={listing.sellerDetails} title={title} />
+          <SellerDetailsPanel
+            seller={seller}
+            title={title}
+            canContact={!!viewer}
+            signInHref={authHref("welcome", returnPath)}
+          />
         </aside>
       </div>
     </>
