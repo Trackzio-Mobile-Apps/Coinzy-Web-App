@@ -2,7 +2,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { LogoMark } from "@/components/landing/TopNav";
 import type { SessionUser } from "@/lib/auth/session";
+import { getSessionToken } from "@/lib/auth/session";
 import { type HomeNavIcon } from "@/lib/home";
+import { collectionLinks as buildCollectionLinks, type CollectionNavLink } from "@/components/collection/collectionNav";
+import { fetchCollectionsForSession } from "@/lib/api/coinzy-session";
 import { sidebarNav } from "@/lib/sidebarNav";
 
 const A = "/assets/home";
@@ -18,14 +21,24 @@ const ICONS: Record<HomeNavIcon, string> = {
   settings: `${A}/icon-settings-nav.svg`,
 };
 
-export function AppSidebar({
+export async function AppSidebar({
   user,
   active = "home",
+  collectionLinks = [],
 }: {
   user: SessionUser;
-  active?: "home" | "identify" | "marketplace" | "catalogue";
+  active?: "home" | "identify" | "marketplace" | "catalogue" | "collection";
+  collectionLinks?: CollectionNavLink[];
 }) {
   const items = sidebarNav(active);
+  let nestedCollections = collectionLinks;
+  if (active === "collection" && nestedCollections.length === 0) {
+    const token = await getSessionToken();
+    if (token) {
+      const res = await fetchCollectionsForSession(token);
+      nestedCollections = buildCollectionLinks(res.error ? [] : res.data, "");
+    }
+  }
   return (
     <aside className="flex h-full w-[254px] shrink-0 flex-col border-r border-[#e5e7eb] bg-white">
       <div className="flex h-[76px] items-center gap-2 border-b border-[#e5e7eb] px-4">
@@ -58,30 +71,65 @@ export function AppSidebar({
               />
               <span className="flex-1 truncate">{item.label}</span>
               {item.chevron && (
-                <Image src={`${A}/icon-chevron.svg`} alt="" width={16} height={16} className="opacity-40" />
+                <Image
+                  src={`${A}/icon-chevron.svg`}
+                  alt=""
+                  width={16}
+                  height={16}
+                  className={`opacity-40 ${item.icon === "collection" && isActive ? "rotate-90" : ""}`}
+                />
               )}
             </>
           );
-          return item.href && !item.soon ? (
-            <Link key={item.label} href={item.href} aria-current={isActive ? "page" : undefined} className={className}>
-              {content}
-            </Link>
-          ) : (
-            <span key={item.label} aria-disabled="true" title="Coming soon" className={className}>
-              {content}
-            </span>
-          );
+          const row =
+            item.href && !item.soon ? (
+              <Link key={item.label} href={item.href} aria-current={isActive ? "page" : undefined} className={className}>
+                {content}
+              </Link>
+            ) : (
+              <span key={item.label} aria-disabled="true" title="Coming soon" className={className}>
+                {content}
+              </span>
+            );
+
+          if (item.icon === "collection") {
+            return (
+              <div key={item.label} className="flex flex-col">
+                {row}
+                {active === "collection" && nestedCollections.length > 0 && (
+                  <div className="flex flex-col py-1 pl-11 pr-2">
+                    {nestedCollections.map((link) => (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        className={`rounded-md py-1.5 text-sm leading-5 ${
+                          link.active ? "font-medium text-primary-500" : "text-ink hover:bg-black/[0.03]"
+                        }`}
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          if (item.icon === "marketplace" && active === "marketplace") {
+            return (
+              <div key={item.label} className="flex flex-col">
+                {row}
+                <div className="flex flex-col py-1 pl-11 pr-2">
+                  <Link href="/marketplace" className="rounded-md py-1.5 text-sm font-medium leading-5 text-primary-500">
+                    Your listing
+                  </Link>
+                </div>
+              </div>
+            );
+          }
+
+          return row;
         })}
-        {active === "marketplace" && (
-          <div className="ml-7 mt-1 flex flex-col gap-0.5 border-l border-[#e5e7eb] pl-3">
-            <Link href="/marketplace" className="rounded-md px-2 py-1.5 text-sm font-medium leading-5 text-primary-500">
-              Your listing
-            </Link>
-            <span className="cursor-not-allowed rounded-md px-2 py-1.5 text-sm leading-5 text-muted opacity-60" title="Coming soon">
-              Collection
-            </span>
-          </div>
-        )}
       </nav>
 
       <div className="border-t border-[#e5e7eb] p-4">
