@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Coinzy Web — Dynamic Timeline</title>
+<style>
+:root{font-family:Inter,Arial,sans-serif;color:#19283a;background:#f4f7fb}*{box-sizing:border-box}body{margin:0}header{background:#17283f;color:white;padding:24px clamp(18px,4vw,52px)}h1{margin:0 0 7px;font-size:28px}header p{margin:0;color:#bfd0e4}main{max-width:1600px;margin:auto;padding:24px}.card{background:white;border:1px solid #dce4ee;border-radius:12px;box-shadow:0 2px 8px #18304a0a;padding:18px;margin-bottom:18px}h2{font-size:18px;margin:0 0 14px}.controls{display:flex;flex-wrap:wrap;gap:14px;align-items:end}.controls label{font-size:13px;font-weight:700;color:#526579;display:grid;gap:6px}.controls input{width:170px}.controls input,.tasks input,.tasks select{font:inherit;padding:8px;border:1px solid #cbd6e2;border-radius:7px;background:white;color:#19283a}.tasks input[type=number]{width:75px}.tasks select{min-width:76px}.controls button,button{font:inherit;border:0;border-radius:7px;padding:9px 13px;cursor:pointer;background:#dfeaf5;color:#17334f;font-weight:700}.primary{background:#2457a6;color:white}.danger{background:#fce7e7;color:#a33333}.metrics{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));gap:12px}.metric{border:1px solid #e1e8f0;background:#f9fbfe;border-radius:9px;padding:13px}.metric strong{display:block;font-size:23px;color:#174a87;margin-top:5px}.metric span{font-size:12px;color:#5b6c7c}.table-wrap{overflow:auto}.tasks{border-collapse:collapse;width:100%;min-width:1250px;font-size:13px}.tasks th,.tasks td{border-bottom:1px solid #e5ebf2;padding:8px;text-align:left;vertical-align:middle}.tasks th{background:#edf3fa;position:sticky;top:0;z-index:1;white-space:nowrap}.tasks td:nth-child(3) input{width:240px}.tasks td:nth-child(2) input{width:145px}.tasks td:nth-child(4) input{width:340px}.tasks .date{white-space:nowrap}.tasks .pending{color:#9a6b00}.tasks .done{color:#15784e}.hint{font-size:13px;color:#5c6f82;margin:9px 0 0}.gantt{overflow:auto}.gantt table{border-collapse:collapse;min-width:100%;font-size:12px}.gantt th,.gantt td{border:1px solid #e3eaf2;padding:7px 9px;min-width:70px;text-align:center}.gantt th:first-child,.gantt td:first-child{text-align:left;min-width:260px;position:sticky;left:0;background:white;z-index:1}.gantt th{background:#edf3fa}.gantt .bar{background:#4f83cd;color:white;font-weight:700}.gantt .qa{background:#33a67a}.gantt .muted{color:#95a4b4}@media(max-width:720px){main{padding:12px}.metrics{grid-template-columns:repeat(2,1fr)}h1{font-size:23px}}
+</style>
+</head>
+<body>
+<header><h1>Coinzy Web · Dynamic Timeline</h1><p>Edit screens, agent lane, dependencies, or progress. Early completions bring remaining work forward automatically.</p></header>
+<main>
+<section class="card"><div class="controls"><label>Project start<input id="start" type="date"></label><label>Forecast from<input id="asOf" type="date"></label><label>Screens per agent per day<input id="rate" type="number" min="0.1" step="0.1"></label><button id="add" class="primary">Add task</button><button id="export">Export current CSV</button><button id="reset" class="danger">Reset estimates</button></div><p class="hint">Changes save in this browser. The default rate is 2 screens per agent per day; an agent handles one task at a time. Completed work uses no remaining days. Partial progress reduces the forecast; dependencies and agent availability still apply. QA starts after all scheduled tasks.</p><p class="hint">Status checked 5 Oct 2026: main landing page done (100%), including real coin images, shared header/footer and favicon. Feature landing pages done (100%): Marketplace, Global Catalogue, Catalogue view-all, Our other apps, Blogs list and blog article are done (6 of 6 screens). Auth entry pop-ups belong to task 3 (Account access); Identification belongs to tasks 6-7. Catalogue browsing 50%: live API coin grid, category filters and pagination; search pending. Coin details 75%: live API data, estimated values, grade selector and tabs; premium state pending. Marketplace browsing 50%: live listing rows, category pages and pagination; search/filter controls pending. Listing details done (100%): live listing and seller details with email/phone contact; logged-out Contact Seller pop-up pending under task 3. Blogs done (100%): six articles, category filtering and load more; auth entry pop-up pending under task 3, duration still unscheduled. Auth email signup/login, guest sessions and password reset APIs are connected with HTTP-only cookies (75%); Google is disabled for now and shared access pop-ups remain pending. Dashboards, identification, expert evaluation, listing creation, collections, community feed, settings, subscriptions and end-to-end review remain pending. Some navigation/footer links remain placeholders.</p></section>
+<section class="card"><div class="metrics"><div class="metric"><span>Planned screens</span><strong id="screensTotal">—</strong></div><div class="metric"><span>Remaining agent workdays</span><strong id="effort">—</strong></div><div class="metric"><span>Calendar weeks</span><strong id="weeks">—</strong></div><div class="metric"><span>Projected finish</span><strong id="finish">—</strong></div><div class="metric"><span>Overall progress</span><strong id="progressTotal">—</strong></div></div></section>
+<section class="card"><h2>Tasks and estimates</h2><div class="table-wrap"><table class="tasks"><thead><tr><th>ID</th><th>Section</th><th>Task</th><th>Deliverable</th><th>Screens</th><th>Agent</th><th>After ID</th><th>Progress %</th><th>Remaining days</th><th>Start</th><th>Finish</th><th>Recorded completion</th><th>Status</th></tr></thead><tbody id="taskRows"></tbody></table></div><p class="hint">Tasks and timeline rows sort automatically by progress (highest first), then task ID. Completion dates are recorded when progress reaches 100%; edit the date if work finished earlier. Existing completed tasks are recorded as done by 5 Oct 2026. A blank screen count leaves unfinished work unscheduled. “After ID” is a task that must finish first; use 0 for no task dependency.</p></section>
+<section class="card"><h2>Weekly timeline</h2><div class="gantt" id="gantt"></div></section>
+</main>
+<script>
+const seed=[
+['Landing pages','Main landing page','Main page, shared header/footer and navigation; done with real coin images and favicon',2,'A',0],
+['Landing pages','Feature landing pages','Done: Marketplace, Catalogue, view-all, other apps, Blogs list and article (6/6); auth entry pop-ups belong to task 3; Identification belongs to tasks 6-7',6,'A',1],
+['Auth and login','Account access','Done: welcome, email signup/login, guest sessions, forgot/reset APIs, OTP entry and error states with HTTP-only cookies; pending: Google sign-in (disabled for now) and shared auth entry pop-ups',8,'A',2],
+['Homepage','Free user dashboard','Dashboard, activity and Coin of the Day entry points',4,'B',0],
+['Homepage','Premium experience','Premium Coin of the Day, coin details and expert prompt',4,'B',4],
+['AI Identification','Start identification','Upload, image review and progress states',8,'C',0],
+['AI Identification','Results and actions','Identification results, coin details and confirmation states',8,'C',6],
+['Expert evaluation','New request','Evaluation entry, request details and submission',6,'C',7],
+['Expert evaluation','Existing requests','Progress, report, cancellation and deadline extension',8,'C',8],
+['Global Catalogue','Browse catalogue','Done: live API coin grid, category filters and pagination; search pending',6,'D',0],
+['Global Catalogue','Coin details','Done: live coin information, estimated value, grades and tabs; premium state pending',4,'D',10],
+['Marketplace','Browse listings','Done: live marketplace rows, category listing pages and pagination; search/filter controls pending',6,'D',11],
+['Marketplace','Listing details','Done: live listing, seller details and email/phone contact; logged-out Contact Seller auth pop-up belongs to task 3',4,'D',12],
+['Marketplace','Create listings','Manual listing and listing through AI Identification',8,'D',13],
+['Collections','Browse collections','Overview, coin grid, filters and details',6,'E',7],
+['Collections','Manage collection','Add/remove coins, create collection and add for sale',6,'E',15],
+['Feed','Community feed','Feed, create post and post actions',6,'B',5],
+['Feed','Personal activity','Replies, saved posts and my posts',4,'B',17],
+['Settings','Account settings','Profile, preferences, support, logout and account actions',6,'B',18],
+['Subscription','Free user plans','Plan comparison, selection and checkout',6,'A',3],
+['Subscription','Premium account','Billing, invoices, plan changes and payment states',6,'A',20],
+['Review and fixes','End-to-end review','Responsive checks, flow testing and design fixes',6,'QA',0],
+['Blogs','Blog experience','Done: six articles, category filtering and load more; auth entry pop-up belongs to task 3; duration unscheduled',null,'F',0]
+];
+const key='coinzy-web-timeline-v1';
+// Default progress by task index (status checked 5 Oct 2026: home, marketplace, catalogue + view-all + coin details, listing details, other apps, blogs list + article, marketplace listings).
+const DEFAULT_PROGRESS={0:100,1:100,2:75,9:50,10:75,11:50,12:100,22:100};
+const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+const initial=()=>({asOf:today(),start:'2026-10-05',rate:2,tasks:seed.map((x,i)=>({id:i+1,section:x[0],name:x[1],detail:x[2],screens:x[3],agent:x[4],after:x[5],progress:DEFAULT_PROGRESS[i]||0,completedOn:DEFAULT_PROGRESS[i]===100?'2026-10-05':''}))});
+let state;try{state=JSON.parse(localStorage.getItem(key))||initial()}catch{state=initial()}
+// Progress only moves forward: lift saved values to the current defaults so new progress shows without a Reset.
+if(Array.isArray(state.tasks))state.tasks.forEach(t=>{const d=DEFAULT_PROGRESS[Number(t.id)-1]||0;if((Number(t.progress)||0)<d)t.progress=d});
+// Reclassify old default descriptions/counts while retaining browser-edited estimates.
+if(Array.isArray(state.tasks))state.tasks.forEach(t=>{const seedTask=seed[Number(t.id)-1];if(!seedTask)return;if([2,3,13,23].includes(Number(t.id))&&!t.authScopeUpdated){if(Number(t.id)===2&&Number(t.screens)===8)t.screens=6;t.detail=seedTask[2];t.authScopeUpdated=true}});
+if(Array.isArray(state.tasks))state.tasks.forEach(t=>{if(Number(t.id)===3&&t.detail==='Sign-up, login, password reset, verification, errors and shared auth entry pop-ups for Feed, Expert Evaluation, Post a Listing, Contact Seller, Blogs and Identification')t.detail='Done: welcome, email signup/login, guest sessions, forgot/reset APIs, OTP entry and error states with HTTP-only cookies; pending: Google sign-in (disabled for now) and shared auth entry pop-ups'});
+if(Array.isArray(state.tasks))state.tasks.forEach(t=>{if(Number(t.id)===3&&!t.authApisUpdated){t.detail=seed[2][2];t.authApisUpdated=true}});
+state.asOf=state.asOf||today();
+if(Array.isArray(state.tasks))state.tasks.forEach(t=>{if(Number(t.progress)>=100&&!t.completedOn)t.completedOn=DEFAULT_PROGRESS[Number(t.id)-1]===100?'2026-10-05':state.asOf});
+const $=id=>document.getElementById(id), esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const day=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d,12)};
+const addWork=(date,n)=>{let d=new Date(date);while(d.getDay()===0||d.getDay()===6)d.setDate(d.getDate()+1);while(n>0){d.setDate(d.getDate()+1);if(d.getDay()!==0&&d.getDay()!==6)n--}return d};
+const fmt=d=>d?d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—';
+const maxDate=(a,b)=>!a?b:!b?a:a>b?a:b;
+const taskStatus=t=>Number(t.progress)>=100?'Done':!t.plannedDays?'Scope pending':t.blocked?'Waiting on dependency':Number(t.progress)>0?'In progress':'Planned';
+function calculate(){
+ const start=day(state.start||'2026-10-05'),forecast=maxDate(start,day(state.asOf||today())),rate=Math.max(.1,Number(state.rate)||2),avail={},done={};let last=null,effort=0,count=0,weighted=0,planned=0;
+ for(const t of state.tasks){
+  const progress=Math.max(0,Math.min(100,Number(t.progress)||0));
+  t.plannedDays=t.screens==null||t.screens===''||Number(t.screens)<=0?0:Math.ceil(Number(t.screens)/rate);
+  t.days=Math.ceil(t.plannedDays*(1-progress/100));t.begin=null;t.end=null;t.blocked=false;
+  count+=Math.max(0,Number(t.screens)||0);planned+=t.plannedDays;weighted+=t.plannedDays*progress/100;effort+=t.days;
+  if(progress>=100){t.end=t.completedOn?day(t.completedOn):day(state.asOf||today());t.begin=t.end;done[t.id]=t.end;last=maxDate(last,t.end)}
+ }
+ for(const t of state.tasks){
+  if(!t.days||t.section==='Review and fixes')continue;
+  if(t.after&&!done[t.after]){t.blocked=true;continue}
+  let earliest=maxDate(forecast,avail[t.agent]);if(t.after)earliest=maxDate(earliest,addWork(done[t.after],1));
+  t.begin=addWork(earliest,0);t.end=addWork(t.begin,t.days-1);avail[t.agent]=addWork(t.end,1);done[t.id]=t.end;last=maxDate(last,t.end);
+ }
+ const unresolved=state.tasks.some(t=>Number(t.progress)<100&&t.section!=='Review and fixes'&&(!t.plannedDays||t.blocked));
+ for(const t of state.tasks.filter(x=>x.section==='Review and fixes'&&x.days)){
+  if(unresolved){t.blocked=true;continue}
+  t.begin=addWork(maxDate(forecast,last?addWork(last,1):null),0);t.end=addWork(t.begin,t.days-1);last=maxDate(last,t.end);
+ }
+ const weeks=last?Math.max(0,Math.ceil((Math.floor((last-start)/86400000)+1)/7)):0;
+ return {start,last,weeks,effort,count,progress:planned?Math.round(weighted/planned*100):0};
+}
+function save(){localStorage.setItem(key,JSON.stringify({start:state.start,asOf:state.asOf,rate:state.rate,tasks:state.tasks.map(({id,section,name,detail,screens,agent,after,progress,completedOn,authScopeUpdated,authApisUpdated})=>({id,section,name,detail,screens,agent,after,progress,completedOn,authScopeUpdated,authApisUpdated}))}))}
+const sortedTasks=()=>[...state.tasks].sort((a,b)=>(Number(b.progress)||0)-(Number(a.progress)||0)||Number(a.id)-Number(b.id));
+function render(){const x=calculate(),tasks=sortedTasks();$('start').value=state.start;$('asOf').value=state.asOf;$('rate').value=state.rate;$('screensTotal').textContent=x.count;$('effort').textContent=x.effort;$('weeks').textContent=x.weeks;$('finish').textContent=fmt(x.last);$('progressTotal').textContent=x.progress+'%';
+ $('taskRows').innerHTML=tasks.map(t=>`<tr data-id="${t.id}"><td>${t.id}</td><td><input data-field="section" value="${esc(t.section)}"></td><td><input data-field="name" value="${esc(t.name)}"></td><td><input data-field="detail" value="${esc(t.detail)}"></td><td><input data-field="screens" type="number" min="0" step="1" value="${t.screens??''}"></td><td><input data-field="agent" value="${esc(t.agent)}" style="width:65px"></td><td><input data-field="after" type="number" min="0" max="${t.id-1}" value="${t.after||0}"></td><td><input data-field="progress" type="number" min="0" max="100" value="${t.progress||0}"></td><td>${t.days===0&&Number(t.progress)>=100?'0':t.days||'—'}</td><td class="date">${fmt(t.begin)}</td><td class="date">${fmt(t.end)}</td><td><input data-field="completedOn" type="date" value="${esc(t.completedOn||'')}" ${Number(t.progress)<100?'disabled':''}></td><td class="${Number(t.progress)>=100?'done':!t.plannedDays||t.blocked?'pending':''}">${taskStatus(t)}</td></tr>`).join('');
+ const n=Math.max(4,x.weeks+1),headers=Array.from({length:n},(_,i)=>`<th>Week ${i+1}</th>`).join('');
+ $('gantt').innerHTML=`<table><thead><tr><th>Task</th>${headers}</tr></thead><tbody>${tasks.map(t=>`<tr><td>${esc(t.section)} · ${esc(t.name)}</td>${Array.from({length:n},(_,i)=>{const a=addWork(x.start,i*5),b=addWork(a,4),hit=t.begin&&t.begin<=b&&t.end>=a;return `<td class="${hit?(t.section==='Review and fixes'?'bar qa':'bar'):'muted'}">${hit?'■':''}</td>`}).join('')}</tr>`).join('')}</tbody></table>`;
+ save()}
+$('start').addEventListener('change',e=>{state.start=e.target.value||state.start;render()});
+$('asOf').addEventListener('change',e=>{state.asOf=e.target.value||state.asOf;render()});
+$('rate').addEventListener('change',e=>{state.rate=Math.max(.1,Number(e.target.value)||2);render()});
+$('taskRows').addEventListener('change',e=>{let t=state.tasks.find(t=>t.id===Number(e.target.closest('tr')?.dataset.id));if(!t)return;let f=e.target.dataset.field,v=e.target.value;if(f==='screens')v=v===''?null:Math.max(0,Math.floor(Number(v)||0));if(f==='after')v=Math.max(0,Math.min(t.id-1,Math.floor(Number(v)||0)));if(f==='progress'){v=Math.max(0,Math.min(100,Number(v)||0));if(v>=100&&Number(t.progress)<100)t.completedOn=state.asOf||today();if(v<100)t.completedOn=''}if(f==='completedOn')v=v||state.asOf||today();if(f==='agent')v=v.trim()||'A';t[f]=v;render()});
+$('add').onclick=()=>{const id=Math.max(0,...state.tasks.map(t=>t.id))+1;state.tasks.push({id,section:'New section',name:'New task',detail:'Describe the deliverable',screens:2,agent:'F',after:0,progress:0});render();document.querySelector(`[data-id="${id}"] input[data-field="name"]`).focus()};
+$('reset').onclick=()=>{if(confirm('Reset all estimates and saved changes?')){state=initial();render()}};
+$('export').onclick=()=>{calculate();const cols=['ID','Section','Task','Deliverable','Screens','Screens per agent per day','Agent','After ID','Remaining agent workdays','Start','Finish','Progress %','Recorded completion','Status'];const q=v=>'"'+String(v??'').replaceAll('"','""')+'"';let lines=[cols.map(q).join(',')];for(const t of sortedTasks())lines.push([t.id,t.section,t.name,t.detail,t.screens,state.rate,t.agent,t.after,t.days,t.begin?fmt(t.begin):'',t.end?fmt(t.end):'',t.progress,t.completedOn||'',taskStatus(t)].map(q).join(','));const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='coinzy-web-live-timeline.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+render();
+</script>
+</body>
+</html>
