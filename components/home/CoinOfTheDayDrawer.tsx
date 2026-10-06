@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useId, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useId, useRef, useState, type MouseEvent } from "react";
 import { CoinPlaceholder } from "@/components/ui/CoinPlaceholder";
+import { DailyLimitDialog } from "@/components/home/DailyLimitDialog";
 import { PremiumUpsellDialog } from "@/components/home/PremiumUpsellDialog";
 import { FallbackImage } from "@/components/ui/FallbackImage";
 import { useModalDialog } from "@/components/ui/useModalDialog";
@@ -19,13 +20,29 @@ export type CoinOfTheDayDrawerCoin = {
   sections: DrawerSection[];
 };
 
+/**
+ * Premium variant (Figma `1248:98330`): the drawer follows the coin picked in the home panel and gets prev/next arrows
+ * around the name plus a "Show more coins" footer that reveals the next of today's coins.
+ */
+export type ProDrawerControls = {
+  /** Current coin (0-based) and how many coins exist today. */
+  index: number;
+  count: number;
+  /** Coins not revealed yet. */
+  left: number;
+  onPrev: () => void;
+  onNext: () => void;
+  /** Reveal the next coin (`"advanced"`), or `"limit"` when none are left — the drawer then shows the daily-limit alert. */
+  onShowMore: () => "advanced" | "limit";
+};
+
 /** Tab strip sits above the scrolling content; a section counts as "current" once it reaches this offset. */
 const SPY_OFFSET = 24;
 
 /**
  * "Coin of the day" side drawer — Figma `1248:123835` (Modal `1247:87327`): 585px panel on a 55% black overlay,
  * grey 48px title bar, two coin photos, name, section tabs, scrolling tables, and (free users) the
- * "Show more coins" Premium footer.
+ * "Show more coins" Premium footer. With `pro` it is the premium drawer (see `ProDrawerControls`).
  *
  * Native `<dialog>`: `showModal()` gives the focus trap, Esc, inert page, and returns focus to the trigger on close.
  * The trigger is a real link to the coin's details page, so modified clicks / no-JS still reach it.
@@ -35,19 +52,30 @@ export function CoinOfTheDayDrawer({
   coin,
   detailsHref,
   lockedCount,
+  pro,
 }: {
   coin: CoinOfTheDayDrawerCoin;
   detailsHref: string;
   lockedCount: number;
+  pro?: ProDrawerControls;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const [open, setOpen] = useState(false);
   const [upsellOpen, setUpsellOpen] = useState(false);
+  const [limitOpen, setLimitOpen] = useState(false);
   const learnMoreRef = useRef<HTMLAnchorElement>(null);
   const upsellFromDrawer = useRef(false);
   const dialogRef = useModalDialog(open, setOpen);
   const [active, setActive] = useState(coin.sections[0]?.id);
+
+  // Switching coins in the premium drawer starts the new coin at the top / first tab.
+  const proIndex = pro?.index;
+  useEffect(() => {
+    if (proIndex === undefined) return;
+    scrollRef.current?.scrollTo({ top: 0 });
+    setActive(coin.sections[0]?.id);
+  }, [proIndex, coin.sections]);
 
   function openFromLink(event: MouseEvent<HTMLAnchorElement>) {
     // Let ctrl/cmd/shift/middle clicks open the details page normally.
@@ -85,7 +113,7 @@ export function CoinOfTheDayDrawer({
 
   return (
     <>
-      {lockedCount > 0 && (
+      {!pro && lockedCount > 0 && (
         <button
           type="button"
           aria-haspopup="dialog"
@@ -104,7 +132,8 @@ export function CoinOfTheDayDrawer({
         href={detailsHref}
         onClick={openFromLink}
         aria-haspopup="dialog"
-        className="flex items-center justify-center gap-1 text-xs font-medium leading-4 text-ink"
+        // Premium panel (Figma 1584:205526) makes the link a 24px-tall button (px-2 py-1).
+        className={`flex items-center justify-center gap-1 text-xs font-medium leading-4 text-ink ${pro ? "px-2 py-1" : ""}`}
       >
         Learn more
         <Image src={`${A}/icon-chevron.svg`} alt="" width={16} height={16} />
@@ -137,7 +166,7 @@ export function CoinOfTheDayDrawer({
           </div>
 
           {/* Drawer header: photos + name */}
-          <div className="flex shrink-0 flex-col gap-2 px-8 pb-8 pt-4">
+          <div className={`flex shrink-0 flex-col gap-2 px-8 pt-4 ${pro ? "pb-4" : "pb-8"}`}>
             <div className="flex items-center justify-center gap-5 px-[77px]">
               {photos.length ? (
                 photos.map((src, i) => <DrawerPhoto key={`${src}-${i}`} src={src} />)
@@ -145,7 +174,17 @@ export function CoinOfTheDayDrawer({
                 <DrawerPhoto src={null} />
               )}
             </div>
-            <p className="text-center text-base font-medium leading-6 text-ink">{coin.title}</p>
+            {pro ? (
+              <div className="flex items-center gap-2">
+                <ArrowButton direction="left" label="Previous coin" disabled={pro.index <= 0} onClick={pro.onPrev} />
+                <p aria-live="polite" className="min-w-0 flex-1 text-center text-base font-medium leading-6 text-ink">
+                  {coin.title}
+                </p>
+                <ArrowButton direction="right" label="Next coin" disabled={pro.index >= pro.count - 1} onClick={pro.onNext} />
+              </div>
+            ) : (
+              <p className="text-center text-base font-medium leading-6 text-ink">{coin.title}</p>
+            )}
           </div>
 
           {/* Section tabs */}
@@ -193,7 +232,12 @@ export function CoinOfTheDayDrawer({
                       <div
                         key={row.label}
                         className={`flex items-center border-b-[0.5px] border-border-neutral px-5 py-2 text-xs leading-4 last:border-b-0 ${
-                          section.id === "history" ? "gap-[30px]" : wide ? "gap-[130px]" : "gap-[170px]"
+                          // Premium Figma (1248:98330) also tightens the Estimated price row to a 30px gap.
+                          section.id === "history" || (pro && row.label === "Estimated price ($)")
+                            ? "gap-[30px]"
+                            : wide
+                              ? "gap-[130px]"
+                              : "gap-[170px]"
                         }`}
                       >
                         <p className={`shrink-0 font-medium text-ink ${wide ? "w-[150px]" : "w-[110px] max-w-[130px]"}`}>{row.label}</p>
@@ -214,8 +258,30 @@ export function CoinOfTheDayDrawer({
             ))}
           </div>
 
+          {/* Premium footer: reveal the next coin, or hit the daily limit */}
+          {pro && (
+            <div className="flex shrink-0 flex-col items-center justify-center gap-2.5 border-t border-border-neutral bg-white px-14 py-4">
+              <button
+                type="button"
+                onClick={() => {
+                  if (pro.onShowMore() === "limit") {
+                    // One dialog at a time: the drawer closes, then the alert opens (Figma 1912:211426).
+                    setOpen(false);
+                    setLimitOpen(true);
+                  }
+                }}
+                className="flex w-full items-center justify-center gap-1.5 overflow-hidden rounded-button bg-primary-500 px-4 py-2 text-sm font-medium leading-5 text-[#fafafa] hover:bg-primary-700"
+              >
+                Show more coins
+              </button>
+              <p className="text-xs leading-4 text-muted">
+                {pro.left} more {pro.left === 1 ? "coin" : "coins"} for today
+              </p>
+            </div>
+          )}
+
           {/* Free-plan footer */}
-          {lockedCount > 0 && (
+          {!pro && lockedCount > 0 && (
             <div className="flex shrink-0 flex-col items-center justify-center gap-2.5 border-t border-border-neutral bg-white px-14 py-4">
               <button
                 type="button"
@@ -236,6 +302,17 @@ export function CoinOfTheDayDrawer({
         </div>
       </dialog>
 
+      {pro && (
+        <DailyLimitDialog
+          open={limitOpen}
+          onClose={() => {
+            setLimitOpen(false);
+            // It opened from inside the (now closed) drawer → hand focus back to the page trigger.
+            learnMoreRef.current?.focus();
+          }}
+        />
+      )}
+
       <PremiumUpsellDialog
         open={upsellOpen}
         onClose={() => {
@@ -246,6 +323,31 @@ export function CoinOfTheDayDrawer({
         }}
       />
     </>
+  );
+}
+
+/** 28px round outline arrow used by the premium drawer's coin switcher (disabled = 50% opacity, as in Figma). */
+function ArrowButton({
+  direction,
+  label,
+  disabled,
+  onClick,
+}: {
+  direction: "left" | "right";
+  label: string;
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      disabled={disabled}
+      onClick={onClick}
+      className="flex shrink-0 items-center justify-center rounded-full border border-[#e5e5e5] bg-white p-1.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 disabled:opacity-50"
+    >
+      <Image src={`${A}/icon-arrow-${direction}.svg`} alt="" width={16} height={16} />
+    </button>
   );
 }
 

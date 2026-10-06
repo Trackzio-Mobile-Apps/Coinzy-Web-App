@@ -3,15 +3,18 @@ import { redirect } from "next/navigation";
 import { ReloadOnRestore } from "@/components/auth/ReloadOnRestore";
 import { AppSidebar } from "@/components/home/AppSidebar";
 import { HomeDashboard, moneyFromListingPrice } from "@/components/home/HomeDashboard";
-import { getSessionUser } from "@/lib/auth/session";
+import type { CotdCoin } from "@/components/home/PremiumCoinOfTheDay";
+import { getPremiumStatus, getSessionUser } from "@/lib/auth/session";
 import {
   fetchAllListings,
   fetchArchetypes,
   fetchCoinsOfTheDay,
   todayKey,
   type Archetype,
+  type ArchetypeDetails,
 } from "@/lib/api/coinzy";
 import { coinDrawerSections, estimatedSpan } from "@/lib/catalogue/coinDetails";
+import { FROM_HOME, withFrom } from "@/lib/backNav";
 
 export const metadata: Metadata = {
   title: "Home | Coinzy AI",
@@ -26,10 +29,38 @@ function catalogueSubtitle(a: Archetype): string {
   return [a.issuer?.trim(), year].filter(Boolean).join(" · ") || "View details";
 }
 
-/** Post-sign-in free-user home — Figma `1898:205770` (Webapp `1242:101939`). */
-export default async function SignedInHomePage() {
+/** One of today's coins as the serializable view-model shared by the free card, the premium carousel and the drawer. */
+function toCotdCoin(c: ArchetypeDetails): CotdCoin {
+  const images = (c.imageUrls ?? []).filter(Boolean).slice(0, 2);
+  return {
+    id: c._id,
+    name: c.name,
+    origin: c.issuer || "NA",
+    year: c.yearOfMinting != null && String(c.yearOfMinting).trim() ? String(c.yearOfMinting) : "NA",
+    price: estimatedSpan(c.estimatedPrice ?? null) ?? "NA",
+    images,
+    drawer: { title: c.name, images, sections: coinDrawerSections(c) },
+    href: c._id ? withFrom(`/catalogue/coin/${c._id}`, FROM_HOME) : "/catalogue",
+  };
+}
+
+/**
+ * Post-sign-in home. Free: Figma `1898:205770` (Webapp `1242:101939`). Premium: `1584:205526` with the Coin of the day
+ * carousel/drawer `1248:98330` and the daily-limit alert `1912:211426`.
+ */
+export default async function SignedInHomePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const user = await getSessionUser();
   if (!user) redirect("/auth");
+
+  // Entitlement lives in `getPremiumStatus` (false until the backend exposes a plan claim). `?premium=1` is a
+  // development-only preview switch so the premium screens can be reviewed; it is ignored in production builds.
+  const premium =
+    (await getPremiumStatus(user)) ||
+    (process.env.NODE_ENV !== "production" && (await searchParams).premium === "1");
 
   const [listings, cotdList, archetypes] = await Promise.all([
     fetchAllListings().catch(() => []),
@@ -40,8 +71,9 @@ export default async function SignedInHomePage() {
       .catch((): Archetype[] => []),
   ]);
 
-  // Free users see the first coin of the day; the rest are the Premium unlock.
+  // Free users see the first coin of the day; the rest are the Premium unlock. Premium users get every coin.
   const [cotd, ...lockedCotd] = cotdList;
+  const dayKey = todayKey();
 
   return (
     <div className="flex h-svh overflow-hidden bg-white">
@@ -59,6 +91,9 @@ export default async function SignedInHomePage() {
           price: moneyFromListingPrice(l.price),
           image: l.imageUrls[0] || "/assets/home/coin-listing-1.png",
         }))}
+        premium={premium}
+        dayKey={dayKey}
+        premiumCoins={premium ? cotdList.map(toCotdCoin) : []}
         coinOfTheDay={
           cotd
             ? {

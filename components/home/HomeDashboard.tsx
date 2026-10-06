@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { FallbackImage } from "@/components/ui/FallbackImage";
 import { CoinPlaceholder } from "@/components/ui/CoinPlaceholder";
+import { CoinFacts, CoinThumb } from "@/components/home/CoinThumb";
+import { PremiumCoinOfTheDay, type CotdCoin } from "@/components/home/PremiumCoinOfTheDay";
 import { PremiumCountdown } from "@/components/home/PremiumCountdown";
 import { CoinOfTheDayDrawer, type CoinOfTheDayDrawerCoin } from "@/components/home/CoinOfTheDayDrawer";
 import {
@@ -41,28 +43,6 @@ type Cotd = {
 
 type CatalogueRow = { id?: string; name: string; price: string; image: string | null };
 
-/** Round coin photo; `null`/broken sources fall back to the placeholder coin. */
-function CoinThumb({ src, size }: { src: string | null; size: 40 | 60 }) {
-  return (
-    <div
-      className={`relative shrink-0 overflow-hidden rounded-full bg-[#f0ebe1] ${size === 60 ? "size-[60px]" : "size-10"}`}
-    >
-      {src ? (
-        <FallbackImage
-          src={src}
-          alt=""
-          width={size}
-          height={size}
-          className={size === 60 ? "size-[60px] object-cover" : "size-10 object-cover"}
-          fallback={<CoinPlaceholder size="sm" />}
-        />
-      ) : (
-        <CoinPlaceholder size="sm" />
-      )}
-    </div>
-  );
-}
-
 const rarityClass = {
   muted: "text-muted",
   warn: "text-[#c45c16]",
@@ -77,11 +57,21 @@ export function HomeDashboard({
   user,
   listings,
   coinOfTheDay,
+  premiumCoins,
+  dayKey,
+  premium = false,
   catalogue,
 }: {
   user: SessionUser;
   listings: ListingRow[];
+  /** Free users: the first coin of the day (+ how many are locked). */
   coinOfTheDay: Cotd | null;
+  /** Premium users: all of today's coins. */
+  premiumCoins: CotdCoin[];
+  /** UTC day (`todayKey()`), keys the premium reveal count. */
+  dayKey: string;
+  /** Premium variant of the dashboard (Figma `1584:205526`): "You're Premium" badge, no subscribe banner, coin switcher. */
+  premium?: boolean;
   catalogue: CatalogueRow[];
 }) {
   const rows = listings.length ? listings : HOME_MARKETPLACE_FALLBACK;
@@ -93,22 +83,35 @@ export function HomeDashboard({
     <div className="flex min-h-0 flex-1 flex-col bg-[#f7f7f8]">
       <header className="flex h-[76px] shrink-0 items-center justify-between border-b border-[#e5e7eb] bg-white px-8">
         <h1 className="text-2xl font-medium leading-8 text-ink">Hi {greet}!</h1>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/home#premium"
-            className="inline-flex h-9 items-center gap-2 rounded-[10px] bg-[linear-gradient(90deg,#6a65ed_0%,#e54a9f_100%)] px-4 text-sm font-medium leading-5 text-white shadow-[0_0_0_2px_rgba(177,85,191,0.35)]"
-          >
-            <Image src={`${A}/icon-crown.svg`} alt="" width={12} height={12} />
-            Go Premium
-          </Link>
-          <Link
-            href="/home#settings"
-            aria-label="Settings"
-            className="flex size-9 items-center justify-center rounded-[10px] border border-[#e5e5e5] bg-white"
-          >
-            <Image src={`${A}/icon-settings.svg`} alt="" width={16} height={16} />
-          </Link>
-        </div>
+        {premium ? (
+          <div className="flex items-center gap-4">
+            {/* Gradient-outline pill: indigo → pink 1px border over a white fill. */}
+            <span className="inline-flex h-6 items-center gap-1 rounded-full border border-transparent bg-[linear-gradient(#fff,#fff)_padding-box,linear-gradient(90deg,#6366f1,#ec4899)_border-box] px-2 py-0.5 text-xs font-medium leading-4 text-[#0a0a0a]">
+              <Image src={`${A}/icon-crown-dark.svg`} alt="" width={12} height={12} />
+              You’re Premium
+            </span>
+            <Link href="/home#settings" aria-label="Settings" className="flex size-6 items-center justify-center">
+              <Image src={`${A}/icon-settings.svg`} alt="" width={24} height={24} />
+            </Link>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3">
+            <Link
+              href="/home#premium"
+              className="inline-flex h-9 items-center gap-2 rounded-[10px] bg-[linear-gradient(90deg,#6a65ed_0%,#e54a9f_100%)] px-4 text-sm font-medium leading-5 text-white shadow-[0_0_0_2px_rgba(177,85,191,0.35)]"
+            >
+              <Image src={`${A}/icon-crown.svg`} alt="" width={12} height={12} />
+              Go Premium
+            </Link>
+            <Link
+              href="/home#settings"
+              aria-label="Settings"
+              className="flex size-9 items-center justify-center rounded-[10px] border border-[#e5e5e5] bg-white"
+            >
+              <Image src={`${A}/icon-settings.svg`} alt="" width={16} height={16} />
+            </Link>
+          </div>
+        )}
       </header>
 
       <div className="flex-1 overflow-y-auto px-8 py-4">
@@ -160,6 +163,7 @@ export function HomeDashboard({
               </article>
             </section>
 
+            {!premium && (
             <section
               id="premium"
               className="flex flex-col gap-3 rounded-2xl p-5 sm:flex-row sm:items-end sm:justify-between"
@@ -193,6 +197,7 @@ export function HomeDashboard({
                 </Link>
               </div>
             </section>
+            )}
 
             <section className="rounded-2xl border-[0.5px] border-[#dfdfe0] bg-white px-[16.5px] py-[12.5px]">
               <h2 className="text-lg font-medium leading-7 text-ink">Marketplace</h2>
@@ -286,6 +291,9 @@ export function HomeDashboard({
           </div>
 
           <aside className="hidden w-[268px] shrink-0 flex-col gap-4 xl:flex">
+            {premium && premiumCoins.length > 0 ? (
+              <PremiumCoinOfTheDay coins={premiumCoins} dayKey={dayKey} />
+            ) : (
             <section className="rounded-2xl border-[0.5px] border-[#dfdfe0] bg-white px-[16.5px] py-[12.5px]">
               <h2 className="text-sm font-medium leading-5 text-ink">Coin of the day</h2>
               {cotd ? (
@@ -300,20 +308,7 @@ export function HomeDashboard({
                     </div>
                     <div className="space-y-2">
                       <p className="truncate text-sm font-medium leading-5 text-ink">{cotd.name}</p>
-                      <div className="space-y-1 text-xs leading-4 text-muted">
-                        <p>
-                          <span className="font-medium">Origin: </span>
-                          <span className="font-light">{cotd.origin}</span>
-                        </p>
-                        <p>
-                          <span className="font-medium">Year of Minting: </span>
-                          <span className="font-light">{cotd.year}</span>
-                        </p>
-                        <p>
-                          <span className="font-medium">Estimated price: </span>
-                          <span className="font-light">{cotd.price}</span>
-                        </p>
-                      </div>
+                      <CoinFacts origin={cotd.origin} year={cotd.year} price={cotd.price} />
                     </div>
                   </div>
                   <div className="my-4 h-px bg-[#ececec]" />
@@ -331,6 +326,7 @@ export function HomeDashboard({
                 </p>
               )}
             </section>
+            )}
 
             <section className="rounded-2xl border-[0.5px] border-[#dfdfe0] bg-white px-[16.5px] py-[12.5px]">
               <h2 className="text-sm font-medium leading-5 text-ink">Global catalogue</h2>

@@ -16,6 +16,20 @@ function decodeJwtPayload(token: string): Record<string, unknown> | null {
   }
 }
 
+/**
+ * Premium entitlement for the signed-in user.
+ *
+ * No plan/subscription claim is documented for the web session (docs/auth-api.md only lists a partial `user`; the proxy
+ * strips tokens and only `name`/`email`/`isGuest` are decoded above), so this returns `false` for everyone. When the
+ * backend contract names a claim, read it from the JWT payload here — this is the single place that decides premium.
+ *
+ * Dev-only preview: `/home?premium=1` is honoured by `app/home/page.tsx` when `NODE_ENV !== "production"`.
+ */
+export async function getPremiumStatus(user: SessionUser | null): Promise<boolean> {
+  void user;
+  return false;
+}
+
 /** Read the HTTP-only session cookie and surface display fields from the JWT payload. */
 export async function getSessionUser(): Promise<SessionUser | null> {
   const token = (await cookies()).get("coinzy_session")?.value;
