@@ -163,7 +163,7 @@ export default async function MarketplaceCategoryPage({ params, searchParams }: 
             </Suspense>
           </div>
           <div className="mt-20 flex justify-center lg:mt-[124px]">
-            <SellBar />
+            <SellBar returnAfterAuth={`/marketplace/${slug}${query ? `?q=${encodeURIComponent(query)}` : ""}`} />
           </div>
         </section>
 

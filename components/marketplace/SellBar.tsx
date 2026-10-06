@@ -1,10 +1,21 @@
 import Image from "next/image";
+import Link from "next/link";
+import { authHref } from "@/lib/auth/returnTo";
 
 /**
  * "Want to sell your coin?" bar (Figma 1715:31687; same on home 1526:304316): 24px radius,
  * 12% wine border, tag badge, fixed 260.586px text block + 240px gap, outline "List a coin".
+ * Logged-out visitors go to sign-in (pop-up flow pending Figma 905:38801).
  */
-export function SellBar({ className = "" }: { className?: string }) {
+export function SellBar({
+  className = "",
+  /** Where to send the user after sign-in; defaults to `/marketplace`. */
+  returnAfterAuth = "/marketplace",
+}: {
+  className?: string;
+  returnAfterAuth?: string;
+}) {
+  const listHref = authHref(undefined, returnAfterAuth);
   return (
     <div
       className={`flex flex-col items-start gap-6 rounded-[var(--radius-card)] border border-primary-500/[0.12] bg-white px-6 py-5 lg:flex-row lg:gap-[240px] ${className}`}
@@ -27,13 +38,12 @@ export function SellBar({ className = "" }: { className?: string }) {
           </p>
         </div>
       </div>
-      {/* TODO: open the "List a coin" pop-up (Figma 905:38801) once built. */}
-      <button
-        type="button"
+      <Link
+        href={listHref}
         className="shrink-0 rounded-[var(--radius-button)] border border-primary-500 bg-white px-3 py-1.5 text-sm font-medium leading-5 text-primary-500 hover:bg-primary-50"
       >
         List a coin
-      </button>
+      </Link>
     </div>
   );
 }
