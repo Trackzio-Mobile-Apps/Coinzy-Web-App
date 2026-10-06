@@ -1,15 +1,38 @@
 /** Signed-in free-user home (Figma `1898:205770` / Webapp `1242:101939`). */
 
-export const HOME_NAV = [
+/**
+ * Sidebar entries. Items with `href` are real routes; `soon: true` items have no page yet and render
+ * as disabled (don't point them at `#` anchors or redirecting routes — add the `href` when the page ships).
+ */
+export const HOME_NAV: readonly HomeNavItem[] = [
   { label: "Home", href: "/home", icon: "home", active: true },
-  { label: "Identify coin", href: "/auth", icon: "identify" },
-  { label: "Expert analysis", href: "/home#expert", icon: "expert" },
+  { label: "Identify coin", icon: "identify", soon: true },
+  { label: "Expert analysis", icon: "expert", soon: true },
   { label: "Marketplace", href: "/marketplace", icon: "marketplace", chevron: true },
-  { label: "Collection", href: "/home#collection", icon: "collection", chevron: true },
-  { label: "Feed", href: "/home#feed", icon: "feed" },
+  { label: "Collection", icon: "collection", chevron: true, soon: true },
+  { label: "Feed", icon: "feed", soon: true },
   { label: "Global Catalogue", href: "/catalogue", icon: "catalogue" },
-  { label: "Settings", href: "/home#settings", icon: "settings" },
-] as const;
+  { label: "Settings", icon: "settings", soon: true },
+];
+
+export type HomeNavIcon =
+  | "home"
+  | "identify"
+  | "expert"
+  | "marketplace"
+  | "collection"
+  | "feed"
+  | "catalogue"
+  | "settings";
+
+export type HomeNavItem = {
+  label: string;
+  icon: HomeNavIcon;
+  href?: string;
+  active?: boolean;
+  chevron?: boolean;
+  soon?: boolean;
+};
 
 export const MARKETPLACE_CHIPS = [
   { label: "All", slug: "all" },

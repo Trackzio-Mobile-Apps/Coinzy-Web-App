@@ -2,11 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { LogoMark } from "@/components/landing/TopNav";
 import type { SessionUser } from "@/lib/auth/session";
-import { HOME_NAV } from "@/lib/home";
+import { HOME_NAV, type HomeNavIcon } from "@/lib/home";
 
 const A = "/assets/home";
 
-const ICONS: Record<(typeof HOME_NAV)[number]["icon"], string> = {
+const ICONS: Record<HomeNavIcon, string> = {
   home: `${A}/icon-home.svg`,
   identify: `${A}/icon-identify.svg`,
   expert: `${A}/icon-expert.svg`,
@@ -30,15 +30,16 @@ export function AppSidebar({ user }: { user: SessionUser }) {
 
       <nav className="flex flex-1 flex-col gap-1 px-2 py-4" aria-label="App">
         {HOME_NAV.map((item) => {
-          const active = "active" in item && item.active;
-          return (
-            <Link
-              key={item.label}
-              href={item.href}
-              className={`flex h-9 items-center gap-2 rounded-[10px] px-3 text-sm font-medium leading-5 ${
-                active ? "bg-primary-50 text-primary-500" : "text-ink hover:bg-black/[0.03]"
-              }`}
-            >
+          const active = Boolean(item.active);
+          const className = `flex h-9 items-center gap-2 rounded-[10px] px-3 text-sm font-medium leading-5 ${
+            active
+              ? "bg-primary-50 text-primary-500"
+              : item.soon
+                ? "cursor-not-allowed text-ink opacity-50"
+                : "text-ink hover:bg-black/[0.03]"
+          }`;
+          const content = (
+            <>
               <Image
                 src={ICONS[item.icon]}
                 alt=""
@@ -48,10 +49,19 @@ export function AppSidebar({ user }: { user: SessionUser }) {
                 style={active ? { filter: "invert(27%) sepia(24%) saturate(1200%) hue-rotate(314deg)" } : undefined}
               />
               <span className="flex-1 truncate">{item.label}</span>
-              {"chevron" in item && item.chevron && (
+              {item.chevron && (
                 <Image src={`${A}/icon-chevron.svg`} alt="" width={16} height={16} className="opacity-40" />
               )}
+            </>
+          );
+          return item.href && !item.soon ? (
+            <Link key={item.label} href={item.href} aria-current={active ? "page" : undefined} className={className}>
+              {content}
             </Link>
+          ) : (
+            <span key={item.label} aria-disabled="true" title="Coming soon" className={className}>
+              {content}
+            </span>
           );
         })}
       </nav>

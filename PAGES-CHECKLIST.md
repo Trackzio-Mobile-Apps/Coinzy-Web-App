@@ -11,7 +11,7 @@ Figma file: `YV6ArWhD2eVlLPH6M090gc` (canvas `793:76525`). Node IDs below are fo
 ## Landing (`Landing page/main`)
 - [x] Landing page/opt2 — `1050:196584` → `app/page.tsx`
 - [x] Landing page/India variant — `1526:302784` → applied to `app/page.tsx` (home)
-- [ ] Wire nav/footer links to real routes (currently `#` anchors)
+- [x] Wire nav/footer links to real routes — top nav "Identify" → `/#identify`; `/home` sidebar: real routes for Home/Marketplace/Catalogue, unbuilt items disabled ("Coming soon") until their pages ship. Still open: footer "About" + social icons (no URLs/page decided)
 
 ## Auth and login — Timeline task 3 (Account access)
 - [x] Welcome/auth entry screen — `1758:121426` → `app/auth/page.tsx` (all web Try Coinzy AI CTAs → `/auth`; email/login screens connected; email/guest APIs connected; Google disabled for now)
