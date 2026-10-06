@@ -32,7 +32,7 @@ export default async function IdentifyPage({
         <MarketplaceAppHeader user={user} premium={premium} />
         <main className="min-w-0 flex-1 overflow-y-auto px-8 py-6">
           <div className="mx-auto w-full max-w-[1122px]">
-            <IdentifyApp autoLoadDebug={autoLoadDebug} />
+            <IdentifyApp autoLoadDebug={autoLoadDebug} premium={premium} />
           </div>
         </main>
       </div>

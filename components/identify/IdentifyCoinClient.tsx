@@ -31,7 +31,7 @@ function userUploadUrls(): [string, string] | null {
   return null;
 }
 
-/** Figma right rail: user uploads, add to collection, rate match (`1828:206836`). */
+/** Figma right rail: user uploads, add to collection (`1828:206836`). Rate block is dummy UI (toast + dismiss). */
 export function IdentifyResultRail({
   archetypeId,
   coin,
@@ -48,6 +48,8 @@ export function IdentifyResultRail({
   const [userOwnsCoin, setUserOwnsCoin] = useState(true);
   const [rating, setRating] = useState<number | null>(null);
   const [message, setMessage] = useState("");
+  const [rateCardVisible, setRateCardVisible] = useState(true);
+  const [feedbackToast, setFeedbackToast] = useState(false);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState<{ title: string; body: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -110,8 +112,6 @@ export function IdentifyResultRail({
     }
     const base = buildAddCoinPayload(coin, archetypeId, imagePair, {
       isOwned: userOwnsCoin,
-      rating: rating ?? undefined,
-      comment: message.trim() || undefined,
     });
     const payload = applyCollectionToAddBody(base, opt, userOwnsCoin);
 
@@ -130,7 +130,7 @@ export function IdentifyResultRail({
       title: `Your coin added to ${label}!`,
       body: "The coin has been successfully added to collection",
     });
-  }, [archetypeId, coin, collectionId, collections, imagePair, message, rating, userOwnsCoin]);
+  }, [archetypeId, coin, collectionId, collections, imagePair, userOwnsCoin]);
 
   const tile = "relative size-[120px] overflow-hidden rounded-lg border border-[#efefef] bg-[#f5f5f5]";
 
@@ -165,38 +165,47 @@ export function IdentifyResultRail({
           </button>
         </div>
 
-        <div className="rounded-xl border border-[#efefef] bg-white px-4 py-3">
-          <p className="text-sm font-medium text-ink">Rate this match!</p>
-          <p className="mt-1 text-xs text-muted">Your feedback makes us better.</p>
-          <div className="mt-3 flex justify-between gap-1">
-            {EMOJI_RATINGS.map((emoji, i) => (
+        {rateCardVisible && (
+          <div className="rounded-xl border border-[#efefef] bg-white px-4 py-3">
+            <p className="text-sm font-medium text-ink">Rate this match!</p>
+            <p className="mt-1 text-xs text-muted">Your feedback makes us better.</p>
+            <div className="mt-3 flex justify-between gap-1">
+              {EMOJI_RATINGS.map((emoji, i) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  onClick={() => setRating(i + 1)}
+                  className={`flex size-9 items-center justify-center rounded-lg text-lg ${
+                    rating === i + 1 ? "bg-primary-50 ring-1 ring-primary-200" : "hover:bg-[#fafafa]"
+                  }`}
+                  aria-label={`Rate ${i + 1} of 5`}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+            <label className="mt-4 block text-xs font-medium text-[#606062]">Message</label>
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Type here"
+              rows={3}
+              className="mt-1.5 w-full resize-none rounded-lg border border-[#e5e5e5] px-3 py-2 text-sm text-ink placeholder:text-[#87878a]"
+            />
+            <div className="mt-2 flex justify-end">
               <button
-                key={emoji}
                 type="button"
-                onClick={() => setRating(i + 1)}
-                className={`flex size-9 items-center justify-center rounded-lg text-lg ${
-                  rating === i + 1 ? "bg-primary-50 ring-1 ring-primary-200" : "hover:bg-[#fafafa]"
-                }`}
-                aria-label={`Rate ${i + 1} of 5`}
+                className="text-sm font-medium text-primary-500"
+                onClick={() => {
+                  setRateCardVisible(false);
+                  setFeedbackToast(true);
+                }}
               >
-                {emoji}
+                Submit
               </button>
-            ))}
+            </div>
           </div>
-          <label className="mt-4 block text-xs font-medium text-[#606062]">Message</label>
-          <textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Type here"
-            rows={3}
-            className="mt-1.5 w-full resize-none rounded-lg border border-[#e5e5e5] px-3 py-2 text-sm text-ink placeholder:text-[#87878a]"
-          />
-          <div className="mt-2 flex justify-end">
-            <button type="button" className="text-sm font-medium text-primary-500" onClick={() => setMessage(message)}>
-              Submit
-            </button>
-          </div>
-        </div>
+        )}
 
         {error && <p className="text-sm text-[#dc2626]" role="alert">{error}</p>}
       </aside>
@@ -227,6 +236,13 @@ export function IdentifyResultRail({
         saving={saving}
       />
 
+      {feedbackToast && (
+        <IdentifySuccessToast
+          title="Thank you!"
+          body="Your feedback helps us improve matches."
+          onClose={() => setFeedbackToast(false)}
+        />
+      )}
       {success && <IdentifySuccessToast title={success.title} body={success.body} onClose={() => setSuccess(null)} />}
     </>
   );

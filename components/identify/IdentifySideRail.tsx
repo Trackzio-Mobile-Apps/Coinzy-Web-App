@@ -1,23 +1,21 @@
 import Image from "next/image";
 import Link from "next/link";
+import { IdentifyFreePlanCard } from "@/components/identify/IdentifyFreePlanCard";
 import { HOME_OTHER_APPS } from "@/lib/home";
 
 const A = "/assets/home";
 const QR = "/assets/coin-details/qr-coinzy.png";
 
-export function IdentifySideRail({ onScanApp }: { onScanApp?: () => void }) {
+export function IdentifySideRail({
+  onScanApp,
+  premium = false,
+}: {
+  onScanApp?: () => void;
+  premium?: boolean;
+}) {
   return (
     <aside className="flex w-full shrink-0 flex-col gap-4 lg:w-[268px]">
-      <div className="rounded-2xl border border-[#e5e7eb] bg-white p-4">
-        <p className="text-sm font-medium leading-5 text-ink">Free plan</p>
-        <p className="mt-1 text-xs leading-4 text-muted">Limited AI identifications per day.</p>
-        <Link
-          href="/home#premium"
-          className="mt-3 inline-flex h-8 w-full items-center justify-center rounded-[10px] bg-[linear-gradient(90deg,#6a65ed_0%,#e54a9f_100%)] text-xs font-medium text-white"
-        >
-          Go Premium
-        </Link>
-      </div>
+      <IdentifyFreePlanCard hidden={premium} />
 
       <button
         type="button"

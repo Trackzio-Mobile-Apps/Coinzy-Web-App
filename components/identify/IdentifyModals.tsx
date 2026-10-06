@@ -3,6 +3,11 @@
 import Image from "next/image";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { IdentifyCameraGuide } from "@/components/identify/IdentifyCameraGuide";
+import {
+  IdentifyCameraPermissionHeader,
+  IdentifyCameraPermissionUploadFallback,
+  IdentifyCameraPermissionViewport,
+} from "@/components/identify/IdentifyCameraPermissionUI";
 import { IdentifyZoomSlider, zoomScaleFromSlider } from "@/components/identify/IdentifyZoomSlider";
 import { useModalDialog } from "@/components/ui/useModalDialog";
 
@@ -87,24 +92,54 @@ export function IdentifyQrModal({ open, onClose }: { open: boolean; onClose: () 
   );
 }
 
-export function IdentifyCameraBlockedModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+/** Figma `1828:206844` — camera denied with upload fallback. */
+export function IdentifyCameraBlockedModal({
+  open,
+  onClose,
+  side,
+  onUpload,
+}: {
+  open: boolean;
+  onClose: () => void;
+  side?: "obverse" | "reverse";
+  onUpload?: (file: File) => void;
+}) {
+  const titleId = useId();
   const ref = useModalDialog(open, (next) => !next && onClose());
+  const sideLabel = side === "obverse" ? "Obverse (front side)" : side === "reverse" ? "Reverse (back side)" : undefined;
+
   return (
     <dialog
       ref={ref}
+      aria-labelledby={titleId}
       onClose={onClose}
       onClick={(e) => e.target === e.currentTarget && onClose()}
-      className="m-auto max-w-lg w-[calc(100%-2rem)] rounded-2xl border-0 bg-white p-6 shadow-xl backdrop:bg-black/40"
+      className="m-auto w-[572px] max-w-[calc(100%-2rem)] overflow-hidden rounded-[14px] border-0 bg-white p-0 shadow-[0_0_0_1px_rgba(10,10,10,0.1)] backdrop:bg-black/55"
     >
-      <h2 className="text-lg font-medium text-ink">Camera permission is blocked</h2>
-      <p className="mt-2 text-sm leading-5 text-muted">
-        Your browser is blocking the camera for this site, so we cannot turn it on from here. Go to your browser
-        settings and allow camera access for Coinzy, then try again — or upload photos instead.
-      </p>
-      <div className="mt-6 flex justify-end gap-2">
-        <button type="button" onClick={onClose} className="rounded-[10px] px-4 py-2 text-sm font-medium text-ink">
-          Close
+      <div className="relative border-b border-[#e5e5e5] px-4 pb-4 pt-4">
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute right-4 top-4 flex size-4 items-center justify-center"
+        >
+          <Image src="/assets/auth/close.svg" alt="" width={16} height={16} />
         </button>
+        <IdentifyCameraPermissionHeader titleId={titleId} />
+      </div>
+      <div className="px-4 pb-4">
+        <div className="relative flex h-[280px] w-full items-center justify-center overflow-hidden rounded-2xl border border-[#dfdfe0] bg-black">
+          <IdentifyCameraPermissionViewport />
+        </div>
+        {onUpload && (
+          <IdentifyCameraPermissionUploadFallback
+            sideLabel={sideLabel}
+            onFile={(file) => {
+              onUpload(file);
+              onClose();
+            }}
+          />
+        )}
       </div>
     </dialog>
   );
@@ -115,13 +150,13 @@ export function IdentifyCameraModal({
   side,
   onClose,
   onCapture,
-  onPermissionBlocked,
+  onUploadFile,
 }: {
   open: boolean;
   side: "obverse" | "reverse";
   onClose: () => void;
   onCapture: (file: File) => void;
-  onPermissionBlocked?: () => void;
+  onUploadFile?: (file: File) => void;
 }) {
   const titleId = useId();
   const ref = useModalDialog(open, (next) => !next && onClose());
@@ -163,14 +198,13 @@ export function IdentifyCameraModal({
         const name = e instanceof DOMException ? e.name : "";
         const blocked = name === "NotAllowedError" || name === "PermissionDeniedError";
         setError(blocked ? "blocked" : "other");
-        if (blocked) onPermissionBlocked?.();
       }
     })();
     return () => {
       cancelled = true;
       stopStream();
     };
-  }, [open, stopStream, onPermissionBlocked]);
+  }, [open, stopStream]);
 
   const capture = () => {
     const video = videoRef.current;
@@ -208,6 +242,7 @@ export function IdentifyCameraModal({
   };
 
   const sideLabel = side === "obverse" ? "Obverse (front side)" : "Reverse (back side)";
+  const blocked = error === "blocked";
 
   return (
     <dialog
@@ -226,21 +261,29 @@ export function IdentifyCameraModal({
         >
           <Image src="/assets/auth/close.svg" alt="" width={16} height={16} />
         </button>
-        <h2 id={titleId} className="pr-8 text-base font-medium leading-6 text-ink">
-          Capture a clear image of your coin
-        </h2>
-        <p className="mt-1 text-sm leading-5 text-muted">
-          Position the entire coin inside the guide. Make sure it&apos;s well lit and in focus.
-          <span className="mt-1 block text-xs text-[#87878a]">{sideLabel}</span>
-        </p>
+        {blocked ? (
+          <IdentifyCameraPermissionHeader titleId={titleId} />
+        ) : (
+          <>
+            <h2 id={titleId} className="pr-8 text-base font-medium leading-6 text-ink">
+              Capture a clear image of your coin
+            </h2>
+            <p className="mt-1 text-sm leading-5 text-muted">
+              Position the entire coin inside the guide. Make sure it&apos;s well lit and in focus.
+              <span className="mt-1 block text-xs text-[#87878a]">{sideLabel}</span>
+            </p>
+          </>
+        )}
       </div>
 
       <div className="px-4 pb-4">
         <div
-          className="relative mx-auto flex h-[420px] w-full max-w-[540px] items-center justify-center overflow-hidden rounded-2xl border border-[#dfdfe0] bg-black"
+          className={`relative mx-auto flex w-full max-w-[540px] items-center justify-center overflow-hidden rounded-2xl border border-[#dfdfe0] bg-black ${
+            blocked ? "h-[280px]" : "h-[420px]"
+          }`}
         >
           {error === "blocked" ? (
-            <p className="px-6 text-center text-sm text-white">Camera blocked — allow access or upload a file.</p>
+            <IdentifyCameraPermissionViewport />
           ) : error === "other" ? (
             <p className="px-6 text-center text-sm text-white">Could not open camera. Try uploading instead.</p>
           ) : (
@@ -256,30 +299,41 @@ export function IdentifyCameraModal({
             </>
           )}
         </div>
+        {blocked && onUploadFile && (
+          <IdentifyCameraPermissionUploadFallback
+            sideLabel={sideLabel}
+            onFile={(file) => {
+              onUploadFile(file);
+              onClose();
+            }}
+          />
+        )}
       </div>
 
-      <div
-        className="flex flex-col gap-4 border-t border-[#e5e5e5] bg-[#f5f5f5] px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
-      >
-        <IdentifyZoomSlider value={zoomSlider} onChange={setZoomSlider} />
-        <div className="flex shrink-0 items-center justify-end gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="inline-flex h-8 items-center justify-center rounded-[10px] border border-[#e5e5e5] bg-white px-3 text-sm font-medium text-[#1e1e1f]"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={capture}
-            disabled={!!error}
-            className="inline-flex h-8 items-center justify-center rounded-[10px] bg-[#7c3c3f] px-3 text-sm font-medium text-[#fafafa] disabled:opacity-50"
-          >
-            Capture
-          </button>
+      {!blocked && (
+        <div
+          className="flex flex-col gap-4 border-t border-[#e5e5e5] bg-[#f5f5f5] px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <IdentifyZoomSlider value={zoomSlider} onChange={setZoomSlider} />
+          <div className="flex shrink-0 items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex h-8 items-center justify-center rounded-[10px] border border-[#e5e5e5] bg-white px-3 text-sm font-medium text-[#1e1e1f]"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={capture}
+              disabled={!!error}
+              className="inline-flex h-8 items-center justify-center rounded-[10px] bg-[#7c3c3f] px-3 text-sm font-medium text-[#fafafa] disabled:opacity-50"
+            >
+              Capture
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </dialog>
   );
 }

@@ -18,6 +18,7 @@ import { IdentifyUploadCard } from "@/components/identify/IdentifyUploadCard";
 import { identifyCoinsV2 } from "@/lib/identify/client";
 import { loadIdentifyDebugSample } from "@/lib/identify/debugSamples";
 import { identifyErrorMessage } from "@/lib/identify/messages";
+import { notifyFreeScanUsageUpdated, recordFreeScanUsed } from "@/lib/identify/scanUsage";
 import { saveIdentifySession } from "@/lib/identify/storage";
 import type { IdentifyMatch } from "@/lib/identify/types";
 
@@ -25,7 +26,13 @@ type Step = "upload" | "analysing" | "matches";
 
 type Slot = { file: File; preview: string };
 
-export function IdentifyApp({ autoLoadDebug = false }: { autoLoadDebug?: boolean }) {
+export function IdentifyApp({
+  autoLoadDebug = false,
+  premium = false,
+}: {
+  autoLoadDebug?: boolean;
+  premium?: boolean;
+}) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("upload");
   const [obverse, setObverse] = useState<Slot | null>(null);
@@ -117,9 +124,11 @@ export function IdentifyApp({ autoLoadDebug = false }: { autoLoadDebug?: boolean
 
   const openCamera = (side: "obverse" | "reverse") => {
     if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraSide(side);
       setCameraBlockedOpen(true);
       return;
     }
+    setCameraBlockedOpen(false);
     setCameraSide(side);
   };
 
@@ -149,6 +158,10 @@ export function IdentifyApp({ autoLoadDebug = false }: { autoLoadDebug?: boolean
         matches: list,
         previewUrls: previews,
       });
+      if (!premium) {
+        recordFreeScanUsed();
+        notifyFreeScanUsageUpdated();
+      }
       setStep("matches");
     } catch {
       setToast(identifyErrorMessage("E003"));
@@ -225,7 +238,7 @@ export function IdentifyApp({ autoLoadDebug = false }: { autoLoadDebug?: boolean
           )}
         </div>
 
-        <IdentifySideRail onScanApp={() => setQrOpen(true)} />
+        <IdentifySideRail premium={premium} onScanApp={() => setQrOpen(true)} />
       </div>
 
       {flipNeedSide ? (
@@ -236,16 +249,25 @@ export function IdentifyApp({ autoLoadDebug = false }: { autoLoadDebug?: boolean
         />
       ) : null}
       <IdentifyQrModal open={qrOpen} onClose={() => setQrOpen(false)} />
-      <IdentifyCameraBlockedModal open={cameraBlockedOpen} onClose={() => setCameraBlockedOpen(false)} />
+      <IdentifyCameraBlockedModal
+        open={cameraBlockedOpen && cameraSide !== null}
+        side={cameraSide ?? undefined}
+        onClose={() => {
+          setCameraBlockedOpen(false);
+          setCameraSide(null);
+        }}
+        onUpload={(file) => {
+          if (cameraSide) setSlot(cameraSide, file);
+        }}
+      />
       <IdentifyCameraModal
-        open={cameraSide !== null}
+        open={cameraSide !== null && !cameraBlockedOpen}
         side={cameraSide ?? "obverse"}
         onClose={() => setCameraSide(null)}
-        onPermissionBlocked={() => {
-          setCameraSide(null);
-          setCameraBlockedOpen(true);
-        }}
         onCapture={(file) => {
+          if (cameraSide) setSlot(cameraSide, file);
+        }}
+        onUploadFile={(file) => {
           if (cameraSide) setSlot(cameraSide, file);
         }}
       />
