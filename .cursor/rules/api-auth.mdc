@@ -1,0 +1,14 @@
+---
+description: Coinzy API clients, caching, and auth proxy
+globs: lib/api/**/*.{ts,tsx},lib/auth/**/*.{ts,tsx},app/api/**/*.{ts,tsx},lib/catalogue/**/*.ts,lib/marketplace/**/*.ts
+alwaysApply: false
+---
+
+# API & auth
+
+- `lib/api/coinzy.ts`: server-only guest client. Auth at `/auth/*`, data at `/api/*`. Separate guest tokens per `catalogue` vs `marketplace` backend.
+- Prefer `unstable_cache` + tags for details when Bearer headers would bust `fetch` cache (`archetype-details`, `listing-details`, `marketplace-listings`).
+- Normalize mixed string/number API fields in view-models — never call string methods on raw values.
+- Browser auth: `lib/auth/client.ts` → `POST /api/auth/[action]` only. Proxy maps `docs/auth-api.md`, validates origin, strips tokens from JSON, sets HTTP-only cookies.
+- Do not call guest-login per request (creates users). Do not re-enable Google without an explicit ask.
+- Tests: `node tests/auth-api.cjs` after auth proxy changes.

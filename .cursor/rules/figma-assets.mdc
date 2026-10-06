@@ -1,0 +1,14 @@
+---
+description: Figma matching and asset hygiene
+globs: public/assets/**/*,components/**/*.{ts,tsx},lib/constants.ts,PAGES-CHECKLIST.md
+alwaysApply: false
+---
+
+# Figma & assets
+
+- Source of truth: Figma `YV6ArWhD2eVlLPH6M090gc`; node IDs in `PAGES-CHECKLIST.md`.
+- Figma SVG exports are unreliable (often hearts/wrong shapes) — hand-write Hugeicons when needed.
+- MCP/export hashes can map to the wrong layer; verify images visually before wiring paths.
+- Runtime assets live under `public/assets/<area>/`; keep `design/` as reference when useful.
+- Prefer shared icons (`icons/shared/arrow-right.svg`, catalogue hearts/chevrons) over duplicating broken exports.
+- Tick `PAGES-CHECKLIST.md` when a screen ships; note Figma node → route in `INDEX.md`.

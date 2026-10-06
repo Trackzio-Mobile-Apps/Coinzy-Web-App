@@ -1,0 +1,18 @@
+---
+description: Core Coinzy Web agent rules (always on)
+alwaysApply: true
+---
+
+# Coinzy Web
+
+Read `AGENTS.md` for full rules and `INDEX.md` for the live file map. Update `INDEX.md` when you ship pages or change APIs.
+
+## Musts
+
+- Next.js 15 App Router, React 19, Tailwind 4 theme tokens — no new UI kits or default Inter stacks.
+- Server Components by default; `"use client"` only for interactivity.
+- Never import `lib/api/coinzy.ts` in client code. Session JWTs for users go only through HTTP-only cookies via `app/api/auth/*`.
+- Catalogue API host ≠ marketplace API host (see `AGENTS.md`). Always https.
+- Match Figma nodes from `PAGES-CHECKLIST.md`; don't invent layouts.
+- Google auth stays disabled; auth pop-ups and Identify flow are out of scope unless asked.
+- Reuse `SectionShell` / `SectionHeader` / shared grids; full-bleed art belongs in `SectionShell` `background`.

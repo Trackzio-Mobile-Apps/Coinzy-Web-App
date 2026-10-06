@@ -1,0 +1,16 @@
+---
+description: Next.js App Router and UI patterns for Coinzy
+globs: app/**/*.{ts,tsx},components/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Next.js / UI
+
+- Put routes under `app/`; colocate `loading.tsx` skeletons for slow data pages.
+- Stream heavy details inside `<Suspense>` with a keyed fallback; keep nav/footer outside.
+- Fonts: Geist/Jakarta variables on `<html>` only (`app/layout.tsx`).
+- Override `SectionShell` padding with `innerClassName` + `!` utilities when matching Figma.
+- Images: `next/image` + `FallbackImage` for remote API/S3 URLs; `CoinPlaceholder` on error/empty.
+- After replacing a same-path asset, clear `.next/cache/images`.
+- Browse state via search params (`page`, `category`, `from`, `show`).
+- Theme colors/radii/fonts live in `app/globals.css` `@theme` — use those tokens.
