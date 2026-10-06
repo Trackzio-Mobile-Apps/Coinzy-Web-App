@@ -6,12 +6,8 @@ import { CoinFacts, CoinThumb } from "@/components/home/CoinThumb";
 import { PremiumCoinOfTheDay, type CotdCoin } from "@/components/home/PremiumCoinOfTheDay";
 import { PremiumCountdown } from "@/components/home/PremiumCountdown";
 import { CoinOfTheDayDrawer, type CoinOfTheDayDrawerCoin } from "@/components/home/CoinOfTheDayDrawer";
-import {
-  HOME_CATALOGUE_FALLBACK,
-  HOME_MARKETPLACE_FALLBACK,
-  HOME_OTHER_APPS,
-  MARKETPLACE_CHIPS,
-} from "@/lib/home";
+import { CatalogueSearch } from "@/components/catalogue/CatalogueSearch";
+import { HOME_CATALOGUE_FALLBACK, HOME_MARKETPLACE_FALLBACK, HOME_OTHER_APPS } from "@/lib/home";
 import type { SessionUser } from "@/lib/auth/session";
 import { FROM_HOME, withFrom } from "@/lib/backNav";
 
@@ -20,10 +16,11 @@ const A = "/assets/home";
 type ListingRow = {
   id?: string;
   name: string;
-  year: string;
-  issuer: string;
-  rarity: string;
-  rarityTone: "muted" | "warn" | "info";
+  /** Catalogue facts for the listed coin; any of them can be missing and is then simply left out. */
+  year?: string;
+  issuer?: string;
+  rarity?: string;
+  rarityTone?: "muted" | "warn" | "info";
   price: string;
   image: string;
 };
@@ -53,9 +50,14 @@ function formatMoney(n: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
 }
 
+/** Marketplace filter chip on the dashboard (links to `/home?market=<slug>`). */
+export type MarketChip = { label: string; slug: string; href: string; active: boolean };
+
 export function HomeDashboard({
   user,
   listings,
+  marketChips,
+  marketUnavailable = false,
   coinOfTheDay,
   premiumCoins,
   dayKey,
@@ -64,6 +66,9 @@ export function HomeDashboard({
 }: {
   user: SessionUser;
   listings: ListingRow[];
+  marketChips: MarketChip[];
+  /** The marketplace API failed: show Figma's static sample rows instead of an empty state. */
+  marketUnavailable?: boolean;
   /** Free users: the first coin of the day (+ how many are locked). */
   coinOfTheDay: Cotd | null;
   /** Premium users: all of today's coins. */
@@ -74,7 +79,8 @@ export function HomeDashboard({
   premium?: boolean;
   catalogue: CatalogueRow[];
 }) {
-  const rows = listings.length ? listings : HOME_MARKETPLACE_FALLBACK;
+  const rows: ListingRow[] = marketUnavailable ? HOME_MARKETPLACE_FALLBACK : listings;
+  const activeChip = marketChips.find((c) => c.active);
   const cat = catalogue.length ? catalogue : HOME_CATALOGUE_FALLBACK;
   const cotd = coinOfTheDay;
   const greet = user.isGuest ? "Guest" : user.name.split(" ")[0] || user.name;
@@ -229,21 +235,22 @@ export function HomeDashboard({
                 </div>
 
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-                  <label className="relative flex h-6 w-full max-w-[345px] items-center rounded-lg border border-[#e5e5e5] bg-white px-2">
-                    <Image src={`${A}/icon-search.svg`} alt="" width={14} height={14} />
-                    <input
-                      type="search"
-                      placeholder="Search coins, years, countries..."
-                      className="ml-2 w-full bg-transparent text-xs leading-4 text-ink outline-none placeholder:text-[#a4a4a7]"
-                    />
-                  </label>
+                  <CatalogueSearch
+                    action="/marketplace/all"
+                    query=""
+                    placeholder="Search coins, years, countries..."
+                    label="Search marketplace listings"
+                    className="lg:w-[345px]"
+                  />
                   <div className="flex flex-wrap gap-1.5">
-                    {MARKETPLACE_CHIPS.map((chip, i) => (
+                    {marketChips.map((chip) => (
                       <Link
                         key={chip.slug}
-                        href={`/marketplace/${chip.slug}`}
+                        href={chip.href}
+                        scroll={false}
+                        aria-current={chip.active ? "true" : undefined}
                         className={`inline-flex h-6 items-center rounded-full px-3 text-xs font-medium leading-4 ${
-                          i === 0 ? "bg-primary-50 text-primary-500" : "bg-white text-ink ring-1 ring-[#e5e5e5]"
+                          chip.active ? "bg-primary-50 text-primary-500" : "bg-white text-ink ring-1 ring-[#e5e5e5]"
                         }`}
                       >
                         {chip.label}
@@ -252,6 +259,16 @@ export function HomeDashboard({
                   </div>
                 </div>
 
+                {!rows.length && (
+                  <p role="status" className="py-6 text-center text-sm text-muted">
+                    {activeChip && activeChip.slug !== "all"
+                      ? `Nothing is listed under “${activeChip.label}” right now.`
+                      : "No coins are listed right now."}{" "}
+                    <Link href="/marketplace/all" className="font-medium text-primary-500 underline">
+                      Browse all listings
+                    </Link>
+                  </p>
+                )}
                 <ul className="divide-y divide-[#ececec]">
                   {rows.map((row, index) => (
                     <li key={`${row.name}-${index}`} className="flex items-center justify-between gap-4 py-3.5">
@@ -268,10 +285,15 @@ export function HomeDashboard({
                         </div>
                         <div className="min-w-0">
                           <p className="truncate text-sm font-medium leading-5 text-ink">{row.name}</p>
-                          <p className="truncate text-xs leading-4 text-muted">
-                            {row.year} • {row.issuer} •{" "}
-                            <span className={rarityClass[row.rarityTone]}>{row.rarity}</span>
-                          </p>
+                          {(row.year || row.issuer || row.rarity) && (
+                            <p className="truncate text-xs leading-4 text-muted">
+                              {[row.year, row.issuer].filter(Boolean).join(" • ")}
+                              {(row.year || row.issuer) && row.rarity ? " • " : ""}
+                              {row.rarity && (
+                                <span className={rarityClass[row.rarityTone ?? "muted"]}>{row.rarity}</span>
+                              )}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <div className="shrink-0 text-right">

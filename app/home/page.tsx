@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { ReloadOnRestore } from "@/components/auth/ReloadOnRestore";
 import { AppSidebar } from "@/components/home/AppSidebar";
-import { HomeDashboard, moneyFromListingPrice } from "@/components/home/HomeDashboard";
+import { HomeDashboard, type MarketChip } from "@/components/home/HomeDashboard";
 import type { CotdCoin } from "@/components/home/PremiumCoinOfTheDay";
 import { getPremiumStatus, getSessionUser } from "@/lib/auth/session";
 import {
-  fetchAllListings,
+  fetchArchetypeDetails,
   fetchArchetypes,
   fetchCoinsOfTheDay,
   todayKey,
@@ -15,6 +15,8 @@ import {
 } from "@/lib/api/coinzy";
 import { coinDrawerSections, estimatedSpan } from "@/lib/catalogue/coinDetails";
 import { FROM_HOME, withFrom } from "@/lib/backNav";
+import { MARKETPLACE_CHIPS } from "@/lib/home";
+import { getMarketplaceCategory, loadListingPage } from "@/lib/marketplace/categories";
 
 export const metadata: Metadata = {
   title: "Home | Coinzy AI",
@@ -44,6 +46,43 @@ function toCotdCoin(c: ArchetypeDetails): CotdCoin {
   };
 }
 
+const RARITY_LABEL: Record<string, { label: string; tone: "muted" | "warn" | "info" }> = {
+  COMMON: { label: "Common", tone: "muted" },
+  RARE: { label: "Rare", tone: "info" },
+  ULTRA_RARE: { label: "Ultra rare", tone: "warn" },
+};
+
+const rarityBadge = (raw: string) =>
+  RARITY_LABEL[raw.toUpperCase()] ?? { label: raw.replace(/_/g, " ").toLowerCase(), tone: "muted" as const };
+
+/** The four rows of the marketplace panel for one chip, with year / issuer / rarity from each listing's catalogue entry. */
+async function loadMarketRows(slug: string) {
+  try {
+    const { cards } = await loadListingPage(getMarketplaceCategory(slug) ?? getMarketplaceCategory("all")!, 1, 4);
+    const rows = await Promise.all(
+      cards.map(async (card) => {
+        const coin = card.archetypeId ? await fetchArchetypeDetails(card.archetypeId).catch(() => null) : null;
+        const year = coin?.yearOfMinting != null ? String(coin.yearOfMinting).trim() : "";
+        const rarity = coin?.rarity ? rarityBadge(coin.rarity) : undefined;
+        return {
+          id: card.id,
+          name: card.title,
+          year: year || undefined,
+          issuer: coin?.issuer?.trim() || undefined,
+          rarity: rarity?.label,
+          rarityTone: rarity?.tone,
+          price: card.price ?? "Price on request",
+          image: card.images[0] || "/assets/home/coin-listing-1.png",
+        };
+      }),
+    );
+    return { rows, unavailable: false };
+  } catch (err) {
+    console.error(err);
+    return { rows: [], unavailable: true };
+  }
+}
+
 /**
  * Post-sign-in home. Free: Figma `1898:205770` (Webapp `1242:101939`). Premium: `1584:205526` with the Coin of the day
  * carousel/drawer `1248:98330` and the daily-limit alert `1912:211426`.
@@ -58,12 +97,22 @@ export default async function SignedInHomePage({
 
   // Entitlement lives in `getPremiumStatus` (false until the backend exposes a plan claim). `?premium=1` is a
   // development-only preview switch so the premium screens can be reviewed; it is ignored in production builds.
+  const params = await searchParams;
   const premium =
-    (await getPremiumStatus(user)) ||
-    (process.env.NODE_ENV !== "production" && (await searchParams).premium === "1");
+    (await getPremiumStatus(user)) || (process.env.NODE_ENV !== "production" && params.premium === "1");
 
-  const [listings, cotdList, archetypes] = await Promise.all([
-    fetchAllListings().catch(() => []),
+  const requestedChip = Array.isArray(params.market) ? params.market[0] : params.market;
+  const marketSlug = MARKETPLACE_CHIPS.some((c) => c.slug === requestedChip) ? (requestedChip as string) : "all";
+  // Chips are links to `/home?market=<slug>`; the dev-only `?premium=1` preview survives the round trip.
+  const marketChips: MarketChip[] = MARKETPLACE_CHIPS.map((c) => {
+    const qs = new URLSearchParams();
+    if (c.slug !== "all") qs.set("market", c.slug);
+    if (premium && params.premium === "1") qs.set("premium", "1");
+    return { label: c.label, slug: c.slug, href: qs.size ? `/home?${qs}` : "/home", active: c.slug === marketSlug };
+  });
+
+  const [market, cotdList, archetypes] = await Promise.all([
+    loadMarketRows(marketSlug),
     fetchCoinsOfTheDay(todayKey()).catch(() => []),
     // Live catalogue, 3 items. On failure → [] and the dashboard shows its static fallback rows.
     fetchArchetypes({ pageNo: 0, pageSize: 3 })
@@ -81,16 +130,9 @@ export default async function SignedInHomePage({
       <AppSidebar user={user} />
       <HomeDashboard
         user={user}
-        listings={listings.slice(0, 4).map((l) => ({
-          id: l.id,
-          name: l.title,
-          year: "—",
-          issuer: "Marketplace",
-          rarity: "Listed",
-          rarityTone: "muted" as const,
-          price: moneyFromListingPrice(l.price),
-          image: l.imageUrls[0] || "/assets/home/coin-listing-1.png",
-        }))}
+        listings={market.rows}
+        marketChips={marketChips}
+        marketUnavailable={market.unavailable}
         premium={premium}
         dayKey={dayKey}
         premiumCoins={premium ? cotdList.map(toCotdCoin) : []}
