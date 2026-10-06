@@ -7,6 +7,7 @@ import { AuthFlow, type AuthMode } from "@/components/auth/AuthFlow";
 import { ReloadOnRestore } from "@/components/auth/ReloadOnRestore";
 import { PLAY_STORE_URL } from "@/lib/constants";
 import { getSessionUser } from "@/lib/auth/session";
+import { authHref, safeReturnPath } from "@/lib/auth/returnTo";
 
 export const metadata: Metadata = {
   title: "Welcome to Coinzy | Coinzy AI",
@@ -14,13 +15,15 @@ export const metadata: Metadata = {
 };
 
 /** Web entry screen — Figma 1758:121426. */
-export default async function AuthPage({ searchParams }: { searchParams: Promise<{ mode?: string }> }) {
-  if (await getSessionUser()) redirect("/home");
+export default async function AuthPage({ searchParams }: { searchParams: Promise<{ mode?: string; next?: string | string[] }> }) {
+  const { mode: requestedMode, next: requestedNext } = await searchParams;
+  // `?next=` (validated, same-origin relative paths only) returns the visitor to the page that asked them to sign in.
+  const next = safeReturnPath(requestedNext);
+  if (await getSessionUser()) redirect(next ?? "/home");
 
-  const { mode: requestedMode } = await searchParams;
   const modes: AuthMode[] = ["welcome", "signup", "login", "forgot", "otp", "reset"];
   const mode = modes.includes(requestedMode as AuthMode) ? requestedMode as AuthMode : "welcome";
-  const backHref = mode === "welcome" ? "/" : mode === "forgot" ? "/auth?mode=login" : mode === "otp" ? "/auth?mode=forgot" : mode === "reset" ? "/auth?mode=otp" : "/auth";
+  const backHref = mode === "welcome" ? (next ?? "/") : mode === "forgot" ? authHref("login", next) : mode === "otp" ? authHref("forgot", next) : mode === "reset" ? authHref("otp", next) : authHref("welcome", next);
 
   return (
     <div className="min-h-screen bg-white">
@@ -34,7 +37,7 @@ export default async function AuthPage({ searchParams }: { searchParams: Promise
           </div>
         </Link>
         <div className="flex items-center gap-3">
-          <Link href="/auth?mode=login" replace className="rounded-button px-4 py-2 text-sm font-medium leading-5">Log in</Link>
+          <Link href={authHref("login", next)} replace className="rounded-button px-4 py-2 text-sm font-medium leading-5">Log in</Link>
           <Link href={PLAY_STORE_URL} className="rounded-button bg-primary-500 px-3 py-1.5 text-sm font-medium leading-5 text-white hover:bg-primary-700">Get the App</Link>
         </div>
       </header>
@@ -53,7 +56,7 @@ export default async function AuthPage({ searchParams }: { searchParams: Promise
           <Link href={backHref} replace={mode !== "welcome"} className="absolute left-6 top-6 inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium leading-4 text-muted">
             <Image src="/assets/auth/back.svg" alt="" width={16} height={16} />Back
           </Link>
-          <AuthFlow mode={mode} />
+          <AuthFlow mode={mode} next={next} />
           {(mode === "welcome" || mode === "signup") && <p className="text-center text-xs font-light leading-4 text-muted">
             By continuing you agree to our <span className="font-medium underline">Terms of Service</span> and<br />
             <span className="font-medium underline">Privacy Policy</span>

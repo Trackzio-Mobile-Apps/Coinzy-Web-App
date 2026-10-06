@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { goHome, submitAuth } from "@/lib/auth/client";
+import { authHref } from "@/lib/auth/returnTo";
 import { WelcomeActions } from "./WelcomeActions";
 
 export type AuthMode = "welcome" | "signup" | "login" | "forgot" | "otp" | "reset";
@@ -34,7 +35,7 @@ function Separator() {
   return <div className="flex h-9 items-center gap-2 px-4 text-sm leading-5 text-muted">{[0, 1].map((i) => <span key={i} className={`relative h-px flex-1 overflow-hidden ${i ? "order-3" : ""}`}><Image src="/assets/auth/separator.svg" alt="" width={300} height={1} className="absolute left-0 top-0 max-w-none" /></span>)}<span className="order-2">or</span></div>;
 }
 
-export function AuthFlow({ mode }: { mode: AuthMode }) {
+export function AuthFlow({ mode, next: returnTo = null }: { mode: AuthMode; next?: string | null }) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -57,7 +58,7 @@ export function AuthFlow({ mode }: { mode: AuthMode }) {
   const clear = (field: keyof Errors) => setErrors((previous) => ({ ...previous, [field]: undefined }));
   // Auth steps *replace* the history entry: the whole wizard is one entry, so browser Back leaves it instead of
   // walking through stale steps (the on-page "Back" link handles step-back deterministically).
-  const navigate = (next: AuthMode) => router.replace(`/auth?mode=${next}`);
+  const navigate = (target: AuthMode) => router.replace(authHref(target, returnTo));
   const resend = async () => {
     if (pending || countdown > 0) return;
     setPending(true); setNotice("");
@@ -98,13 +99,13 @@ export function AuthFlow({ mode }: { mode: AuthMode }) {
       await submitAuth(mode as "signup" | "login" | "forgot" | "reset", { email, password, name, remember, code: digits.join("") });
       if (mode === "forgot") { setDigits(Array(6).fill("")); setCountdown(30); navigate("otp"); }
       else if (mode === "reset") { setToastVisible(false); setDigits(Array(6).fill("")); setPassword(""); setConfirm(""); setNotice("Password changed. You can now log in."); }
-      else { setPassword(""); goHome(); }
+      else { setPassword(""); goHome(returnTo); }
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Unable to complete authentication.");
     } finally { setPending(false); }
 
   }
-  if (mode === "welcome") return <WelcomeActions />;
+  if (mode === "welcome") return <WelcomeActions next={returnTo} />;
   const description = mode === "forgot" ? "Enter your email and it will be sent an account verification code." : mode === "reset" ? "Choose something strong that you haven't used before." : "Create your account to start collecting";
   return (
     <>
@@ -121,12 +122,12 @@ export function AuthFlow({ mode }: { mode: AuthMode }) {
             </div>}
             <div className={mode === "login" ? "space-y-3" : "space-y-4"}>
               <button type="submit" disabled={pending || Object.values(errors).some(Boolean) || (mode === "otp" && digits.some((digit) => !digit))} className={primary}>{pending ? "Please wait…" : mode === "signup" ? "Create account" : mode === "login" ? "Log in" : mode === "forgot" ? "Send code" : mode === "otp" ? "Continue" : "Change password"}</button>
-              {mode === "login" && <div className="flex items-center justify-between gap-2 text-xs leading-4"><label className="flex items-center gap-2"><input type="checkbox" checked={remember} onChange={(event) => setRemember(event.target.checked)} className="size-4 accent-primary-500" />Remember me</label><Link href="/auth?mode=forgot" replace className="rounded-lg px-2 py-1 font-medium text-primary-500">Forgot password</Link></div>}
-              {mode === "forgot" && <Link href="/auth?mode=login" replace className="flex h-9 items-center justify-center rounded-button border border-[#e5e5e5] text-sm font-medium">Cancel</Link>}
+              {mode === "login" && <div className="flex items-center justify-between gap-2 text-xs leading-4"><label className="flex items-center gap-2"><input type="checkbox" checked={remember} onChange={(event) => setRemember(event.target.checked)} className="size-4 accent-primary-500" />Remember me</label><Link href={authHref("forgot", returnTo)} replace className="rounded-lg px-2 py-1 font-medium text-primary-500">Forgot password</Link></div>}
+              {mode === "forgot" && <Link href={authHref("login", returnTo)} replace className="flex h-9 items-center justify-center rounded-button border border-[#e5e5e5] text-sm font-medium">Cancel</Link>}
               {mode === "otp" && <div className="flex flex-wrap items-center justify-center gap-2 text-xs leading-4 text-[#6a7282]"><span>Don’t receive code?</span><span className="tabular-nums">00:{String(countdown).padStart(2, "0")}s</span><button type="button" disabled={pending || countdown > 0} onClick={resend} className="rounded-lg px-2 py-1 font-medium text-primary-500 disabled:opacity-50">Re-send</button></div>}
             </div>
-            {(mode === "signup" || mode === "login") && <><Separator /><div className="flex justify-center"><button type="button" aria-label={`${mode === "login" ? "Log in" : "Sign up"} with Google`} disabled title="Google sign-in is not available yet." className="flex size-14 items-center justify-center rounded-full border border-[#e5e5e5] disabled:cursor-not-allowed disabled:opacity-50"><Image src="/assets/auth/google.png" alt="" width={24} height={24} /></button></div><div className="flex items-center justify-center gap-1 text-xs leading-4 text-[#6a7282]"><p>{mode === "signup" ? "Already have an account?" : "Don’t have an account?"}</p><Link href={`/auth?mode=${mode === "signup" ? "login" : "signup"}`} replace className="rounded-lg px-2 py-1 font-medium text-primary-500">{mode === "signup" ? "Log in" : "Sign up"}</Link></div></>}
-            {notice && <p role="status" className="text-center text-sm leading-5 text-muted">{notice}{mode === "reset" && notice === "Password changed. You can now log in." && <Link href="/auth?mode=login" replace className="mt-2 block font-medium text-primary-500">Log in</Link>}</p>}
+            {(mode === "signup" || mode === "login") && <><Separator /><div className="flex justify-center"><button type="button" aria-label={`${mode === "login" ? "Log in" : "Sign up"} with Google`} disabled title="Google sign-in is not available yet." className="flex size-14 items-center justify-center rounded-full border border-[#e5e5e5] disabled:cursor-not-allowed disabled:opacity-50"><Image src="/assets/auth/google.png" alt="" width={24} height={24} /></button></div><div className="flex items-center justify-center gap-1 text-xs leading-4 text-[#6a7282]"><p>{mode === "signup" ? "Already have an account?" : "Don’t have an account?"}</p><Link href={authHref(mode === "signup" ? "login" : "signup", returnTo)} replace className="rounded-lg px-2 py-1 font-medium text-primary-500">{mode === "signup" ? "Log in" : "Sign up"}</Link></div></>}
+            {notice && <p role="status" className="text-center text-sm leading-5 text-muted">{notice}{mode === "reset" && notice === "Password changed. You can now log in." && <Link href={authHref("login", returnTo)} replace className="mt-2 block font-medium text-primary-500">Log in</Link>}</p>}
           </form>
         </div>
       </div>
