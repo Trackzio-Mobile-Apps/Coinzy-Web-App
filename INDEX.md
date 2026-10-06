@@ -29,9 +29,10 @@ Figma: `YV6ArWhD2eVlLPH6M090gc` · MCP server name `figma`.
 | Marketplace browse | ~50% | Live prod listings; search/filter UI pending |
 | Listing details | 100% | Email/phone contact |
 | Blogs | 100% | 6 static posts |
+| Premium experience | 0% | Task 5; upsell modal only, no Premium variant/plan flag yet |
 | Identification | 0% | Tasks 6–7; not started |
 
-Timeline: `coinzy-web-timeline.html` (browser + localStorage) and `coinzy-web-timeline.xlsx`. HTML `sortedTasks()` orders by progress then ID; XLSX progress = Detailed Timeline col G (row = task id + 1).
+Timeline: `coinzy-web-timeline.html` (browser + localStorage) and `coinzy-web-timeline.xlsx`. HTML `sortedTasks()` orders by progress then ID; XLSX progress = Detailed Timeline col G (row = task id + 1). Last synced 6 Oct 2026 (task 4 done 6 Oct; tasks 1, 2, 13, 23 done 5 Oct; forecast finish 29 Oct, 24% overall). XLSX Detailed Timeline must stay in task-ID order (formulas read earlier rows by position); only Weekly View is sorted (progress, then ID). Git history is all dated 6 Oct, so completion dates before that come from the timeline's own records.
 
 ---
 
