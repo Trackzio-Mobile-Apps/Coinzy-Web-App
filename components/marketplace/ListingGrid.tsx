@@ -1,0 +1,52 @@
+import Link from "next/link";
+import { CoinPlaceholder } from "@/components/ui/CoinPlaceholder";
+import { FallbackImage } from "@/components/ui/FallbackImage";
+import type { ListingCard as ListingCardData } from "@/lib/marketplace/categories";
+
+/**
+ * Figma "Coin card" (346:12169, used in 793:77612): 211px, 0.5px border, 12px radius, 8px padding;
+ * #f0ebe1 well with a 136px round photo; 2-line title; wine price.
+ */
+export function ListingCard({ card, priority = false }: { card: ListingCardData; priority?: boolean }) {
+  return (
+    <article className="relative flex w-full min-w-[164px] flex-col items-center gap-6 rounded-[12px] border-[0.5px] border-border-neutral bg-white px-2 pb-4 pt-2 transition-shadow hover:shadow-md xl:w-[211px]">
+      <div className="flex w-full items-center justify-center rounded-lg bg-coin-well py-5">
+        <div className="size-[136px] overflow-hidden rounded-full">
+          {card.images[0] ? (
+            <FallbackImage
+              fallback={<CoinPlaceholder size="xl" />}
+              src={card.images[0]}
+              alt=""
+              width={136}
+              height={136}
+              priority={priority}
+              className="size-[136px] object-cover"
+            />
+          ) : (
+            <CoinPlaceholder size="xl" />
+          )}
+        </div>
+      </div>
+      <div className="flex w-full flex-col gap-2 px-1">
+        <h3 className="line-clamp-2 h-[47px] text-base leading-6 text-ink">
+          {/* Stretched link: whole card opens the listing. */}
+          <Link href={card.href} className="after:absolute after:inset-0 after:rounded-[12px]">
+            {card.title}
+          </Link>
+        </h3>
+        <p className="text-base font-medium leading-6 text-primary-500">{card.price ?? "Price on request"}</p>
+      </div>
+    </article>
+  );
+}
+
+/** 5-up grid (Figma: 211px cards, 16px column gap, 32px row gap). */
+export function ListingGrid({ cards }: { cards: ListingCardData[] }) {
+  return (
+    <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-[repeat(5,211px)] xl:justify-between">
+      {cards.map((card, i) => (
+        <ListingCard key={card.id} card={card} priority={i < 5} />
+      ))}
+    </div>
+  );
+}
