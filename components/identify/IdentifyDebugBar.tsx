@@ -1,23 +1,36 @@
 "use client";
 
 import { useState } from "react";
-import { IDENTIFY_DEBUG_SAMPLE, loadIdentifyDebugSample } from "@/lib/identify/debugSamples";
+import {
+  IDENTIFY_DEBUG_SAMPLE,
+  loadIdentifyBlankDebugSample,
+  loadIdentifyDebugSample,
+} from "@/lib/identify/debugSamples";
 
 export function IdentifyDebugBar({
   onLoad,
 }: {
   onLoad: (files: { obverse: File; reverse: File }) => void;
 }) {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<"sample" | "blank" | null>(null);
 
   if (process.env.NODE_ENV === "production") return null;
 
-  const load = async () => {
-    setLoading(true);
+  const loadSample = async () => {
+    setLoading("sample");
     try {
       onLoad(await loadIdentifyDebugSample());
     } finally {
-      setLoading(false);
+      setLoading(null);
+    }
+  };
+
+  const loadBlank = async () => {
+    setLoading("blank");
+    try {
+      onLoad(await loadIdentifyBlankDebugSample());
+    } finally {
+      setLoading(null);
     }
   };
 
@@ -27,13 +40,23 @@ export function IdentifyDebugBar({
       <span className="text-muted">{IDENTIFY_DEBUG_SAMPLE.label}</span>
       <button
         type="button"
-        disabled={loading}
-        onClick={load}
+        disabled={!!loading}
+        onClick={loadSample}
         className="rounded-[10px] border border-[#7c3c3f]/30 bg-white px-3 py-1.5 text-xs font-medium text-ink disabled:opacity-50"
       >
-        {loading ? "Loading…" : "Load sample photos"}
+        {loading === "sample" ? "Loading…" : "Load sample photos"}
       </button>
-      <span className="text-xs text-muted">or open <code className="text-[#5b21b6]">/identify?debug=1</code></span>
+      <button
+        type="button"
+        disabled={!!loading}
+        onClick={loadBlank}
+        className="rounded-[10px] border border-[#7c3c3f]/30 bg-white px-3 py-1.5 text-xs font-medium text-ink disabled:opacity-50"
+      >
+        {loading === "blank" ? "Loading…" : "Load black images (force fail)"}
+      </button>
+      <span className="text-xs text-muted">
+        or open <code className="text-[#5b21b6]">/identify?debug=1</code>
+      </span>
     </div>
   );
 }

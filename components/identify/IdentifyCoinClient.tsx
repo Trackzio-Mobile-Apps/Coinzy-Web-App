@@ -12,12 +12,12 @@ import { buildAddCoinPayload } from "@/lib/identify/addCoinPayload";
 import {
   applyCollectionToAddBody,
   buildCollectionOptions,
-  collectionLabel,
   IDENTIFIED_COLLECTION_ID,
   OWNED_COLLECTION_ID,
+  privateCollectionOption,
   type UserCollectionOption,
 } from "@/lib/identify/collections";
-import { addCoinViaApi, fetchCollectionsViaApi } from "@/lib/identify/collectionClient";
+import { addCoinViaApi, createCollectionViaApi, fetchCollectionsViaApi } from "@/lib/identify/collectionClient";
 import { readIdentifySession } from "@/lib/identify/storage";
 
 const EMOJI_RATINGS = ["😞", "😐", "🙂", "😊", "😍"];
@@ -54,8 +54,6 @@ export function IdentifyResultRail({
   const [success, setSuccess] = useState<{ title: string; body: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const selectionLocked = userOwnsCoin;
-
   useEffect(() => {
     setUploads(userUploadUrls());
   }, []);
@@ -89,7 +87,10 @@ export function IdentifyResultRail({
   }, [selectOpen, userOwnsCoin]);
 
   const imagePair = useMemo((): [string, string] | null => {
-    if (uploads) return uploads;
+    // Prefer remote identify uploads; never persist blob: object URLs to the API.
+    if (uploads && !uploads[0].startsWith("blob:") && !uploads[1].startsWith("blob:")) {
+      return uploads;
+    }
     const urls = coin.imageUrls;
     if (urls.length >= 2) return [urls[0], urls[1]];
     return null;
@@ -125,12 +126,23 @@ export function IdentifyResultRail({
     }
     setSelectOpen(false);
     setDrawerOpen(false);
-    const label = collectionLabel(collections, collectionId);
     setSuccess({
-      title: `Your coin added to ${label}!`,
+      title: "Your coin added to collection!",
       body: "The coin has been successfully added to collection",
     });
   }, [archetypeId, coin, collectionId, collections, imagePair, userOwnsCoin]);
+
+  const handleCreateCollection = useCallback(
+    async (name: string) => {
+      const res = await createCollectionViaApi(name);
+      if (res.error) return res;
+      const option = privateCollectionOption({ collectionId: res.collectionId, name: res.name });
+      setCollections((prev) => [...prev, option]);
+      setCollectionId(option.id);
+      return { error: false as const };
+    },
+    [],
+  );
 
   const tile = "relative size-[120px] overflow-hidden rounded-lg border border-[#efefef] bg-[#f5f5f5]";
 
@@ -225,7 +237,6 @@ export function IdentifyResultRail({
         open={selectOpen}
         collections={collections}
         loading={collectionsLoading}
-        selectionLocked={selectionLocked}
         userOwnsCoin={userOwnsCoin}
         selectedId={collectionId}
         onSelect={setCollectionId}
@@ -233,6 +244,7 @@ export function IdentifyResultRail({
         onDone={() => {
           if (!saving && !collectionsLoading) finishAdd();
         }}
+        onCreateCollection={handleCreateCollection}
         saving={saving}
       />
 

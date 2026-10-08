@@ -21,8 +21,33 @@ export async function fetchCollectionsViaApi(): Promise<
   };
 }
 
+export async function createCollectionViaApi(
+  name: string,
+): Promise<{ error: false; collectionId: string; name: string } | { error: true; reason?: string }> {
+  const res = await fetch("/api/collections/add", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  });
+  const json = (await res.json()) as {
+    error?: boolean;
+    reason?: string;
+    data?: { collectionId?: string; _id?: string; name?: string };
+  };
+  const collectionId = json.data?.collectionId ?? json.data?._id;
+  if (!res.ok || json.error || !collectionId) {
+    return { error: true, reason: json.reason ?? "Could not create collection." };
+  }
+  return {
+    error: false,
+    collectionId,
+    name: json.data?.name ?? name,
+  };
+}
+
 export async function addCoinViaApi(
-  body: AddCoinRequestBody & Record<string, unknown>,
+  body: AddCoinRequestBody,
 ): Promise<{ error: false } | { error: true; reason?: string }> {
   const res = await fetch("/api/coin/add", {
     method: "POST",

@@ -33,7 +33,7 @@ INDEX.md             living project map — update when pages/APIs change
 ## Hard rules
 
 1. **Match Figma, don't freestyle.** Use node IDs from `PAGES-CHECKLIST.md`. Pixel-sensitive padding/sizes may need `!` overrides against `SectionShell` defaults.
-2. **Server secrets stay on the server.** Never import `lib/api/coinzy.ts` into client components. Guest JWTs for catalogue/marketplace stay in module memory on the server. Browser sessions use HTTP-only cookies via `app/api/auth/[action]/route.ts` only.
+2. **Server secrets stay on the server.** Never import `lib/api/coinzy.ts` or `lib/api/marketplace-session.ts` into client components. Guest JWTs for catalogue/marketplace stay in module memory on the server. Browser sessions use HTTP-only cookies via same-origin `/api/*` route handlers (auth, coin add, marketplace sell, etc.) — never expose session JWTs in client code or JSON.
 3. **Two API backends.** Catalogue → `COINZY_API_ORIGIN` (default `https://coins-api.trackzio.com`). Marketplace listings → `COINZY_MARKETPLACE_API_ORIGIN` (default `https://coins-api-prod.trackzio.com`). Auth paths are root `/auth/*`; data paths are `/api/*`. Always **https**.
 4. **Reuse shared UI.** `SectionShell`, `SectionHeader`, `PageHero`, `HeroBanner`, `FallbackImage`, `CoinPlaceholder`, `DetailsBreadcrumb`, `CoinPhotos`, grids/pagers — extend props; don't fork.
 5. **Full-bleed backgrounds** go in `SectionShell`'s `background` prop, not as children (children live in the 1440px column).

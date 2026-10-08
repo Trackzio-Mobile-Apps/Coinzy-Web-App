@@ -11,7 +11,7 @@ Read `AGENTS.md` for full rules and `INDEX.md` for the live file map. Update `IN
 
 - Next.js 15 App Router, React 19, Tailwind 4 theme tokens — no new UI kits or default Inter stacks.
 - Server Components by default; `"use client"` only for interactivity.
-- Never import `lib/api/coinzy.ts` in client code. Session JWTs for users go only through HTTP-only cookies via `app/api/auth/*`.
+- Never import `lib/api/coinzy.ts` or `lib/api/marketplace-session.ts` in client code. Session JWTs go only through HTTP-only cookies via `app/api/auth/*` and other same-origin `/api/*` proxies.
 - Catalogue API host ≠ marketplace API host (see `AGENTS.md`). Always https.
 - Match Figma nodes from `PAGES-CHECKLIST.md`; don't invent layouts.
 - Google auth stays disabled; Figma `908`/`905` auth modals are not built on web (use `/auth?next=`). Identify flow is out of scope unless asked.

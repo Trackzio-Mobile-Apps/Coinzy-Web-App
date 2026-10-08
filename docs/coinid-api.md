@@ -269,9 +269,11 @@ All endpoints require JWT authentication. Include the JWT token in the `Authoriz
       ],
       "rating": 5,
       "comment": "This is a nice coin!",
-      "archetypeId": "67e55615c3e206064786ffa0"
+      "archetypeId": "67e55615c3e206064786ffa0",
+      "_collection": "6ac757fa79755889ca446c74"
     }
     ```
+    > **NOTE:** To put the coin in a **custom** collection from `POST /collections/add`, send the collection id as **`_collection`** (Mongo ref). Sending `collectionId` is ignored — the coin lands in the auto Identified bucket instead. Omit `_collection` to use the default Identified/Owned routing from `isOwned` / `isIdentified`.
 - **Response Examples**:
   - `200 OK`: Coin added successfully.
     ```json
@@ -457,6 +459,9 @@ All endpoints require JWT authentication. Include the JWT token in the `Authoriz
     > | isOwned         | Ownership status of the coin        | Boolean[] |
     > | isIdentified    | Identification status of the coin   | Boolean[] |
     > | isWishlisted    | Wishlist status of the coin         | Boolean[] |
+    > | _collection     | Custom collection id(s)             | String[]  |
+    >
+    > **NOTE:** `collectionId` is **not** a valid filter (returns `400 Invalid query filter fields`). Use `_collection: ["<id>"]` to list coins in a custom collection. Card thumbnails on `GET /collections/fetchAll` come from `representativeImages` once coins are linked via `_collection`.
 
 - **Response Examples**:
   - `200 OK`: Returns the list of coins (optionally filtered) with pagination info.
@@ -744,6 +749,43 @@ All endpoints require JWT authentication. Include the JWT token in the `Authoriz
       "reason": "Internal Server Error"
     }
     ```
+
+### Custom collections
+
+#### `POST /collections/add`
+
+- **Description**: Create a named private (custom) collection for the signed-in user.
+- **Request**:
+  - **Headers**: `Authorization`: Bearer token
+  - **Body**:
+    ```json
+    { "name": "Private collection #1" }
+    ```
+- **Response** (`200 OK`):
+  ```json
+  {
+    "error": false,
+    "data": {
+      "collectionId": "6ac7560979755889ca446bc3",
+      "name": "Private collection #1",
+      "description": "",
+      "imageUrl": null,
+      "coinCount": 0,
+      "createdAt": "2026-10-08T08:36:25.671Z",
+      "updatedAt": "2026-10-08T08:36:25.671Z"
+    }
+  }
+  ```
+
+Web proxy: `POST /api/collections/add` (session cookie).
+
+#### `GET /collections/fetchAll`
+
+- **Description**: List custom collections plus aggregate counts (`ownedCount`, `identifiedCount`, `wishlistedCount`). Supports `pageNo` and `pageSize` query params.
+- **Request**: `Authorization`: Bearer token
+- **Response** (`200 OK`): `{ "error": false, "data": [ … ], "ownedCount": n, "identifiedCount": n, "wishlistedCount": n }`
+
+Web proxy: `GET /api/collections/fetchAll`.
 
 ### Feedback Management
 

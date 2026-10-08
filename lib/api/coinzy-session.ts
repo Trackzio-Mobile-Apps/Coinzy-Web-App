@@ -116,6 +116,7 @@ export type SessionCollectionRow = {
   imageUrl?: string | null;
   representativeImages?: string[];
   coinCount?: number;
+  updatedAt?: string | null;
 };
 
 /** `GET /api/collections/fetchAll` */
@@ -158,6 +159,41 @@ export async function fetchCollectionsForSession(
   };
 }
 
+/** `POST /api/collections/add` — custom private collection. */
+export async function addCollectionForSession(
+  token: string,
+  name: string,
+): Promise<
+  | { error: false; data: SessionCollectionRow }
+  | { error: true; reason?: string; _status: number }
+> {
+  const trimmed = name.trim();
+  if (!trimmed) return { error: true, reason: "Collection name is required.", _status: 400 };
+  const res = await fetch(`${ORIGIN}/api/collections/add`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ name: trimmed }),
+    cache: "no-store",
+  });
+  const json = (await res.json()) as {
+    error?: boolean;
+    reason?: string;
+    data?: SessionCollectionRow & { _id?: string };
+  };
+  if (!res.ok || json.error) {
+    return { error: true, reason: json.reason ?? "Could not create collection.", _status: res.status };
+  }
+  const row = json.data;
+  if (!row) {
+    return { error: true, reason: "Empty collection response.", _status: 502 };
+  }
+  const collectionId = row.collectionId ?? row._id ?? "";
+  if (!collectionId) {
+    return { error: true, reason: "Invalid collection response.", _status: 502 };
+  }
+  return { error: false, data: { ...row, collectionId } };
+}
+
 export type UserCoinRow = {
   coinId: string;
   name: string;
@@ -168,6 +204,8 @@ export type UserCoinRow = {
   isOwned?: boolean;
   isIdentified?: boolean;
   isWishlisted?: boolean;
+  updatedAt?: string | null;
+  createdAt?: string | null;
 };
 
 /** `GET /coin/getDetails/:id` — one coin in the user's private collection. */
@@ -295,4 +333,21 @@ export async function addCoinToCollection(
     return { error: true, reason: json.reason, _status: res.status };
   }
   return { error: false, data: json.data };
+}
+
+/** `DELETE /coin/delete/:id` — remove a coin from the user's private collection. */
+export async function deleteUserCoin(
+  token: string,
+  coinId: string,
+): Promise<{ error: false } | { error: true; reason?: string; _status: number }> {
+  const res = await fetch(`${ORIGIN}/api/coin/delete/${encodeURIComponent(coinId)}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  const json = (await res.json()) as { error?: boolean; reason?: string };
+  if (!res.ok || json.error) {
+    return { error: true, reason: json.reason, _status: res.status };
+  }
+  return { error: false };
 }

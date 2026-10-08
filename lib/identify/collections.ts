@@ -1,3 +1,5 @@
+import type { AddCoinRequestBody } from "@/lib/identify/addCoinPayload";
+
 /** `GET /api/collections/fetchAll` row (custom / private collections). */
 export type ApiPrivateCollection = {
   collectionId: string;
@@ -22,7 +24,7 @@ export type UserCollectionOption = {
   id: string;
   label: string;
   kind: "identified" | "owned" | "private";
-  /** When set, sent as `collectionId` on `POST /coin/add`. */
+  /** When set, sent as `_collection` on `POST /coin/add`. */
   collectionId?: string;
   isOwned: boolean;
   isIdentified: boolean;
@@ -73,15 +75,31 @@ export function buildCollectionOptions(api: CollectionsFetchPayload): UserCollec
   return options;
 }
 
+export function privateCollectionOption(row: ApiPrivateCollection): UserCollectionOption {
+  return {
+    id: `private:${row.collectionId}`,
+    label: row.name,
+    kind: "private",
+    collectionId: row.collectionId,
+    isOwned: false,
+    isIdentified: true,
+    isWishlisted: false,
+  };
+}
+
+export function defaultNewCollectionName(privateCount: number): string {
+  return `Private collection #${privateCount + 1}`;
+}
+
 export function collectionLabel(options: UserCollectionOption[], selectedId: string): string {
   return options.find((o) => o.id === selectedId)?.label ?? "your collection";
 }
 
 export function applyCollectionToAddBody(
-  base: Record<string, unknown>,
+  base: AddCoinRequestBody,
   option: UserCollectionOption,
   userOwnsCoin: boolean,
-): Record<string, unknown> {
+): AddCoinRequestBody {
   const body = { ...base };
   if (option.kind === "owned") {
     body.isOwned = true;
@@ -92,10 +110,10 @@ export function applyCollectionToAddBody(
   } else {
     body.isOwned = userOwnsCoin;
     body.isWishlisted = false;
-    if (option.collectionId) body.collectionId = option.collectionId;
+    if (option.collectionId) body._collection = option.collectionId;
   }
   if (option.collectionId && option.kind === "identified") {
-    body.collectionId = option.collectionId;
+    body._collection = option.collectionId;
   }
   // Identify flow: every saved coin is marked identified regardless of target collection.
   body.isIdentified = true;

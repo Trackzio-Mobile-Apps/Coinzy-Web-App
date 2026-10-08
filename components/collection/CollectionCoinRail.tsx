@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { CoinPlaceholder } from "@/components/ui/CoinPlaceholder";
 import { FallbackImage } from "@/components/ui/FallbackImage";
-import { CollectionAddForSaleButton } from "@/components/collection/CollectionAddForSaleButton";
+import type { ReactNode } from "react";
 
 const DETAIL_ICONS = "/assets/coin-details";
 
@@ -9,11 +9,12 @@ const DETAIL_ICONS = "/assets/coin-details";
 export function CollectionCoinRail({
   databaseImages,
   title,
-  sellReturnTo,
+  footer,
 }: {
   databaseImages: string[];
   title: string;
-  sellReturnTo?: string;
+  /** Add for Sale CTA or listed seller panel (Figma `1349:142237`). */
+  footer?: ReactNode;
 }) {
   const photos = databaseImages.slice(0, 2);
   const tile = "relative aspect-square flex-1 overflow-hidden rounded-lg border border-[#efefef] bg-coin-well";
@@ -43,7 +44,7 @@ export function CollectionCoinRail({
             </>
           )}
         </div>
-        <CollectionAddForSaleButton returnTo={sellReturnTo} />
+        {footer}
       </div>
 
       <div className="flex w-full flex-col items-center gap-3 self-start rounded-2xl bg-white px-4 py-3 lg:w-[268px]">

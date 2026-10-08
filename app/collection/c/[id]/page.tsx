@@ -31,7 +31,7 @@ export default async function PrivateCollectionPage({
   const page = parsePageParam(sp.page);
   const [collections, coins] = await Promise.all([
     fetchCollectionsForSession(token),
-    fetchUserCoins(token, { pageNo: page - 1, pageSize: 16, filters: { collectionId: [id] } }),
+    fetchUserCoins(token, { pageNo: page - 1, pageSize: 16, filters: { _collection: [id] } }),
   ]);
   const rows = collections.error ? [] : collections.data;
   const name = rows.find((r) => r.collectionId === id)?.name ?? "Collection";

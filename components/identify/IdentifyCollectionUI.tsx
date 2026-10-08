@@ -1,11 +1,40 @@
 "use client";
 
 import Image from "next/image";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import type { ArchetypeDetails } from "@/lib/api/coinzy";
 import { coinTitle, detailTabs, overviewRows } from "@/lib/catalogue/coinDetails";
 import { useModalDialog } from "@/components/ui/useModalDialog";
-import type { UserCollectionOption } from "@/lib/identify/collections";
+import { defaultNewCollectionName, type UserCollectionOption } from "@/lib/identify/collections";
+
+function CollectionCheckbox({
+  checked,
+  disabled,
+}: {
+  checked: boolean;
+  disabled?: boolean;
+}) {
+  return (
+    <span
+      className={`flex size-4 shrink-0 items-center justify-center rounded border shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] ${
+        checked ? "border-primary-500 bg-primary-500 text-white" : "border-[#e5e5e5] bg-white"
+      } ${disabled ? "opacity-50" : ""}`}
+      aria-hidden
+    >
+      {checked ? (
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="size-3">
+          <path
+            d="M2.5 6L5 8.5L9.5 4"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ) : null}
+    </span>
+  );
+}
 
 const DRAWER_TABS = ["Overview", "Design & Material", "Rarity", "History"] as const;
 
@@ -134,34 +163,77 @@ export function IdentifyAddToCollectionDrawer({
   );
 }
 
-/** Figma `1500:287598` */
+/** Figma `1500:287598` · name row `1500:287599` */
 export function IdentifySelectCollectionModal({
   open,
   collections,
   loading,
-  selectionLocked,
   userOwnsCoin,
   selectedId,
   onSelect,
   onClose,
   onDone,
+  onCreateCollection,
   saving,
 }: {
   open: boolean;
   collections: UserCollectionOption[];
   loading: boolean;
-  /** When the user owns the coin, only Owned collection is allowed (rows disabled). */
-  selectionLocked: boolean;
-  /** When false, Owned collection cannot be chosen. */
+  /** When false, only Owned is disabled; Identified + private stay selectable. */
   userOwnsCoin: boolean;
   selectedId: string;
   onSelect: (id: string) => void;
   onClose: () => void;
   onDone: () => void;
+  onCreateCollection: (name: string) => Promise<{ error: true; reason?: string } | { error: false }>;
   saving?: boolean;
 }) {
   const titleId = useId();
+  const inputId = useId();
   const ref = useModalDialog(open, (next) => !next && onClose());
+  const [createOpen, setCreateOpen] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [nameEdited, setNameEdited] = useState(false);
+
+  const privateCount = collections.filter((o) => o.kind === "private").length;
+
+  useEffect(() => {
+    if (!open) {
+      setCreateOpen(false);
+      setCreateError(null);
+      setCreating(false);
+      setNameEdited(false);
+      return;
+    }
+    setNewName(defaultNewCollectionName(privateCount));
+    setNameEdited(false);
+  }, [open, privateCount]);
+
+  const saveNewCollection = async (): Promise<boolean> => {
+    const name = newName.trim();
+    if (!name || creating) return false;
+    setCreating(true);
+    setCreateError(null);
+    const res = await onCreateCollection(name);
+    setCreating(false);
+    if (res.error) {
+      setCreateError(res.reason ?? "Could not create collection.");
+      return false;
+    }
+    setCreateOpen(false);
+    return true;
+  };
+
+  const handleDone = async () => {
+    if (loading || saving || creating) return;
+    if (createOpen && newName.trim() && nameEdited) {
+      const created = await saveNewCollection();
+      if (!created) return;
+    }
+    onDone();
+  };
 
   return (
     <dialog
@@ -169,68 +241,127 @@ export function IdentifySelectCollectionModal({
       aria-labelledby={titleId}
       onClose={onClose}
       onClick={(e) => e.target === e.currentTarget && onClose()}
-      className="m-auto w-[min(100%,440px)] overflow-hidden rounded-[14px] border-0 bg-white p-0 shadow-xl backdrop:bg-black/55"
+      className="m-auto w-[min(100%,382px)] overflow-hidden rounded-[14px] border-0 bg-white p-0 shadow-[0_0_0_1px_rgba(10,10,10,0.1)] backdrop:bg-black/55"
     >
-      <div className="relative border-b border-[#efefef] px-4 py-4">
+      <div className="relative p-4">
         <button
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute right-3 top-3 flex size-8 items-center justify-center"
+          className="absolute right-4 top-4 flex size-4 items-center justify-center"
         >
           <Image src="/assets/auth/close.svg" alt="" width={16} height={16} />
         </button>
-        <h2 id={titleId} className="pr-8 text-base font-medium text-ink">Select a collection</h2>
-        <p className="mt-1 text-sm text-[#606062]">Select the coin collection that you want to add this coin to</p>
+        <h2 id={titleId} className="pr-6 text-base font-medium leading-6 text-ink">Select a collection</h2>
+        <p className="mt-1 text-sm leading-5 text-[#737373]">
+          Select the coin collection that you want to add this coin to
+        </p>
       </div>
-      <ul className="max-h-[320px] overflow-y-auto px-4 py-2">
-        {loading && (
-          <li className="py-6 text-center text-sm text-muted">Loading collections…</li>
-        )}
-        {!loading &&
-          collections.map((opt) => {
-            const checked = opt.id === selectedId;
-            const ownedRowBlocked = !userOwnsCoin && opt.kind === "owned";
-            const disabled = selectionLocked || ownedRowBlocked;
-            return (
-              <li key={opt.id}>
-                <button
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => !disabled && onSelect(opt.id)}
-                  className={`flex w-full items-center gap-3 rounded-lg py-3 text-left text-sm text-ink ${
-                    disabled ? "cursor-not-allowed opacity-50" : "hover:bg-[#fafafa]"
-                  } ${selectionLocked && checked ? "cursor-default" : ""}`}
-                >
-                  <span
-                    className={`flex size-5 shrink-0 items-center justify-center rounded-md border ${
-                      checked ? "border-primary-500 bg-primary-500 text-white" : "border-[#c2c2c4] bg-white"
-                    } ${selectionLocked ? "opacity-80" : ""}`}
-                    aria-hidden
+
+      <div className="flex max-h-[min(60vh,420px)] flex-col gap-4 overflow-y-auto px-4 pb-4">
+        {loading ? (
+          <p className="py-6 text-center text-sm text-muted">Loading collections…</p>
+        ) : (
+          <ul className="flex flex-col">
+            {collections.map((opt) => {
+              const checked = opt.id === selectedId;
+              // Only Owned is gated: disabled when the user said they do not own the coin.
+              const rowDisabled = !userOwnsCoin && opt.kind === "owned";
+              return (
+                <li key={opt.id}>
+                  <button
+                    type="button"
+                    disabled={rowDisabled}
+                    onClick={() => !rowDisabled && onSelect(opt.id)}
+                    className={`flex w-full items-start gap-2 p-3 text-left text-sm font-medium text-[#606062] ${
+                      rowDisabled ? "cursor-not-allowed opacity-50" : "hover:bg-[#fafafa]"
+                    }`}
                   >
-                    {checked ? "✓" : ""}
-                  </span>
-                  {opt.label}
-                </button>
-              </li>
-            );
-          })}
-      </ul>
-      <div className="flex justify-end gap-2 border-t border-[#f5f5f5] bg-[#fafafa] px-4 py-4">
+                    <CollectionCheckbox checked={checked} disabled={rowDisabled} />
+                    <span className="leading-5">{opt.label}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+
+        <div
+          className={`rounded-xl border border-[#edd2d3] bg-[rgba(247,231,232,0.3)] py-3 ${
+            createOpen ? "gap-2.5" : ""
+          } flex flex-col`}
+        >
+          <button
+            type="button"
+            onClick={() => {
+              setCreateError(null);
+              setCreateOpen((v) => !v);
+              if (!createOpen) {
+                setNewName(defaultNewCollectionName(privateCount));
+                setNameEdited(false);
+              }
+            }}
+            className="flex w-full items-center gap-1.5 px-4 py-2 text-sm font-medium text-primary-500"
+          >
+            <span className="flex size-4 items-center justify-center text-base leading-none" aria-hidden>
+              {createOpen ? "−" : "+"}
+            </span>
+            Add new collections
+          </button>
+          {createOpen && (
+            <div className="flex flex-col gap-2 px-4">
+              <div className="flex h-8 items-center gap-1.5 rounded-[10px] border border-primary-500 bg-white px-2.5 py-1">
+                <input
+                  id={inputId}
+                  type="text"
+                  value={newName}
+                  onChange={(e) => {
+                    setNewName(e.target.value);
+                    setNameEdited(true);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      saveNewCollection();
+                    }
+                  }}
+                  disabled={creating}
+                  className="min-w-0 flex-1 bg-transparent text-xs text-ink outline-none"
+                  autoFocus
+                />
+                {newName ? (
+                  <button
+                    type="button"
+                    aria-label="Clear name"
+                    onClick={() => setNewName("")}
+                    className="flex size-4 shrink-0 items-center justify-center opacity-70"
+                  >
+                    <Image src="/assets/auth/close.svg" alt="" width={14} height={14} />
+                  </button>
+                ) : null}
+              </div>
+              <p className="text-sm leading-5 text-[#737373] opacity-80">Press Enter to save</p>
+              {createError ? <p className="text-xs text-[#dc2626]" role="alert">{createError}</p> : null}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="flex justify-end gap-1.5 border-t border-[#e5e5e5] bg-[#f5f5f5]/80 p-4">
         <button
           type="button"
           onClick={onClose}
-          className="inline-flex h-9 items-center rounded-[10px] border border-[#e5e5e5] bg-white px-4 text-sm font-medium text-ink"
+          className="inline-flex h-9 items-center rounded-[10px] border border-[#e5e5e5] bg-white px-3 text-sm font-medium text-ink"
         >
           Cancel
         </button>
         <button
           type="button"
-          onClick={onDone}
-          disabled={loading || saving}
-          className="inline-flex h-9 items-center rounded-[10px] bg-primary-500 px-4 text-sm font-medium text-white disabled:opacity-50"
+          onClick={() => void handleDone()}
+          disabled={loading || saving || creating}
+          className="inline-flex h-9 items-center rounded-[10px] bg-primary-500 px-3 text-sm font-medium text-white disabled:opacity-50"
         >
-          {saving ? "Saving…" : "Done"}
+          {saving || creating ? "Saving…" : "Done"}
         </button>
       </div>
     </dialog>

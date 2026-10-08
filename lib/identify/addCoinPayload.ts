@@ -19,7 +19,8 @@ function estimatedScalar(estimated: ArchetypeDetails["estimatedPrice"]): number 
 }
 
 export type AddCoinRequestBody = {
-  collectionId?: string;
+  /** Custom collection id — catalogue API field is `_collection` (not `collectionId`). */
+  _collection?: string;
   name: string;
   currency: string;
   issuer: string;

@@ -1,18 +1,19 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { AppSidebar } from "@/components/home/AppSidebar";
 import { CoinPhotos, DetailsBreadcrumb } from "@/components/catalogue/DetailsParts";
 import { CoinDetailsSkeleton } from "@/components/catalogue/CoinDetailsSkeleton";
 import { CoinDetailTabs, EstimatedValueBanner, TableRow } from "@/components/catalogue/CoinDetailsInteractive";
-import { CollectionCoinRail } from "@/components/collection/CollectionCoinRail";
+import { CollectionCoinGradingBlock } from "@/components/collection/CollectionCoinGradingBlock";
+import { CollectionCoinOverflowMenu } from "@/components/collection/CollectionCoinOverflowMenu";
+import { CollectionCoinSellActions } from "@/components/collection/CollectionCoinSellActions";
 import { CollectionCoinStatusBadge } from "@/components/collection/CollectionCoinStatusBadge";
-import { CollectionDetailsSellBar } from "@/components/collection/CollectionDetailsSellBar";
+import { CollectionListedSellerRail } from "@/components/collection/CollectionListedSellerRail";
 import { collectionLinks } from "@/components/collection/collectionNav";
 import { IdentifyExpertBanner } from "@/components/identify/IdentifyExpertBanner";
 import { MarketplaceAppHeader } from "@/components/marketplace/MarketplaceAppHeader";
-import { fetchArchetypeDetails, isArchetypeId } from "@/lib/api/coinzy";
+import { fetchArchetypeDetails, fetchListingDetails, fetchListingFilterValues, isArchetypeId } from "@/lib/api/coinzy";
 import {
   fetchArchetypeDetailsForSession,
   fetchCollectionsForSession,
@@ -21,10 +22,9 @@ import {
 import { getPremiumStatus, getSessionToken, getSessionUser } from "@/lib/auth/session";
 import { parsePageParam, parseQueryParam } from "@/lib/backNav";
 import { collectionDetailsAncestor } from "@/lib/collection/breadcrumb";
+import { userCoinListingId } from "@/lib/collection/marketplaceSale";
 import { collectionCoinStatus, userCoinSpec } from "@/lib/collection/userCoinSpec";
 import { coinTitle, detailTabs, gradePrices, overviewRows } from "@/lib/catalogue/coinDetails";
-
-const DETAIL_ICONS = "/assets/coin-details";
 
 type Params = {
   params: Promise<{ id: string }>;
@@ -42,12 +42,16 @@ async function CollectionCoinDetailsContent({
   fromPage,
   fromQuery,
   premium,
+  sellerName,
+  sellerEmail,
 }: {
   coinId: string;
   from?: string;
   fromPage: number;
   fromQuery: string;
   premium: boolean;
+  sellerName: string;
+  sellerEmail: string;
 }) {
   const token = await getSessionToken();
   if (!token) redirect(`/auth?next=/collection/coin/${coinId}`);
@@ -74,7 +78,17 @@ async function CollectionCoinDetailsContent({
   const userImages = userCoin.imageUrls?.length ? userCoin.imageUrls : (archetype?.imageUrls ?? []);
   const databaseImages = archetype?.imageUrls?.length ? archetype.imageUrls : userImages;
   const status = collectionCoinStatus(userCoin);
-  const sellReturnTo = `/marketplace`;
+  const listingId = userCoinListingId(userCoin);
+  const [listing, sellFilters] = await Promise.all([
+    listingId ? fetchListingDetails(listingId).catch(() => null) : Promise.resolve(null),
+    fetchListingFilterValues([
+      "gradingScale",
+      "gradeValue",
+      "gradingAuthority",
+      "strikerType",
+      "cleaningAlterations",
+    ]).catch(() => null),
+  ]);
 
   const listHref = (() => {
     const base = ancestor.href;
@@ -89,21 +103,32 @@ async function CollectionCoinDetailsContent({
     <>
       <DetailsBreadcrumb ancestors={[{ href: listHref, label: ancestor.label }]} current={title} />
 
-      <div className="mt-10 flex flex-col items-start gap-4 pb-24 lg:flex-row">
-        <div className="flex w-full min-w-0 flex-1 flex-col gap-4">
+      <CollectionCoinSellActions
+        coinId={coinId}
+        coinTitle={title}
+        sellerName={sellerName}
+        sellerEmail={sellerEmail}
+        listingId={listingId}
+        listedSellerPanel={
+          listingId && listing ? <CollectionListedSellerRail listing={listing} listingId={listingId} /> : null
+        }
+        filterOptions={{
+          gradingScale: sellFilters?.gradingScale,
+          gradeValue: sellFilters?.gradeValue,
+          gradingAuthority: sellFilters?.gradingAuthority,
+          strikerType: sellFilters?.strikerType,
+          cleaningAlterations: sellFilters?.cleaningAlterations,
+        }}
+        databaseImages={databaseImages}
+        title={title}
+      >
           <div className="flex w-full flex-col gap-6 rounded-2xl bg-white p-4">
             <div className="flex min-h-8 flex-wrap items-center justify-between gap-3">
               <div className="flex min-w-0 flex-wrap items-center gap-3">
                 <h1 className="text-2xl font-semibold leading-8 text-ink">{title}</h1>
                 <CollectionCoinStatusBadge status={status} />
               </div>
-              <button
-                type="button"
-                className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-[#e5e5e5] bg-white"
-                aria-label="More actions"
-              >
-                <Image src={`${DETAIL_ICONS}/icon-more-horizontal.svg`} alt="" width={20} height={20} />
-              </button>
+              <CollectionCoinOverflowMenu coinId={coinId} coinTitle={title} returnHref={listHref} />
             </div>
 
             <div className="flex flex-col gap-8 sm:flex-row sm:items-start">
@@ -121,16 +146,15 @@ async function CollectionCoinDetailsContent({
               </div>
             </div>
 
-            <IdentifyExpertBanner subtext="Have your coin reviewed by a human expert, not AI" />
+            <IdentifyExpertBanner
+              title="Want more certainty?"
+              subtext="Have your coin reviewed by a human expert, not AI"
+            />
           </div>
 
           <CoinDetailTabs tabs={detailTabs(spec)} premium={premium} />
-        </div>
-
-        <CollectionCoinRail databaseImages={databaseImages} title={title} sellReturnTo={sellReturnTo} />
-      </div>
-
-      <CollectionDetailsSellBar sellReturnTo={sellReturnTo} />
+          {listing && <CollectionCoinGradingBlock listing={listing} />}
+      </CollectionCoinSellActions>
     </>
   );
 }
@@ -162,6 +186,8 @@ export default async function CollectionCoinDetailsPage({ params, searchParams }
         fromPage={parsePageParam(sp.fromPage)}
         fromQuery={parseQueryParam(sp.fromQ)}
         premium={premium}
+        sellerName={user.name}
+        sellerEmail={user.email}
       />
     </Suspense>
   );

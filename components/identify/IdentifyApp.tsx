@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { IdentifyAnalysing } from "@/components/identify/IdentifyAnalysing";
+import { IdentifyFailure } from "@/components/identify/IdentifyFailure";
 import { IdentifyMatchList } from "@/components/identify/IdentifyMatchList";
 import {
   IdentifyCameraBlockedModal,
@@ -17,12 +18,12 @@ import { IdentifyDebugBar } from "@/components/identify/IdentifyDebugBar";
 import { IdentifyUploadCard } from "@/components/identify/IdentifyUploadCard";
 import { identifyCoinsV2 } from "@/lib/identify/client";
 import { loadIdentifyDebugSample } from "@/lib/identify/debugSamples";
-import { identifyErrorMessage } from "@/lib/identify/messages";
+import { identifyErrorMessage, isInlineIdentifyFailure } from "@/lib/identify/messages";
 import { notifyFreeScanUsageUpdated, recordFreeScanUsed } from "@/lib/identify/scanUsage";
 import { saveIdentifySession } from "@/lib/identify/storage";
 import type { IdentifyMatch } from "@/lib/identify/types";
 
-type Step = "upload" | "analysing" | "matches";
+type Step = "upload" | "analysing" | "matches" | "failure";
 
 type Slot = { file: File; preview: string };
 
@@ -39,6 +40,7 @@ export function IdentifyApp({
   const [reverse, setReverse] = useState<Slot | null>(null);
   const [busy, setBusy] = useState(false);
   const [matches, setMatches] = useState<IdentifyMatch[]>([]);
+  const [failure, setFailure] = useState<{ title: string; body: string } | null>(null);
   const [toast, setToast] = useState<{ title: string; body: string } | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
   const [cameraBlockedOpen, setCameraBlockedOpen] = useState(false);
@@ -99,12 +101,6 @@ export function IdentifyApp({
     }
   }, []);
 
-  const previewUrlsRef = useRef({ obverse: "", reverse: "" });
-  useEffect(() => {
-    previewUrlsRef.current.obverse = obverse?.preview ?? "";
-    previewUrlsRef.current.reverse = reverse?.preview ?? "";
-  }, [obverse?.preview, reverse?.preview]);
-
   useEffect(() => {
     if ((obverse && reverse) || (!obverse && !reverse)) {
       setFlipDismissed(false);
@@ -115,12 +111,13 @@ export function IdentifyApp({
     obverse && !reverse ? "reverse" : reverse && !obverse ? "obverse" : null;
 
   useEffect(() => {
+    const o = obverse?.preview ?? "";
+    const r = reverse?.preview ?? "";
     return () => {
-      const { obverse: o, reverse: r } = previewUrlsRef.current;
       if (o) URL.revokeObjectURL(o);
       if (r) URL.revokeObjectURL(r);
     };
-  }, []);
+  }, [obverse?.preview, reverse?.preview]);
 
   const openCamera = (side: "obverse" | "reverse") => {
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -132,23 +129,41 @@ export function IdentifyApp({
     setCameraSide(side);
   };
 
+  const resetToUpload = (clearPhotos: boolean) => {
+    setFailure(null);
+    setMatches([]);
+    setStep("upload");
+    if (clearPhotos) {
+      clearSlot("obverse");
+      clearSlot("reverse");
+    }
+  };
+
   const submit = async () => {
     if (!obverse || !reverse) return;
     setBusy(true);
     setStep("analysing");
     setToast(null);
+    setFailure(null);
     try {
       const res = await identifyCoinsV2(obverse.file, reverse.file);
       if (res.error) {
         const msg = identifyErrorMessage(res.aiErrorCode, res.reason);
-        setToast(msg);
-        setStep("upload");
+        // Full-page failure (Figma `2098:158944`) for not-a-coin / blurry / photo issues.
+        // API often omits `aiErrorCode` and only sends reason like "Coin not detected!".
+        if (isInlineIdentifyFailure(res.aiErrorCode, res.reason)) {
+          setFailure(msg);
+          setStep("failure");
+        } else {
+          setToast(msg);
+          setStep("upload");
+        }
         return;
       }
       const list = res.data.matches ?? [];
       if (!list.length) {
-        setToast(identifyErrorMessage("E006"));
-        setStep("upload");
+        setFailure(identifyErrorMessage("E001"));
+        setStep("failure");
         return;
       }
       setMatches(list);
@@ -223,6 +238,16 @@ export function IdentifyApp({
                   body: "We’ve noted that none of the matches fit. Try again with clearer photos or browse the catalogue.",
                 })
               }
+            />
+          )}
+          {step === "failure" && previewPair && failure && (
+            <IdentifyFailure
+              frontPreview={previewPair[0]}
+              backPreview={previewPair[1]}
+              title={failure.title}
+              body={failure.body}
+              onTryAgain={() => resetToUpload(false)}
+              onUploadNew={() => resetToUpload(true)}
             />
           )}
 

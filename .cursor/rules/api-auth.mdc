@@ -7,6 +7,7 @@ alwaysApply: false
 # API & auth
 
 - `lib/api/coinzy.ts`: server-only guest client. Auth at `/auth/*`, data at `/api/*`. Separate guest tokens per `catalogue` vs `marketplace` backend.
+- `lib/api/marketplace-session.ts`: server-only session mutations on the **marketplace** host (e.g. sell private coin). Browser calls same-origin `/api/marketplace/*` proxies with `isAllowedAuthOrigin` + `coinzy_session` cookie — never expose the JWT to client code.
 - Prefer `unstable_cache` + tags for details when Bearer headers would bust `fetch` cache (`archetype-details`, `listing-details`, `marketplace-listings`).
 - Normalize mixed string/number API fields in view-models — never call string methods on raw values.
 - Browser auth: `lib/auth/client.ts` → `POST /api/auth/[action]` only. Proxy maps `docs/auth-api.md`, validates origin, strips tokens from JSON, sets HTTP-only cookies.
