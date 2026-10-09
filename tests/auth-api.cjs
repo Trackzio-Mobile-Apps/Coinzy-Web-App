@@ -51,13 +51,21 @@ const request = (action, data, headers = {}) => POST(new NextRequest(`http://loc
   assert.equal(response.headers.get('set-cookie'), null);
   result = { error: false };
   assert.equal((await request('login', { email: 'user@example.com', password: 'password' })).status, 502);
-  const count = calls.length;
-  assert.equal((await request('google', {})).status, 404);
+  result = { error: false, token: 'google-session', user: { email: 'collector@gmail.com' } };
+  status = 200;
+  response = await request('google', { credential: 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.payload.sig', fullName: ' Example Collector ' });
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { error: false, email: 'collector@gmail.com' });
+  assert.equal(calls.at(-1).url.includes('/auth/social-login/google'), true);
+  assert.deepEqual(calls.at(-1).body, { credential: 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.payload.sig', fullName: 'Example Collector' });
+  assert.match(response.headers.get('set-cookie'), /coinzy_session=google-session/);
+  assert.equal((await request('google', {})).status, 400);
   assert.equal((await request('login', { email: 'bad', password: 'password' })).status, 400);
   assert.equal((await request('reset', { email: 'user@example.com', password: 'password', code: 'bad' })).status, 400);
   assert.equal((await request('guest', {}, { origin: 'https://other.example' })).status, 403);
   result = { error: false, token: 'test-session', guestId: 'guest-42' };
   status = 200;
+  const count = calls.length;
   response = await POST(
     new NextRequest('http://localhost:3000/api/auth/guest', {
       method: 'POST',
@@ -72,5 +80,5 @@ const request = (action, data, headers = {}) => POST(new NextRequest(`http://loc
   assert.equal((await request('guest', {})).status, 502);
   global.fetch = async () => { throw new Error('Network unavailable'); };
   assert.equal((await request('guest', {})).status, 502);
-  console.log('PASS: five auth contracts, cookies, guest reuse, validation, origin checks and upstream errors');
+  console.log('PASS: auth contracts (incl. google), cookies, guest reuse, validation, origin checks and upstream errors');
 })().catch(error => { console.error(error); process.exitCode = 1; });

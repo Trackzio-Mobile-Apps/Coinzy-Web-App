@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { goHome, submitAuth } from "@/lib/auth/client";
 import { authHref } from "@/lib/auth/returnTo";
 import { AUTH_FIELD_COPY, authErrorsFromReason, type AuthFieldErrors, type AuthFormMode } from "@/lib/auth/messages";
@@ -178,7 +179,26 @@ export function AuthFlow({ mode, next: returnTo = null }: { mode: AuthMode; next
               {mode === "forgot" && <Link href={authHref("login", returnTo)} replace className="flex h-9 items-center justify-center rounded-button border border-[#e5e5e5] text-sm font-medium">Cancel</Link>}
               {mode === "otp" && <div className="flex flex-wrap items-center justify-center gap-2 text-xs leading-4 text-[#6a7282]"><span>Don’t receive code?</span><span className="tabular-nums">00:{String(countdown).padStart(2, "0")}s</span><button type="button" disabled={pending || countdown > 0} onClick={resend} className="rounded-lg px-2 py-1 font-medium text-primary-500 disabled:opacity-50">Re-send</button></div>}
             </div>
-            {(mode === "signup" || mode === "login") && <><Separator /><div className="flex justify-center"><button type="button" aria-label={`${mode === "login" ? "Log in" : "Sign up"} with Google`} disabled title="Google sign-in is not available yet." className="flex size-14 items-center justify-center rounded-full border border-[#e5e5e5] disabled:cursor-not-allowed disabled:opacity-50"><Image src="/assets/auth/google.png" alt="" width={24} height={24} /></button></div><div className="flex items-center justify-center gap-1 text-xs leading-4 text-[#6a7282]"><p>{mode === "signup" ? "Already have an account?" : "Don’t have an account?"}</p><Link href={authHref(mode === "signup" ? "login" : "signup", returnTo)} replace className="rounded-lg px-2 py-1 font-medium text-primary-500">{mode === "signup" ? "Log in" : "Sign up"}</Link></div></>}
+            {(mode === "signup" || mode === "login") && (
+              <>
+                <Separator />
+                <div className="flex justify-center">
+                  <GoogleSignInButton
+                    variant="icon"
+                    next={returnTo}
+                    pending={pending}
+                    onPendingChange={setPending}
+                    onError={setNotice}
+                  />
+                </div>
+                <div className="flex items-center justify-center gap-1 text-xs leading-4 text-[#6a7282]">
+                  <p>{mode === "signup" ? "Already have an account?" : "Don’t have an account?"}</p>
+                  <Link href={authHref(mode === "signup" ? "login" : "signup", returnTo)} replace className="rounded-lg px-2 py-1 font-medium text-primary-500">
+                    {mode === "signup" ? "Log in" : "Sign up"}
+                  </Link>
+                </div>
+              </>
+            )}
             {notice && <p role="status" className="text-center text-sm leading-5 text-muted">{notice}{mode === "reset" && notice === "Password changed. You can now log in." && <Link href={authHref("login", returnTo)} replace className="mt-2 block font-medium text-primary-500">Log in</Link>}</p>}
           </form>
         </div>

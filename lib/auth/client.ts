@@ -1,12 +1,49 @@
 import { safeReturnPath } from "@/lib/auth/returnTo";
+import { googleAuthErrorMessage, obtainGoogleIdCredential } from "@/lib/auth/google";
+import { ensureFirebaseSession } from "@/lib/firebase/authBridge";
 
-export async function submitAuth(action: "login" | "signup" | "guest" | "forgot" | "reset", data: Record<string, unknown> = {}) {
+type AuthAction = "login" | "signup" | "guest" | "forgot" | "reset" | "google";
+
+export async function submitAuth(action: AuthAction, data: Record<string, unknown> = {}) {
   const response = await fetch(`/api/auth/${action}`, {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ...data, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, language: navigator.language }),
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      ...data,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      language: navigator.language,
+    }),
   });
   const result = await response.json();
   if (!response.ok || result.error) throw new Error(result.reason || "Authentication failed. Please try again.");
+
+  // Mirror Android: link Firebase Auth after Coinzy session is set (feed / Firestore rules).
+  if (action === "login" || action === "signup" || action === "guest" || action === "google") {
+    try {
+      const email =
+        (typeof result.email === "string" && result.email) ||
+        (typeof data.email === "string" && data.email) ||
+        (typeof data.handle === "string" && data.handle) ||
+        "";
+      await ensureFirebaseSession({ email, isGuest: action === "guest" || !email });
+    } catch {
+      // Non-fatal — Feed will retry ensureFirebaseSession on mount.
+    }
+  }
+
+  return result as { error: false; email?: string };
+}
+
+/**
+ * Firebase Google popup → Coinzy `auth/social-login/google` → session cookie + Feed bridge.
+ */
+export async function submitGoogleAuth() {
+  try {
+    const { credential, fullName, email } = await obtainGoogleIdCredential();
+    return await submitAuth("google", { credential, fullName, email });
+  } catch (error) {
+    throw new Error(googleAuthErrorMessage(error));
+  }
 }
 
 /**
