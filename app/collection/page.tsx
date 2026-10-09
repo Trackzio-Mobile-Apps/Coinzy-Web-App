@@ -1,16 +1,18 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { AppSidebar } from "@/components/home/AppSidebar";
 import { MarketplaceAppHeader } from "@/components/marketplace/MarketplaceAppHeader";
 import { CatalogueSearch } from "@/components/catalogue/CatalogueSearch";
 import { CollectionFreePlanCard } from "@/components/collection/CollectionFreePlanCard";
 import { CollectionCreateCollectionCard } from "@/components/collection/CollectionCreateCollectionCard";
+import { CollectionGridSkeleton } from "@/components/collection/CollectionGridSkeleton";
 import { CollectionHomeCard } from "@/components/collection/CollectionHomeCard";
 import { CollectionRecentlyIdentified } from "@/components/collection/CollectionRecentlyIdentified";
 import { collectionLinks } from "@/components/collection/collectionNav";
 import { privateCollectionTitle, systemCollectionTitle } from "@/lib/collection/cardTitle";
 import { fetchCollectionsForSession, fetchUserCoins, type UserCoinRow } from "@/lib/api/coinzy-session";
-import { getPremiumStatus, getSessionToken, getSessionUser } from "@/lib/auth/session";
+import { getPremiumStatus, getSessionToken, getSessionUser, type SessionUser } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "Collections | Coinzy AI",
@@ -36,20 +38,21 @@ function latestActivity(coins: UserCoinRow[]): string | null {
   return best;
 }
 
-/** Collections overview — Figma `1341:262557`. */
-export default async function CollectionHomePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ premium?: string; q?: string }>;
-}) {
-  const user = await getSessionUser();
-  if (!user) redirect("/auth?next=/collection");
-  const sp = await searchParams;
-  const premium =
-    (await getPremiumStatus(user)) || (process.env.NODE_ENV !== "production" && sp.premium === "1");
+async function CollectionSidebar({ user }: { user: SessionUser }) {
   const token = await getSessionToken();
-  if (!token) redirect("/auth?next=/collection");
+  if (!token) return <AppSidebar user={user} active="collection" />;
+  const collections = await fetchCollectionsForSession(token, 0, 20);
+  const rows = collections.error ? [] : collections.data;
+  return <AppSidebar user={user} active="collection" collectionLinks={collectionLinks(rows, "")} />;
+}
 
+async function CollectionHomeBody({
+  token,
+  premium,
+}: {
+  token: string;
+  premium: boolean;
+}) {
   const [collections, owned, identified, wishlist, recent, all] = await Promise.all([
     fetchCollectionsForSession(token, 0, 20),
     fetchUserCoins(token, { pageSize: 5, filters: { isOwned: [true] } }),
@@ -109,34 +112,74 @@ export default async function CollectionHomePage({
   ];
 
   return (
+    <div className="mx-auto flex w-full max-w-[1122px] gap-4">
+      <div className="min-w-0 flex-1">
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          {cards.map((card) => (
+            <CollectionHomeCard key={card.href} {...card} />
+          ))}
+          <CollectionCreateCollectionCard privateCount={privateRows.length} />
+        </div>
+      </div>
+      <aside className="hidden shrink-0 flex-col gap-4 lg:flex">
+        {!premium && <CollectionFreePlanCard used={used} />}
+        <CollectionRecentlyIdentified coins={recentList} />
+      </aside>
+    </div>
+  );
+}
+
+function CollectionHomeBodyFallback() {
+  return (
+    <div className="mx-auto flex w-full max-w-[1122px] gap-4">
+      <div className="min-w-0 flex-1">
+        <CollectionGridSkeleton count={6} />
+      </div>
+      <aside className="hidden w-[266px] shrink-0 animate-pulse flex-col gap-4 lg:flex">
+        <div className="h-36 rounded-xl border border-[#efefef] bg-white" />
+        <div className="h-48 rounded-xl border border-[#efefef] bg-white" />
+      </aside>
+    </div>
+  );
+}
+
+/** Collections overview — Figma `1341:262557`. Title first; cards stream. */
+export default async function CollectionHomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ premium?: string; q?: string }>;
+}) {
+  const user = await getSessionUser();
+  if (!user) redirect("/auth?next=/collection");
+  const sp = await searchParams;
+  const premium =
+    (await getPremiumStatus(user)) || (process.env.NODE_ENV !== "production" && sp.premium === "1");
+  const token = await getSessionToken();
+  if (!token) redirect("/auth?next=/collection");
+  const query = typeof sp.q === "string" ? sp.q : "";
+
+  return (
     <div className="flex h-svh overflow-hidden bg-white">
-      <AppSidebar user={user} active="collection" collectionLinks={collectionLinks(rows, "")} />
+      <Suspense fallback={<AppSidebar user={user} active="collection" />}>
+        <CollectionSidebar user={user} />
+      </Suspense>
       <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-[#f7f7f8]">
         <MarketplaceAppHeader user={user} premium={premium} />
         <main className="min-w-0 flex-1 overflow-y-auto px-8 py-6">
-          <div className="mx-auto flex w-full max-w-[1122px] gap-4">
-            <div className="min-w-0 flex-1">
-              <div className="flex max-w-[695px] flex-col gap-4">
-                <h1 className="text-2xl font-semibold leading-8 text-ink">Collections</h1>
-                <CatalogueSearch
-                  action="/collection/owned"
-                  query={sp.q ?? ""}
-                  placeholder="Search coins, empires, countries, years…"
-                  className="h-8 max-w-none w-full"
-                />
-              </div>
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                {cards.map((card) => (
-                  <CollectionHomeCard key={card.href} {...card} />
-                ))}
-                <CollectionCreateCollectionCard privateCount={privateRows.length} />
-              </div>
+          <div className="mx-auto w-full max-w-[1122px]">
+            <div className="flex max-w-[695px] flex-col gap-4">
+              <h1 className="text-2xl font-semibold leading-8 text-ink">Collections</h1>
+              <CatalogueSearch
+                action="/collection/owned"
+                query={query}
+                placeholder="Search coins, empires, countries, years…"
+                className="h-8 max-w-none w-full"
+              />
             </div>
-            <aside className="hidden shrink-0 flex-col gap-4 lg:flex">
-              {!premium && <CollectionFreePlanCard used={used} />}
-              <CollectionRecentlyIdentified coins={recentList} />
-            </aside>
           </div>
+          <Suspense fallback={<CollectionHomeBodyFallback />}>
+            <CollectionHomeBody token={token} premium={premium} />
+          </Suspense>
         </main>
       </div>
     </div>
