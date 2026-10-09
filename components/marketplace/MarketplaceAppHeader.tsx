@@ -16,7 +16,7 @@ export function MarketplaceAppHeader({ user, premium }: { user: SessionUser; pre
             <Image src={`${A}/icon-crown-dark.svg`} alt="" width={12} height={12} />
             You’re Premium
           </span>
-          <Link href="/home#settings" aria-label="Settings" className="flex size-6 items-center justify-center">
+          <Link href="/settings" aria-label="Settings" className="flex size-6 items-center justify-center">
             <Image src={`${A}/icon-settings.svg`} alt="" width={24} height={24} />
           </Link>
         </div>
@@ -29,7 +29,7 @@ export function MarketplaceAppHeader({ user, premium }: { user: SessionUser; pre
             <Image src={`${A}/icon-crown-16.svg`} alt="" width={12} height={12} className="brightness-0 invert" />
             Go Premium
           </Link>
-          <Link href="/home#settings" aria-label="Settings" className="flex size-6 items-center justify-center">
+          <Link href="/settings" aria-label="Settings" className="flex size-6 items-center justify-center">
             <Image src={`${A}/icon-settings.svg`} alt="" width={24} height={24} />
           </Link>
         </div>

@@ -35,7 +35,9 @@ function Field({
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor={id} className={label}>{title}</label>
+      <label htmlFor={id} className={label}>
+        {title}
+      </label>
       {children}
       {error && <p className={errorText}>{error}</p>}
     </div>
@@ -56,16 +58,51 @@ function Select({
   options: string[];
 }) {
   return (
-    <select id={id} value={value} onChange={(e) => onChange(e.target.value)} className={`${input} appearance-none`}>
-      <option value="">{placeholder}</option>
-      {options.map((o) => (
-        <option key={o} value={o}>{o}</option>
-      ))}
-    </select>
+    <div className="relative">
+      <select
+        id={id}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`${input} appearance-none pr-8`}
+      >
+        <option value="">{placeholder}</option>
+        {options.map((o) => (
+          <option key={o} value={o}>
+            {o}
+          </option>
+        ))}
+      </select>
+      <Image
+        src="/assets/listing/icon-chevron-up.svg"
+        alt=""
+        width={16}
+        height={16}
+        className="pointer-events-none absolute right-2.5 top-1/2 size-4 -translate-y-1/2 rotate-180 opacity-50"
+      />
+    </div>
   );
 }
 
-/** Add for Sale drawer — Figma `1349:128590`, validation `1349:130692`. */
+function emptyForm(defaultEmail: string): SellFormState {
+  return {
+    price: "",
+    contactEmail: defaultEmail,
+    externalLinks: [],
+    linkDraft: "",
+    gradingScale: "",
+    gradeValue: "",
+    gradingAuthority: "",
+    certificationNumber: "",
+    strikerType: "",
+    cleaningAlterations: "",
+    coinCondition: "",
+  };
+}
+
+/**
+ * Add for Sale drawer — Figma Copy `1363:176354` / collection `1349:128590`, validation `1349:130692`.
+ * Reused from collection coin details and From Owned / List-a-coin handoffs (`?list=1`).
+ */
 export function CollectionSellDrawer({
   open,
   coinTitle,
@@ -85,26 +122,14 @@ export function CollectionSellDrawer({
   onClose: () => void;
   onSubmit: (payload: ReturnType<typeof buildSellPayload>) => void;
 }) {
-  const [values, setValues] = useState<SellFormState>(() => ({
-    price: "",
-    contactEmail: defaultEmail,
-    externalLinks: [],
-    linkDraft: "",
-    gradingScale: "",
-    gradeValue: "",
-    gradingAuthority: "",
-    certificationNumber: "",
-    strikerType: "",
-    cleaningAlterations: "",
-    coinCondition: "",
-  }));
+  const [values, setValues] = useState<SellFormState>(() => emptyForm(defaultEmail));
   const [errors, setErrors] = useState<SellFormErrors>({});
   const priceId = useId();
 
   useEffect(() => {
     if (!open) return;
     setErrors({});
-    setValues((v) => ({ ...v, contactEmail: defaultEmail || v.contactEmail }));
+    setValues(emptyForm(defaultEmail));
   }, [open, defaultEmail]);
 
   if (!open) return null;
@@ -140,7 +165,9 @@ export function CollectionSellDrawer({
           <button type="button" onClick={onClose} aria-label="Close panel" className="flex size-8 items-center justify-center">
             <Image src="/assets/auth/close.svg" alt="" width={16} height={16} />
           </button>
-          <h2 id="sell-drawer-title" className="text-base font-medium text-ink">Add for Sale</h2>
+          <h2 id="sell-drawer-title" className="text-base font-medium text-ink">
+            Add for Sale
+          </h2>
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
@@ -174,26 +201,43 @@ export function CollectionSellDrawer({
               <div className="flex flex-col gap-2">
                 <span className={label}>Add link for buyers</span>
                 <div className="flex gap-2">
-                  <input
-                    type="url"
-                    placeholder="Add external links"
-                    value={values.linkDraft}
-                    onChange={(e) => set("linkDraft", e.target.value)}
-                    className={`${input} flex-1`}
-                  />
+                  <div className="relative min-w-0 flex-1">
+                    <Image
+                      src="/assets/marketplace/icon-link.svg"
+                      alt=""
+                      width={16}
+                      height={16}
+                      className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2"
+                    />
+                    <input
+                      type="url"
+                      placeholder="Add external links"
+                      value={values.linkDraft}
+                      onChange={(e) => set("linkDraft", e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addLink();
+                        }
+                      }}
+                      className={`${input} pl-8`}
+                    />
+                  </div>
                   <button
                     type="button"
                     onClick={addLink}
                     className="flex size-8 shrink-0 items-center justify-center rounded-[10px] border border-[#e5e5e5] bg-white"
                     aria-label="Add link"
                   >
-                    ✓
+                    <Image src="/assets/marketplace/icon-check.svg" alt="" width={16} height={16} />
                   </button>
                 </div>
                 {values.externalLinks.length > 0 && (
-                  <ul className="text-xs text-[#606062]">
+                  <ul className="flex flex-col gap-1 text-xs text-[#606062]">
                     {values.externalLinks.map((l) => (
-                      <li key={l} className="truncate">{l}</li>
+                      <li key={l} className="truncate">
+                        {l}
+                      </li>
                     ))}
                   </ul>
                 )}
@@ -259,12 +303,13 @@ export function CollectionSellDrawer({
                 />
               </Field>
               <Field id={`${priceId}-notes`} title="Coin Condition Notes">
-                <input
+                <textarea
                   id={`${priceId}-notes`}
                   placeholder="Enter any additional notes"
                   value={values.coinCondition}
                   onChange={(e) => set("coinCondition", e.target.value)}
-                  className={input}
+                  rows={3}
+                  className="w-full resize-y rounded-[10px] border border-[#e5e5e5] bg-white px-2.5 py-2 text-sm text-ink outline-none placeholder:font-light placeholder:text-[#c2c2c4] focus:border-primary-500"
                 />
               </Field>
             </div>
@@ -280,7 +325,11 @@ export function CollectionSellDrawer({
           >
             {submitting ? "Adding…" : "Add for Sale"}
           </button>
-          <button type="button" onClick={onClose} className="mt-3 flex h-9 w-full items-center justify-center text-sm font-medium text-ink">
+          <button
+            type="button"
+            onClick={onClose}
+            className="mt-3 flex h-9 w-full items-center justify-center text-sm font-medium text-ink"
+          >
             Cancel
           </button>
         </footer>

@@ -13,12 +13,13 @@ import { CollectionListedSellerRail } from "@/components/collection/CollectionLi
 import { collectionLinks } from "@/components/collection/collectionNav";
 import { IdentifyExpertBanner } from "@/components/identify/IdentifyExpertBanner";
 import { MarketplaceAppHeader } from "@/components/marketplace/MarketplaceAppHeader";
-import { fetchArchetypeDetails, fetchListingDetails, fetchListingFilterValues, isArchetypeId } from "@/lib/api/coinzy";
+import { fetchArchetypeDetails, fetchListingFilterValues, isArchetypeId } from "@/lib/api/coinzy";
 import {
   fetchArchetypeDetailsForSession,
   fetchCollectionsForSession,
   fetchUserCoinDetails,
 } from "@/lib/api/coinzy-session";
+import { fetchListingDetailsForSession } from "@/lib/api/marketplace-session";
 import { getPremiumStatus, getSessionToken, getSessionUser } from "@/lib/auth/session";
 import { parsePageParam, parseQueryParam } from "@/lib/backNav";
 import { collectionDetailsAncestor } from "@/lib/collection/breadcrumb";
@@ -33,6 +34,8 @@ type Params = {
     fromPage?: string;
     fromQ?: string | string[];
     premium?: string;
+    /** Marketplace List-a-coin From Owned handoff — open sell drawer. */
+    list?: string;
   }>;
 };
 
@@ -44,6 +47,7 @@ async function CollectionCoinDetailsContent({
   premium,
   sellerName,
   sellerEmail,
+  autoOpenSell,
 }: {
   coinId: string;
   from?: string;
@@ -52,6 +56,7 @@ async function CollectionCoinDetailsContent({
   premium: boolean;
   sellerName: string;
   sellerEmail: string;
+  autoOpenSell: boolean;
 }) {
   const token = await getSessionToken();
   if (!token) redirect(`/auth?next=/collection/coin/${coinId}`);
@@ -80,7 +85,8 @@ async function CollectionCoinDetailsContent({
   const status = collectionCoinStatus(userCoin);
   const listingId = userCoinListingId(userCoin);
   const [listing, sellFilters] = await Promise.all([
-    listingId ? fetchListingDetails(listingId).catch(() => null) : Promise.resolve(null),
+    // Own listings are created on the catalogue/session host — not prod guest browse.
+    listingId ? fetchListingDetailsForSession(token, listingId).catch(() => null) : Promise.resolve(null),
     fetchListingFilterValues([
       "gradingScale",
       "gradeValue",
@@ -109,8 +115,11 @@ async function CollectionCoinDetailsContent({
         sellerName={sellerName}
         sellerEmail={sellerEmail}
         listingId={listingId}
+        autoOpenSell={autoOpenSell}
         listedSellerPanel={
-          listingId && listing ? <CollectionListedSellerRail listing={listing} listingId={listingId} /> : null
+          listingId && listing ? (
+            <CollectionListedSellerRail listing={listing} listingId={listingId} coinId={coinId} />
+          ) : null
         }
         filterOptions={{
           gradingScale: sellFilters?.gradingScale,
@@ -188,6 +197,7 @@ export default async function CollectionCoinDetailsPage({ params, searchParams }
         premium={premium}
         sellerName={user.name}
         sellerEmail={user.email}
+        autoOpenSell={sp.list === "1"}
       />
     </Suspense>
   );

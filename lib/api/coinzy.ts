@@ -253,6 +253,10 @@ export type ListingDetails = {
   coinCondition: string | null;
   createdAt: string;
   expiresAt: string;
+  /** Present when the request used a real user JWT (not guest). */
+  isMyListing?: boolean;
+  /** Private collection coin this listing was created from (session reads). */
+  coinId?: string | null;
   coinDetails: ListingCoinDetails | null;
   sellerDetails: {
     name: string | null;

@@ -3,7 +3,9 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { AppSidebar } from "@/components/home/AppSidebar";
 import { CatalogueSearch } from "@/components/catalogue/CatalogueSearch";
+import { CoinGridSkeleton } from "@/components/catalogue/CoinGridSkeleton";
 import { Pagination } from "@/components/catalogue/CoinGrid";
+import { ListCoinButton } from "@/components/marketplace/ListCoinButton";
 import { ListingGrid } from "@/components/marketplace/ListingGrid";
 import { MarketplaceAppHeader } from "@/components/marketplace/MarketplaceAppHeader";
 import { MarketplaceFilterPanel } from "@/components/marketplace/MarketplaceFilterPanel";
@@ -31,8 +33,88 @@ function pageHref(base: URLSearchParams, page: number) {
   return q ? `/marketplace?${q}` : "/marketplace";
 }
 
-/** Signed-in marketplace — Figma `1356:154252`. */
-export async function MarketplaceSignedInPage({
+function emptyOptions(): ListingFilterValues {
+  return {
+    issuer: [],
+    ruler: [],
+    material: [],
+    shape: [],
+    yearOfMinting: [],
+    mintLocation: [],
+    rarity: [],
+  };
+}
+
+async function MarketplaceBrowse({
+  category,
+  query,
+  page,
+  userFiltersBody,
+  baseParams,
+}: {
+  category: string | undefined;
+  query: string;
+  page: number;
+  userFiltersBody: Record<string, string[]>;
+  baseParams: URLSearchParams;
+}) {
+  const browse = await loadSignedInBrowse({
+    categorySlug: category,
+    search: query,
+    page,
+    pageSize: PAGE_SIZE,
+    userFilters: userFiltersBody,
+  }).catch(() => ({
+    cards: [],
+    totalCount: 0,
+    totalPages: 1,
+    page: 1,
+  }));
+
+  return (
+    <section>
+      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+        <h3 className="text-lg font-medium leading-7 text-ink">Browse all coins</h3>
+        <p className="text-sm leading-5 text-[#737373]">
+          Showing {browse.cards.length} of {browse.totalCount.toLocaleString("en-US")} results
+        </p>
+      </div>
+      {browse.cards.length ? (
+        <>
+          <ListingGrid cards={browse.cards} from="marketplace" fromPage={browse.page} fromQuery={query} columns={4} />
+          {browse.totalPages > 1 && (
+            <div className="mt-8 flex justify-center">
+              <Pagination page={browse.page} totalPages={browse.totalPages} href={(n) => pageHref(baseParams, n)} />
+            </div>
+          )}
+        </>
+      ) : (
+        <p className="rounded-[12px] border border-[#e5e7eb] bg-white px-4 py-8 text-center text-sm leading-5 text-muted">
+          No listings match your search or filters. Try clearing filters or a different search term.
+        </p>
+      )}
+    </section>
+  );
+}
+
+async function MarketplaceFilters() {
+  const filterRaw = await fetchListingFilterValues([...LISTING_FILTER_FIELDS]).catch(() => null);
+  const filterOptions: ListingFilterValues = filterRaw
+    ? {
+        issuer: filterRaw.issuer ?? [],
+        ruler: filterRaw.ruler ?? [],
+        material: filterRaw.material ?? [],
+        shape: filterRaw.shape ?? [],
+        yearOfMinting: filterRaw.yearOfMinting ?? [],
+        mintLocation: filterRaw.mintLocation ?? [],
+        rarity: filterRaw.rarity ?? [],
+      }
+    : emptyOptions();
+  return <MarketplaceFilterPanel options={filterOptions} />;
+}
+
+/** Signed-in marketplace — Figma `1356:154252`. Shell paints first; listings/filters stream. */
+export function MarketplaceSignedInPage({
   user,
   premium,
   searchParams,
@@ -50,40 +132,6 @@ export async function MarketplaceSignedInPage({
     if (v?.length) userFiltersBody[k] = v;
   }
 
-  const emptyOptions = (): ListingFilterValues => ({
-    issuer: [],
-    ruler: [],
-    material: [],
-    shape: [],
-    yearOfMinting: [],
-    mintLocation: [],
-    rarity: [],
-  });
-
-  const [browse, filterRaw] = await Promise.all([
-    loadSignedInBrowse({ categorySlug: category, search: query, page, pageSize: PAGE_SIZE, userFilters: userFiltersBody }).catch(
-      () => ({
-        cards: [],
-        totalCount: 0,
-        totalPages: 1,
-        page: 1,
-      }),
-    ),
-    fetchListingFilterValues([...LISTING_FILTER_FIELDS]).catch(() => null),
-  ]);
-
-  const filterOptions: ListingFilterValues = filterRaw
-    ? {
-        issuer: filterRaw.issuer ?? [],
-        ruler: filterRaw.ruler ?? [],
-        material: filterRaw.material ?? [],
-        shape: filterRaw.shape ?? [],
-        yearOfMinting: filterRaw.yearOfMinting ?? [],
-        mintLocation: filterRaw.mintLocation ?? [],
-        rarity: filterRaw.rarity ?? [],
-      }
-    : emptyOptions();
-
   const baseParams = new URLSearchParams();
   if (query) baseParams.set("q", query);
   if (category) baseParams.set("category", category);
@@ -91,8 +139,7 @@ export async function MarketplaceSignedInPage({
     for (const v of userFilters[key] ?? []) baseParams.append(key, v);
   }
 
-  const showing = browse.cards.length;
-  const total = browse.totalCount;
+  const browseKey = `${category ?? "all"}|${query}|${page}|${baseParams.toString()}`;
 
   return (
     <div className="flex h-svh overflow-hidden bg-white">
@@ -125,14 +172,7 @@ export async function MarketplaceSignedInPage({
                     </p>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  disabled
-                  title="Coming soon"
-                  className="shrink-0 rounded-[10px] border border-[#e5e7eb] bg-white px-4 py-2 text-sm font-medium leading-5 text-ink opacity-60"
-                >
-                  List a coin
-                </button>
+                <ListCoinButton />
               </div>
             </section>
 
@@ -161,32 +201,30 @@ export async function MarketplaceSignedInPage({
               </div>
             </section>
 
-            <section>
-              <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-                <h3 className="text-lg font-medium leading-7 text-ink">Browse all coins</h3>
-                <p className="text-sm leading-5 text-[#737373]">
-                  Showing {showing} of {total.toLocaleString("en-US")} results
-                </p>
-              </div>
-              {browse.cards.length ? (
-                <>
-                  <ListingGrid cards={browse.cards} from="marketplace" fromPage={browse.page} fromQuery={query} columns={4} />
-                  {browse.totalPages > 1 && (
-                    <div className="mt-8 flex justify-center">
-                      <Pagination page={browse.page} totalPages={browse.totalPages} href={(n) => pageHref(baseParams, n)} />
-                    </div>
-                  )}
-                </>
-              ) : (
-                <p className="rounded-[12px] border border-[#e5e7eb] bg-white px-4 py-8 text-center text-sm leading-5 text-muted">
-                  No listings match your search or filters. Try clearing filters or a different search term.
-                </p>
-              )}
-            </section>
+            <Suspense
+              key={browseKey}
+              fallback={
+                <section>
+                  <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+                    <h3 className="text-lg font-medium leading-7 text-ink">Browse all coins</h3>
+                    <p className="text-sm leading-5 text-[#737373]">Loading results…</p>
+                  </div>
+                  <CoinGridSkeleton count={PAGE_SIZE} />
+                </section>
+              }
+            >
+              <MarketplaceBrowse
+                category={category}
+                query={query}
+                page={page}
+                userFiltersBody={userFiltersBody}
+                baseParams={baseParams}
+              />
+            </Suspense>
           </main>
 
           <Suspense fallback={<div className="w-[266px] shrink-0 border-l border-[#e5e7eb] bg-white" />}>
-            <MarketplaceFilterPanel options={filterOptions} />
+            <MarketplaceFilters />
           </Suspense>
         </div>
       </div>

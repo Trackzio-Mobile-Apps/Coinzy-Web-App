@@ -1795,6 +1795,10 @@ The Marketplace API allows users to list coins for sale, browse and filter listi
 
 ---
 
+#### Seller profile (auth host)
+
+Seller contact fields used by sell/list live on the **auth/catalogue** host as `user.sellerDetails` via `GET` / `PATCH auth/me` (see `docs/auth-api.md` · Update seller profile). Web: `GET|PATCH /api/auth/me`. Gate sell/list with `useSellerProfileGate` when name/contactEmail are missing. Do not confuse with marketplace-host listing routes below.
+
 #### `POST /marketplace/sell/private/:id`
 
 - **Description**: Create a marketplace listing from a coin in the user's private collection.
