@@ -31,6 +31,10 @@ assert.equal(output.tasks[2].begin,null);
 output=context.run([task(1,{progress:50})],'2026-10-10');
 assert.equal(date(output.tasks[0].begin),'2026-10-12'); // Forecast date and weekends honored.
 output=context.run(context.defaults);
-assert.equal(output.tasks.find(t=>t.id===3).days,1);
+assert.equal(output.tasks.find(t=>t.id===3).days,0);
+assert.equal(output.tasks.find(t=>t.id===14).progress,95);
+assert.equal(output.tasks.find(t=>t.id===14).days,1);
+assert.equal(output.tasks.find(t=>t.id===17).progress,100);
+assert.equal(output.tasks.find(t=>t.id===18).progress,100);
 assert.equal(output.tasks.find(t=>t.id===23).days,0);
 console.log(`PASS: early completion, remaining work, dependency/lane constraints, weekends and QA. Forecast: ${date(output.summary.last)}, ${output.summary.effort} remaining agent days.`);

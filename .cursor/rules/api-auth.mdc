@@ -11,5 +11,5 @@ alwaysApply: false
 - Prefer `unstable_cache` + tags for details when Bearer headers would bust `fetch` cache (`archetype-details`, `listing-details`, `marketplace-listings`).
 - Normalize mixed string/number API fields in view-models — never call string methods on raw values.
 - Browser auth: `lib/auth/client.ts` → `POST /api/auth/[action]` only. Proxy maps `docs/auth-api.md`, validates origin, strips tokens from JSON, sets HTTP-only cookies.
-- Do not call guest-login per request (creates users). Do not re-enable Google without an explicit ask.
+- Do not call guest-login per request (creates users). Google: client obtains Google ID token via Firebase popup (`lib/auth/google.ts`), then `POST /api/auth/google` (proxy strips JWT, sets cookie).
 - Tests: `node tests/auth-api.cjs` after auth proxy changes.

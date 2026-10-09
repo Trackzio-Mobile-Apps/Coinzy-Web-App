@@ -14,5 +14,5 @@ Read `AGENTS.md` for full rules and `INDEX.md` for the live file map. Update `IN
 - Never import `lib/api/coinzy.ts` or `lib/api/marketplace-session.ts` in client code. Session JWTs go only through HTTP-only cookies via `app/api/auth/*` and other same-origin `/api/*` proxies.
 - Catalogue API host ≠ marketplace API host (see `AGENTS.md`). Always https.
 - Match Figma nodes from `PAGES-CHECKLIST.md`; don't invent layouts.
-- Google auth stays disabled; Figma `908`/`905` auth modals are not built on web (use `/auth?next=`). Identify flow is out of scope unless asked.
+- Google auth: Firebase popup → `/api/auth/google` → `auth/social-login/google`. Figma `908`/`905` auth modals are not built on web (use `/auth?next=`).
 - Reuse `SectionShell` / `SectionHeader` / shared grids; full-bleed art belongs in `SectionShell` `background`.
