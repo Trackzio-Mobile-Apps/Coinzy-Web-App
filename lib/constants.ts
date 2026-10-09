@@ -11,6 +11,11 @@ export const PLAY_STORE_URL =
 export const COINZY_PRIVACY_URL = "https://trackzio.com/privacy-policy-coinzy";
 export const COINZY_TERMS_URL = "https://trackzio.com/coinzy%3A-terms";
 
+/** Android `FEEDBACK_BASE_URL` — Settings feedback Lambda (override with `COINZY_FEEDBACK_URL`). */
+export const COINZY_FEEDBACK_URL =
+  process.env.COINZY_FEEDBACK_URL ||
+  "https://msmnafgy53ptj4qqt3oqkk4gpe0pdtic.lambda-url.us-west-2.on.aws/";
+
 export type NavLink = {
   label: string;
   href: string;
