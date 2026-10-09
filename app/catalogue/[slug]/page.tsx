@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { TopNav } from "@/components/landing/TopNav";
 import { BrowseCatalogueSection } from "@/components/landing/BrowseCatalogueSection";
@@ -12,6 +12,7 @@ import { CatalogueSearch } from "@/components/catalogue/CatalogueSearch";
 import { CoinGrid, Pagination, loadCoins } from "@/components/catalogue/CoinGrid";
 import { CoinGridSkeleton } from "@/components/catalogue/CoinGridSkeleton";
 import { pagedHref, parsePageParam, parseQueryParam } from "@/lib/backNav";
+import { getSessionUser } from "@/lib/auth/session";
 import { WebappCTASection } from "@/components/marketplace/WebappCTASection";
 import { CATALOGUE_CATEGORIES, CATALOGUE_CHIPS, buildFilters, getCategory } from "@/lib/catalogue/categories";
 import { CATALOGUE_US_CATEGORIES } from "@/lib/constants";
@@ -96,7 +97,18 @@ async function CategoryResults({
 }
 
 export default async function CatalogueCategoryPage({ params, searchParams }: Params) {
-  const [{ slug }, { page, q }] = await Promise.all([params, searchParams]);
+  const [{ slug }, sp] = await Promise.all([params, searchParams]);
+  // Signed-in users stay in the app shell — never the marketing catalogue layout.
+  if (await getSessionUser()) {
+    const p = new URLSearchParams();
+    if (slug && slug !== "all") p.set("category", slug);
+    const q = parseQueryParam(sp.q);
+    if (q) p.set("q", q);
+    const pageNum = parsePageParam(Array.isArray(sp.page) ? sp.page[0] : sp.page);
+    if (pageNum > 1) p.set("page", String(pageNum));
+    redirect(p.size ? `/catalogue?${p}` : "/catalogue");
+  }
+  const { page, q } = sp;
   const category = getCategory(slug);
   if (!category) notFound();
 

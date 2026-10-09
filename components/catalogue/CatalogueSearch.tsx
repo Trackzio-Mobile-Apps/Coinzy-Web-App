@@ -23,6 +23,7 @@ export function CatalogueSearch({
   className = "",
   placeholder = "Search coins by name...",
   label = "Search the catalogue by coin name",
+  keepParams,
 }: {
   /** List route the search applies to (`/catalogue`, `/catalogue/american-coins`). */
   action: string;
@@ -34,6 +35,8 @@ export function CatalogueSearch({
   placeholder?: string;
   /** Accessible name for the input (no visible label in the designs). */
   label?: string;
+  /** Extra query params preserved on submit (e.g. signed-in `category=`). */
+  keepParams?: Record<string, string>;
 }) {
   const router = useRouter();
   const [value, setValue] = useState(query);
@@ -42,7 +45,10 @@ export function CatalogueSearch({
 
   const go = (term: string) =>
     startTransition(() => {
-      router.push(`${action}${term ? `?q=${encodeURIComponent(term)}` : ""}${hash}`);
+      const p = new URLSearchParams(keepParams);
+      if (term) p.set("q", term);
+      const qs = p.toString();
+      router.push(`${action}${qs ? `?${qs}` : ""}${hash}`);
     });
 
   const submit = (event: FormEvent) => {
@@ -62,6 +68,10 @@ export function CatalogueSearch({
       <label htmlFor={inputId} className="sr-only">
         {label}
       </label>
+      {keepParams &&
+        Object.entries(keepParams).map(([name, val]) => (
+          <input key={name} type="hidden" name={name} value={val} />
+        ))}
       <Image src={`${ICONS}/icon-search.svg`} alt="" width={14} height={14} />
       <input
         id={inputId}
