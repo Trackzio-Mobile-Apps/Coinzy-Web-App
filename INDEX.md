@@ -39,7 +39,7 @@ Figma: primary `YV6ArWhD2eVlLPH6M090gc`; **Experts + updated Feed** also in Copy
 | Premium experience | ~75% | Task 5; Premium UI behind `?premium=1`; pending: JWT entitlement, expert prompt, then gate verification across surfaces. Checkout → Payments task 20 |
 | Identification | Tasks 6–7 done | `/identify` through `/identify/coin/[id]` (matches, result, collection add). Rate-match dummy. Free-plan scan usage is local until API exposes counts |
 
-Timeline: `coinzy-web-timeline.html` (browser + localStorage) and `coinzy-web-timeline.xlsx`. HTML `sortedTasks()` orders by progress then ID; last synced **9 Oct 2026** (`TIMELINE_SYNC=15` honesty fix: Experts 8–9 ~90%, Settings ~95%, manage ~90%, Premium ~75%; **Payments 20 deferred/unscheduled**; QA 22 open). XLSX Detailed Timeline must stay in task-ID order; only Weekly View is sorted (progress, then ID).
+Timeline: `coinzy-web-timeline.html` (browser + localStorage) and `coinzy-web-timeline.xlsx`. HTML `sortedTasks()` orders by progress then ID; last synced **9 Oct 2026** (`TIMELINE_SYNC=16` link/flow audit: landing Expert CTAs `#experts`, Premium CTAs `/home#premium` self-loop, Settings Plan&billing toast, Experts Play Store buy, rate-match dummy, Socket.IO open; Payments 20 deferred; QA 22 open). XLSX Detailed Timeline must stay in task-ID order; only Weekly View is sorted (progress, then ID).
 
 ---
 
