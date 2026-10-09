@@ -1,6 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
-import { PLAY_STORE_URL } from "@/lib/constants";
+import {
+  COINZY_PRIVACY_URL,
+  COINZY_TERMS_URL,
+  FOOTER_SOCIALS,
+  PLAY_STORE_URL,
+  TRACKZIO_ABOUT_URL,
+} from "@/lib/constants";
 
 const A = "/assets/landing-page/11-footer";
 
@@ -12,16 +18,9 @@ const FOOTER_PAGES = [
 ];
 
 const FOOTER_COMPANY = [
-  { label: "About", href: "#" },
-  { label: "Privacy Policies", href: "https://trackzio.com/privacy-policy-coinzy", external: true },
-  { label: "Terms & Conditions", href: "https://trackzio.com/coinzy%3A-terms", external: true },
-];
-
-const SOCIALS = [
-  { src: "social-github.svg", label: "GitHub" },
-  { src: "social-facebook.svg", label: "Facebook" },
-  { src: "social-twitter.svg", label: "Twitter" },
-  { src: "social-google.svg", label: "Google" },
+  { label: "About", href: TRACKZIO_ABOUT_URL, external: true },
+  { label: "Privacy Policies", href: COINZY_PRIVACY_URL, external: true },
+  { label: "Terms & Conditions", href: COINZY_TERMS_URL, external: true },
 ];
 
 // Figma footer content is 1140px wide (not the 1120px page column).
@@ -109,8 +108,14 @@ export function Footer() {
         <div className={`${INNER} flex flex-col items-center gap-4 py-4 sm:h-[61px] sm:flex-row sm:gap-6 sm:py-0`}>
           <p className="flex-1 text-base leading-6 text-primary-400">©2025 Coinzy AI/Trackzio</p>
           <div className="flex items-center gap-4">
-            {SOCIALS.map((social) => (
-              <Link key={social.label} href="#" aria-label={social.label}>
+            {FOOTER_SOCIALS.map((social) => (
+              <Link
+                key={social.label}
+                href={social.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={social.label}
+              >
                 <Image src={`${A}/${social.src}`} alt="" width={20} height={20} className="size-5" />
               </Link>
             ))}

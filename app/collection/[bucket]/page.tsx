@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { AppSidebar } from "@/components/home/AppSidebar";
 import { MarketplaceAppHeader } from "@/components/marketplace/MarketplaceAppHeader";
+import { Pagination } from "@/components/catalogue/CoinGrid";
 import { CollectionCoinTileSkeleton } from "@/components/collection/CollectionGridSkeleton";
 import { CollectionEmptyState } from "@/components/collection/CollectionEmptyState";
 import { collectionLinks, type CollectionBucket } from "@/components/collection/collectionNav";
@@ -127,12 +128,8 @@ async function BucketBody({
             })}
           </ul>
           {pages > 1 && (
-            <div className="mt-6 flex justify-center gap-3 text-sm">
-              {page > 1 && <Link href={hrefFor(page - 1)}>Previous</Link>}
-              <span>
-                {page} / {pages}
-              </span>
-              {page < pages && <Link href={hrefFor(page + 1)}>Next</Link>}
+            <div className="mt-6 flex justify-center">
+              <Pagination page={page} totalPages={pages} href={hrefFor} />
             </div>
           )}
         </div>

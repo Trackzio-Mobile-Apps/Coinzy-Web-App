@@ -1795,6 +1795,26 @@ The Marketplace API allows users to list coins for sale, browse and filter listi
 
 ---
 
+#### `PATCH /marketplace/markSold/:id`
+
+- **Description**: Mark a marketplace listing as sold (owner only). Sets `isSold` and `isArchived` to `true`. Same contract as [antiques-api docs](https://antiques-api.trackzio.com/docs#/core-module?id=patch-marketplacemarksoldid); Coinzy web proxies via `PATCH /api/marketplace/markSold/[id]` on the **catalogue/auth** session host.
+- **Request**:
+  - **Headers**:
+    - `Authorization`: Bearer token
+  - **Path Parameters**:
+    - `id`: Listing ID
+  - **Body** (all optional):
+
+    | Field         | Type   | Description              |
+    |---------------|--------|--------------------------|
+    | `soldDate`    | Date   | When the item was sold   |
+    | `soldCurrency`| String | Sale currency            |
+    | `soldPrice`   | Number | Final selling price      |
+
+- **Notes**: Already-sold or expired listings cannot be updated. Web UI currently posts `{}` (no sold-price form yet).
+
+---
+
 #### Seller profile (auth host)
 
 Seller contact fields used by sell/list live on the **auth/catalogue** host as `user.sellerDetails` via `GET` / `PATCH auth/me` (see `docs/auth-api.md` · Update seller profile). Web: `GET|PATCH /api/auth/me`. Gate sell/list with `useSellerProfileGate` when name/contactEmail are missing. Do not confuse with marketplace-host listing routes below.

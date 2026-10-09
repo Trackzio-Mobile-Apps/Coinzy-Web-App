@@ -114,3 +114,34 @@ export async function deleteListing(
   }
   return { error: false, data: null };
 }
+
+export type MarkListingSoldBody = {
+  soldDate?: string;
+  soldCurrency?: string;
+  soldPrice?: number;
+};
+
+/**
+ * `PATCH /marketplace/markSold/:id` — owner marks listing sold (archives it).
+ * Contract mirrored from antiques-api docs; same path on the catalogue session host.
+ */
+export async function markListingSold(
+  token: string,
+  listingId: string,
+  body: MarkListingSoldBody = {},
+): Promise<ApiResult<null>> {
+  const res = await fetch(
+    `${SESSION_ORIGIN}/api/marketplace/markSold/${encodeURIComponent(listingId)}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify(body),
+      cache: "no-store",
+    },
+  );
+  const json = (await res.json()) as { error?: boolean; reason?: string };
+  if (!res.ok || json.error) {
+    return { error: true, reason: json.reason, _status: res.status };
+  }
+  return { error: false, data: null };
+}

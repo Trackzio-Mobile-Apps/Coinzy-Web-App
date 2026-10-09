@@ -21,7 +21,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 /**
  * Seller-owner side panel — Figma `1363:178858` (self listing) / collection listed rail `1349:142237`.
- * Mark as sold stays disabled (no upstream API). Remove → `DELETE /api/marketplace/listing/[id]`.
+ * Mark as sold → `PATCH /api/marketplace/markSold/[id]`. Remove → `DELETE /api/marketplace/listing/[id]`.
  * Edit → collection coin with `?list=1` when `coinId` is known (PATCH edit drawer not built yet).
  */
 export function OwnerListingPanel({
@@ -37,27 +37,53 @@ export function OwnerListingPanel({
   variant?: "card" | "rail";
 }) {
   const router = useRouter();
-  const [removing, setRemoving] = useState(false);
+  const [busy, setBusy] = useState<"sold" | "remove" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [errorTitle, setErrorTitle] = useState("Could not update listing");
   const seller = listing.sellerDetails;
   const links = (seller?.externalLinks ?? []).filter((l) => /^https?:\/\//i.test(l));
 
+  const afterGone = () => {
+    router.push(coinId ? `/collection/coin/${coinId}` : "/marketplace");
+    router.refresh();
+  };
+
+  const markSold = async () => {
+    if (busy) return;
+    setBusy("sold");
+    setError(null);
+    const res = await fetch(`/api/marketplace/markSold/${encodeURIComponent(listingId)}`, {
+      method: "PATCH",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    });
+    const json = (await res.json()) as { error?: boolean; reason?: string };
+    setBusy(null);
+    if (!res.ok || json.error) {
+      setErrorTitle("Could not mark as sold");
+      setError(json.reason ?? "Could not mark this listing as sold. Please try again.");
+      return;
+    }
+    afterGone();
+  };
+
   const remove = async () => {
-    if (removing) return;
-    setRemoving(true);
+    if (busy) return;
+    setBusy("remove");
     setError(null);
     const res = await fetch(`/api/marketplace/listing/${encodeURIComponent(listingId)}`, {
       method: "DELETE",
       credentials: "same-origin",
     });
     const json = (await res.json()) as { error?: boolean; reason?: string };
-    setRemoving(false);
+    setBusy(null);
     if (!res.ok || json.error) {
+      setErrorTitle("Could not remove listing");
       setError(json.reason ?? "Could not remove this listing. Please try again.");
       return;
     }
-    router.push(coinId ? `/collection/coin/${coinId}` : "/marketplace");
-    router.refresh();
+    afterGone();
   };
 
   const shell =
@@ -132,19 +158,19 @@ export function OwnerListingPanel({
 
         <button
           type="button"
-          disabled
-          title="Mark as sold is not available on web yet"
-          className="flex h-10 w-full items-center justify-center rounded-[10px] bg-primary-500 text-sm font-medium text-white opacity-60"
+          disabled={busy !== null}
+          onClick={markSold}
+          className="flex h-10 w-full items-center justify-center rounded-[10px] bg-primary-500 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-60"
         >
-          Mark as sold
+          {busy === "sold" ? "Marking sold…" : "Mark as sold"}
         </button>
         <button
           type="button"
-          disabled={removing}
+          disabled={busy !== null}
           onClick={remove}
           className="flex h-10 w-full items-center justify-center rounded-[10px] border border-[#e5e5e5] bg-white text-sm font-medium text-ink hover:bg-black/[0.02] disabled:opacity-60"
         >
-          {removing ? "Removing…" : "Remove from Marketplace"}
+          {busy === "remove" ? "Removing…" : "Remove from Marketplace"}
         </button>
         {coinId ? (
           <Link
@@ -163,7 +189,7 @@ export function OwnerListingPanel({
         )}
       </div>
 
-      {error && <IdentifyToast title="Could not remove listing" body={error} onClose={() => setError(null)} />}
+      {error && <IdentifyToast title={errorTitle} body={error} onClose={() => setError(null)} />}
     </>
   );
 }

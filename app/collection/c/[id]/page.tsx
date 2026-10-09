@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { AppSidebar } from "@/components/home/AppSidebar";
 import { MarketplaceAppHeader } from "@/components/marketplace/MarketplaceAppHeader";
+import { Pagination } from "@/components/catalogue/CoinGrid";
 import { CollectionCoinTileSkeleton } from "@/components/collection/CollectionGridSkeleton";
 import { CollectionEmptyState } from "@/components/collection/CollectionEmptyState";
 import { collectionLinks } from "@/components/collection/collectionNav";
@@ -12,6 +13,8 @@ import { FallbackImage } from "@/components/ui/FallbackImage";
 import { fetchCollectionsForSession, fetchUserCoins } from "@/lib/api/coinzy-session";
 import { getPremiumStatus, getSessionToken, getSessionUser, type SessionUser } from "@/lib/auth/session";
 import { parsePageParam, withFrom } from "@/lib/backNav";
+
+const PAGE_SIZE = 16;
 
 export const metadata: Metadata = { title: "Collection | Coinzy AI" };
 
@@ -34,11 +37,15 @@ async function PrivateCollectionBody({
 }) {
   const [collections, coins] = await Promise.all([
     fetchCollectionsForSession(token),
-    fetchUserCoins(token, { pageNo: page - 1, pageSize: 16, filters: { _collection: [id] } }),
+    fetchUserCoins(token, { pageNo: page - 1, pageSize: PAGE_SIZE, filters: { _collection: [id] } }),
   ]);
   const rows = collections.error ? [] : collections.data;
   const name = rows.find((r) => r.collectionId === id)?.name ?? "Collection";
   const list = coins.error ? [] : coins.data;
+  const total = coins.error ? 0 : coins.totalCount;
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const hrefFor = (nextPage: number) =>
+    nextPage > 1 ? `/collection/c/${id}?page=${nextPage}` : `/collection/c/${id}`;
 
   return (
     <>
@@ -47,7 +54,10 @@ async function PrivateCollectionBody({
           Collections
         </Link>
         <span className="mx-2">/</span>
-        <span className="text-ink">{name}</span>
+        <span className="text-ink">
+          {name}
+          {total > 0 ? ` (${total})` : ""}
+        </span>
       </p>
       <ul className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {list.map((coin) => {
@@ -79,6 +89,11 @@ async function PrivateCollectionBody({
         })}
       </ul>
       {!coins.error && list.length === 0 && <CollectionEmptyState />}
+      {pages > 1 && (
+        <div className="mt-6 flex justify-center">
+          <Pagination page={page} totalPages={pages} href={hrefFor} />
+        </div>
+      )}
     </>
   );
 }

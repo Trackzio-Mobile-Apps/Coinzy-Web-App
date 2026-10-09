@@ -14,7 +14,7 @@ Figma file: `YV6ArWhD2eVlLPH6M090gc` (canvas `793:76525`). Node IDs below are fo
 ## Landing (`Landing page/main`)
 - [x] Landing page/opt2 — `1050:196584` → `app/page.tsx`
 - [x] Landing page/India variant — `1526:302784` → applied to `app/page.tsx` (home)
-- [x] Wire nav/footer links to real routes — top nav "Identify" → `/#identify`; `/home` sidebar: real routes for Home/Marketplace/Catalogue, unbuilt items disabled ("Coming soon") until their pages ship. Still open: footer "About" + social icons (no URLs/page decided)
+- [x] Wire nav/footer links to real routes — top nav "Identify" → `/#identify`; `/home` sidebar: real routes for Home/Marketplace/Catalogue. Footer About → `trackzio.com/about`; socials → GitHub / Facebook / X / Play Store
 
 ## Auth and login — Timeline task 3 (Account access)
 - [x] Welcome/auth entry screen — `1758:121426` → `app/auth/page.tsx` (all web Try Coinzy AI CTAs → `/auth`; email/login/Google + guest APIs connected)
@@ -41,7 +41,7 @@ Figma auth modals (`908:39186`, `908:39439`, `908:39567`, `905:38594`, `905:3880
 - [x] From Owned picker — Copy `1362:171575` → `SelectOwnedCoinDialog`; `POST /api/coin/fetchAll` `{ isOwned: [true] }` → handoff `/collection/coin/[id]?from=marketplace&list=1` (opens sell drawer). **Add new coin** interim → `/identify`
 - [x] Set Seller Profile (if incomplete) — Copy `1363:172631` → `SetSellerProfileDialog` + `useSellerProfileGate`; `GET|PATCH /api/auth/me` → catalogue `auth/me` `sellerDetails`; wired before Add for Sale / `autoOpenSell` (`?list=1`)
 - [x] Add for Sale drawer — Copy `1363:176354` (also collection `1349:128590`) → `CollectionSellDrawer`; success → `/marketplace/my-listing/[id]?listed=1`
-- [x] Self Listing details — Copy `1363:178858` → `app/marketplace/my-listing/[id]/page.tsx` (`OwnerListingPanel`; Remove → `DELETE /api/marketplace/listing/[id]`; Mark as sold UI-only until upstream API)
+- [x] Self Listing details — Copy `1363:178858` → `app/marketplace/my-listing/[id]/page.tsx` (`OwnerListingPanel`; Remove → `DELETE /api/marketplace/listing/[id]`; Mark as sold → `PATCH /api/marketplace/markSold/[id]`)
 
 ## Global Catalogue
 - [x] CataloguePage — `797:30404` → `app/catalogue/page.tsx` (+ name search `?q=`; Figma shows no search UI — built on the dashboard search pill, see INDEX.md). Session → `CatalogueSignedInPage` (AppSidebar shell; never marketing landing)
@@ -94,7 +94,7 @@ Figma auth modals (`908:39186`, `908:39439`, `908:39567`, `905:38594`, `905:3880
 - [x] Feedback — `POST /api/feedback` → Lambda (`platform: "Web"`)
 - [x] Terms / Privacy — `COINZY_TERMS_URL` / `COINZY_PRIVACY_URL`
 - [x] Notifications — localStorage toggle (no API)
-- [ ] Plan & billing / Premium purchase — Coming soon (later)
+- [ ] Plan & billing / Premium purchase — deferred to Payments task 20 (later)
 - [ ] Dark Mode — omitted (not on Android Settings)
 
 ## Expert evaluation — Timeline tasks 8–9 · Figma Copy `5hhBNjumI3EaALlyW6ySXa`
@@ -103,8 +103,9 @@ Figma auth modals (`908:39186`, `908:39439`, `908:39567`, `905:38594`, `905:3880
 - [x] Buy credits dialog — `1500:289177` → hub/aside Buy + zero-credit submit (Continue → Play Store stub)
 - [x] Status + deadline retry — `/experts/request/[id]` · extend `1327:206087`
 - [x] Report + feedback — `/experts/request/[id]/report` · other cases `1038:159962`
-- [ ] Web credit purchase (real payments) — Play Store for public; @trackzio.com dummy pay via `POST /api/experts/payments/dummy`
-- [ ] Socket.IO realtime (poll fallback shipped)
+- [x] Buy credits (interim) — Play Store for public; @trackzio.com dummy pay via `POST /api/experts/payments/dummy`
+- [ ] Web credit purchase (real payments) — deferred to Payments task 20
+- [ ] Socket.IO realtime — still open (poll is interim; Experts not fully done)
 
 ## Feed / Community — Timeline tasks 17–18 · Figma Copy `5hhBNjumI3EaALlyW6ySXa` · `951:87324`
 - [x] Firebase web config (`coinzy-dev`) + Auth bridge (email/email · anonymous) — `lib/firebase/*` (Android parity; do not diverge Firestore paths)
@@ -114,7 +115,7 @@ Figma auth modals (`908:39186`, `908:39439`, `908:39567`, `905:38594`, `905:3880
 - [x] Delete confirm — “Delete this post?” Cancel / Delete
 - [x] Comments / replies modal — `CommentsPanel`
 - [x] Right rail — Saved posts · My posts · Notification · Trending
-- [ ] Prod Firebase web app env (`coinzy-26a4d`) when deploying
+- [x] Prod Firebase web app env (`coinzy-26a4d`) — required at deploy via `NEXT_PUBLIC_FIREBASE_*` (`.env.example` + `getFirebaseWebConfig` throws in production if missing)
 
 ## Not in Figma (from `COINZY-WEB-SPEC.md` Phase 1)
 - [ ] Pricing, FAQ marketing page, Download — design needed or skip (in-app FAQ is under Settings)

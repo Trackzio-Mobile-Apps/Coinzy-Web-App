@@ -10,6 +10,15 @@ export const PLAY_STORE_URL =
 
 export const COINZY_PRIVACY_URL = "https://trackzio.com/privacy-policy-coinzy";
 export const COINZY_TERMS_URL = "https://trackzio.com/coinzy%3A-terms";
+export const TRACKZIO_ABOUT_URL = "https://trackzio.com/about";
+
+/** Footer social icons (Figma landing footer) — official Trackzio / Coinzy destinations. */
+export const FOOTER_SOCIALS = [
+  { src: "social-github.svg", label: "GitHub", href: "https://github.com/Trackzio-Mobile-Apps" },
+  { src: "social-facebook.svg", label: "Facebook", href: "https://www.facebook.com/Trackzio" },
+  { src: "social-twitter.svg", label: "X (Twitter)", href: "https://x.com/trackzio" },
+  { src: "social-google.svg", label: "Google Play", href: PLAY_STORE_URL },
+] as const;
 
 /** Android `FEEDBACK_BASE_URL` — Settings feedback Lambda (override with `COINZY_FEEDBACK_URL`). */
 export const COINZY_FEEDBACK_URL =
