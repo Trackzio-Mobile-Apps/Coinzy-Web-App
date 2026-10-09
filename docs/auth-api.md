@@ -37,7 +37,10 @@ The auth Retrofit client does not automatically attach a session token. Refresh 
 | POST | `auth/reset-password` | Reset token in body | `AuthBase` |
 | GET | `auth/refresh-auth-token` | Existing user bearer token | `RefreshToken` |
 | GET | `auth/me` | Session bearer token | `AboutMeResponse` |
+| PATCH | `auth/me` | Session bearer token | `AboutMeResponse` (web: `{ sellerDetails }` and/or `{ fullName, syncSellerEmail? }`) |
 | DELETE | `auth/me` | Session bearer token | Unstructured (`Any`) |
+
+Web proxies: `GET`/`PATCH`/`DELETE` `/api/auth/me` (HTTP-only `coinzy_session`). Local logout: `POST /api/auth/logout` (clears cookie; no upstream revoke). Google: browser Firebase popup → Google ID token → `POST /api/auth/google` → upstream `auth/social-login/google` (cookie set; JWT never returned to the client).
 
 Authorization entries describe client behavior, not independently verified backend access rules. Billing routes under `auth/` are outside this authentication reference.
 
@@ -222,6 +225,27 @@ All `RefreshToken` fields are nullable. The client stores the returned token in 
 | `discount` | Object with `endsAt` (Long) and `isApplicable` (Boolean) |
 
 These top-level fields are non-null in the Kotlin declaration. The profile user model differs from the login user model; for example, it maps `ftueCompletion` to a structured value and includes purchase data and experiment variants. See [AboutMeResponse.kt](../app/src/main/java/com/coinzy/trackzio/data/models/AboutMeResponse.kt) for the complete schema. The frontend alone does not establish the unit of `discount.endsAt`.
+
+`user.sellerDetails` holds marketplace seller contact fields (`name`, `contactEmail`, `location`, `phoneNumber`, `bio`, `externalLinks`). An empty or missing name/contactEmail means the seller profile is incomplete for listing. Note: `user.isProfileComplete` is a separate account-FTUE flag and does **not** reflect seller-profile readiness.
+
+### Update seller profile
+
+`PATCH auth/me` with the session bearer token. Web sends a JSON body that includes `sellerDetails` (verified live on `coins-api.trackzio.com` / prod, 8 Oct 2026). The nested `sellerDetails` object is **replaced** on write — omit optional fields only when clearing them.
+
+```json
+{
+  "sellerDetails": {
+    "name": "Harry Met",
+    "contactEmail": "harry@seller.com",
+    "location": "London",
+    "phoneNumber": "+44-1234567890",
+    "bio": "Experienced coin seller.",
+    "externalLinks": []
+  }
+}
+```
+
+Response shape matches `AboutMeResponse` (`error`, `user`, …). Web proxy: `GET|PATCH /api/auth/me` (HTTP-only `coinzy_session`; JWT never returned to the browser). Completeness for sell/list gates: non-empty `sellerDetails.name` + valid `sellerDetails.contactEmail`. Location is required by marketplace sell bodies; when the Set Profile UI omits it, web stores `"—"`.
 
 ## Delete account and logout
 
