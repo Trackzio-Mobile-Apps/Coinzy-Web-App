@@ -6,7 +6,7 @@ import { getSessionToken } from "@/lib/auth/session";
 import { type HomeNavIcon } from "@/lib/home";
 import { collectionLinks as buildCollectionLinks, type CollectionNavLink } from "@/components/collection/collectionNav";
 import { fetchCollectionsForSession } from "@/lib/api/coinzy-session";
-import { sidebarNav } from "@/lib/sidebarNav";
+import { sidebarNav, type SidebarActive } from "@/lib/sidebarNav";
 
 const A = "/assets/home";
 
@@ -27,7 +27,7 @@ export async function AppSidebar({
   collectionLinks = [],
 }: {
   user: SessionUser;
-  active?: "home" | "identify" | "marketplace" | "catalogue" | "collection";
+  active?: SidebarActive;
   collectionLinks?: CollectionNavLink[];
 }) {
   const items = sidebarNav(active);

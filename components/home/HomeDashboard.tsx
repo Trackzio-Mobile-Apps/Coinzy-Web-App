@@ -7,6 +7,7 @@ import { PremiumCoinOfTheDay, type CotdCoin } from "@/components/home/PremiumCoi
 import { PremiumCountdown } from "@/components/home/PremiumCountdown";
 import { CoinOfTheDayDrawer, type CoinOfTheDayDrawerCoin } from "@/components/home/CoinOfTheDayDrawer";
 import { CatalogueSearch } from "@/components/catalogue/CatalogueSearch";
+import { ListCoinButton } from "@/components/marketplace/ListCoinButton";
 import { HOME_CATALOGUE_FALLBACK, HOME_MARKETPLACE_FALLBACK, HOME_OTHER_APPS } from "@/lib/home";
 import type { SessionUser } from "@/lib/auth/session";
 import { FROM_HOME, withFrom } from "@/lib/backNav";
@@ -96,7 +97,7 @@ export function HomeDashboard({
               <Image src={`${A}/icon-crown-dark.svg`} alt="" width={12} height={12} />
               You’re Premium
             </span>
-            <Link href="/home#settings" aria-label="Settings" className="flex size-6 items-center justify-center">
+            <Link href="/settings" aria-label="Settings" className="flex size-6 items-center justify-center">
               <Image src={`${A}/icon-settings.svg`} alt="" width={24} height={24} />
             </Link>
           </div>
@@ -110,7 +111,7 @@ export function HomeDashboard({
               Go Premium
             </Link>
             <Link
-              href="/home#settings"
+              href="/settings"
               aria-label="Settings"
               className="flex size-9 items-center justify-center rounded-[10px] border border-[#e5e5e5] bg-white"
             >
@@ -220,12 +221,9 @@ export function HomeDashboard({
                     </p>
                   </div>
                 </div>
-                <Link
-                  href="/marketplace"
-                  className="inline-flex h-8 shrink-0 items-center justify-center rounded-button border border-[#e5e5e5] bg-white px-3 text-sm font-medium leading-5 text-ink"
-                >
-                  List a coin
-                </Link>
+                <ListCoinButton
+                  buttonClassName="inline-flex h-8 shrink-0 items-center justify-center rounded-button border border-[#e5e5e5] bg-white px-3 text-sm font-medium leading-5 text-ink hover:bg-neutral-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+                />
               </div>
 
               <div className="mt-5 space-y-4">

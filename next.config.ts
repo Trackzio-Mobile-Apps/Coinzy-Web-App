@@ -32,6 +32,19 @@ const nextConfig: NextConfig = {
         hostname: "en.numista.com",
         pathname: "/catalogue/photos/**",
       },
+      // Feed post images (Firebase Storage — coinzy-dev / coinzy-26a4d).
+      {
+        protocol: "https",
+        hostname: "firebasestorage.googleapis.com",
+      },
+      {
+        protocol: "https",
+        hostname: "coinzy-dev.firebasestorage.app",
+      },
+      {
+        protocol: "https",
+        hostname: "coinzy-26a4d.firebasestorage.app",
+      },
     ],
     // Coin photos never change under the same URL: keep optimized copies (.next/cache/images
     // on the server, and in browsers via Cache-Control) for 30 days instead of the 60s default.
