@@ -36,7 +36,7 @@ export function IdentifyExpertBanner({
           </div>
         </div>
         <Link
-          href="/home#expert"
+          href="/experts"
           className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-[10px] border border-primary-500 bg-white px-4 text-sm font-medium text-primary-500"
         >
           {showButtonIcon ? (

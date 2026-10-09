@@ -34,6 +34,8 @@ output=context.run(context.defaults);
 assert.equal(output.tasks.find(t=>t.id===3).days,0);
 assert.equal(output.tasks.find(t=>t.id===14).progress,95);
 assert.equal(output.tasks.find(t=>t.id===14).days,1);
+assert.equal(output.tasks.find(t=>t.id===8).progress,90);
+assert.equal(output.tasks.find(t=>t.id===9).progress,90);
 assert.equal(output.tasks.find(t=>t.id===17).progress,100);
 assert.equal(output.tasks.find(t=>t.id===18).progress,100);
 assert.equal(output.tasks.find(t=>t.id===23).days,0);

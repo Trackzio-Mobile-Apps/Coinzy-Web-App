@@ -97,6 +97,15 @@ Figma auth modals (`908:39186`, `908:39439`, `908:39567`, `905:38594`, `905:3880
 - [ ] Plan & billing / Premium purchase — Coming soon (later)
 - [ ] Dark Mode — omitted (not on Android Settings)
 
+## Expert evaluation — Timeline tasks 8–9 · Figma Copy `5hhBNjumI3EaALlyW6ySXa`
+- [x] Hub (new / existing) — `1049:167922` · `1045:166659` · landing `1312:115253` → `/experts`
+- [x] Upload photos + submit — `/experts/new` Figma `1312:114554` → `POST /api/experts/users/uploads` + `…/requests` (Android media rules)
+- [x] Buy credits dialog — `1500:289177` → hub/aside Buy + zero-credit submit (Continue → Play Store stub)
+- [x] Status + deadline retry — `/experts/request/[id]` · extend `1327:206087`
+- [x] Report + feedback — `/experts/request/[id]/report` · other cases `1038:159962`
+- [ ] Web credit purchase (real payments) — Play Store for public; @trackzio.com dummy pay via `POST /api/experts/payments/dummy`
+- [ ] Socket.IO realtime (poll fallback shipped)
+
 ## Feed / Community — Timeline tasks 17–18 · Figma Copy `5hhBNjumI3EaALlyW6ySXa` · `951:87324`
 - [x] Firebase web config (`coinzy-dev`) + Auth bridge (email/email · anonymous) — `lib/firebase/*` (Android parity; do not diverge Firestore paths)
 - [x] Feed home — `1366:257022` → `/feed` composer + post cards (thumbs-up likes, bookmark, ⋯ menu)

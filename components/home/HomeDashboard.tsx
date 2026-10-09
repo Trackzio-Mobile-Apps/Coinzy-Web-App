@@ -160,7 +160,7 @@ export function HomeDashboard({
                     </p>
                   </div>
                   <Link
-                    href="/home#expert"
+                    href="/experts"
                     className="inline-flex h-9 w-fit items-center justify-center gap-1.5 rounded-button border border-primary-500 bg-white px-4 text-sm font-medium leading-5 text-primary-500"
                   >
                     <Image src={`${A}/icon-user-star.svg`} alt="" width={16} height={16} />

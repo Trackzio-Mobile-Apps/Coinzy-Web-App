@@ -15,8 +15,12 @@ Synced from live docs on **9 Oct 2026**. Open `overview.md` or the files below.
 | Feedback | `mobile-user/feedback.md` |
 | Expert / Admin modules | `experts/*`, `admin/*` |
 
-**Base URL (Android `EXPERTS_BASE_URL`):** `https://coinzy-experts-api.trackzio.com/`  
-**QA:** `https://api.coinzy-experts-qa.trackzio.com/`
+| Env | Android property | URL | Web |
+| --- | --- | --- | --- |
+| **QA** | `EXPERTS_BASE_URL_QA` (`dev` flavor) | `https://api.coinzy-experts-qa.trackzio.com/` | Default / local (`COINZY_EXPERTS_API_ORIGIN`) |
+| **Prod** | `EXPERTS_BASE_URL` (`prod` flavor) | `https://coinzy-experts-api.trackzio.com/` | Set `COINZY_EXPERTS_API_ORIGIN` in production |
+
+Source: Android `gradle.properties` + `app/build.gradle.kts` product flavors. Live docs: prod host `/docs/#/README`.
 
 Envelope: `{ error, message, data }`. Mobile auth: `Authorization: Bearer <external-jwt>` (verified with `USER_JWT_SHARED_SECRET`). Production Android sends the same Coinzy coins-API session JWT via `TokenInterceptor`.
 
@@ -62,7 +66,20 @@ File key: `5hhBNjumI3EaALlyW6ySXa` (Coinzy-webapp--Copy-)
 | Area | Node |
 | --- | --- |
 | Expert evaluation / New user | `1049:167922` |
+| Existing user flow | `1045:166659` |
 | Progress strip (upload → …) | `1045:166649` |
 | Other cases (report received, authentic/fake/doubtful) | `1038:159962` |
-| Related | `1327:206087` |
+| Extend deadline | `1327:206087` |
 | **Feed / Community (updated)** | `951:87324` |
+
+## Web routes (Oct 2026)
+
+| Route | Purpose |
+| --- | --- |
+| `/experts` | Hub — empty state or request list |
+| `/experts/new` | Upload obverse/reverse/edge (+ optional video) → `POST /users/uploads` → `POST /users/requests` |
+| `/experts/request/[id]` | Status + poll; retry on `deadline_missed` |
+| `/experts/request/[id]/report` | Report + feedback |
+| `/api/experts/*` | Same-origin proxy with `coinzy_session` Bearer |
+
+Credits purchase on web: public users → Play Store stub; **@trackzio.com** sessions → staff dummy pay (`POST /api/experts/payments/dummy` → admin credit adjust). Requires server `COINZY_EXPERTS_ADMIN_API_KEY`.
