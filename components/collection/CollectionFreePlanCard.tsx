@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { PremiumUpgradeButton } from "@/components/premium/PremiumUpgradeButton";
 import { COLLECTION_COIN_LIMIT } from "@/components/collection/collectionNav";
 
 /** Free plan rail on collections home (Figma `1341:262554` / `768:46633`). */
@@ -14,12 +14,9 @@ export function CollectionFreePlanCard({ used }: { used: number }) {
       <div className="relative mt-4 h-1.5 w-full overflow-hidden rounded-full bg-[#dfdfe0]">
         <div className="absolute left-0 top-0 h-full rounded-full bg-[#7c3c3f]" style={{ width: `${pct}%` }} />
       </div>
-      <Link
-        href="/home#premium"
-        className="mt-4 flex h-9 w-full items-center justify-center rounded-[10px] border border-[#e5e5e5] bg-white text-sm font-medium text-ink"
-      >
+      <PremiumUpgradeButton className="mt-4 flex h-9 w-full items-center justify-center rounded-[10px] border border-[#e5e5e5] bg-white text-sm font-medium text-ink">
         Upgrade
-      </Link>
+      </PremiumUpgradeButton>
     </div>
   );
 }

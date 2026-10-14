@@ -6,7 +6,8 @@ Figma file: `YV6ArWhD2eVlLPH6M090gc` (canvas `793:76525`). Node IDs below are fo
 - [x] Free user dashboard — `1898:205770` → `app/home/page.tsx` (post login/signup/guest; `/` and `/auth` redirect when `coinzy_session` is set; Coin of the day + Global catalogue widgets use live API)
 - [x] Coin of the Day Premium upsell popup — `1248:114479` → `components/home/PremiumUpsellDialog.tsx` (opened from the home lock line and the drawer's "Show more coins")
 - [x] Coin of the Day drawer (free user) — `1248:123835` → `components/home/CoinOfTheDayDrawer.tsx` (opened by "Learn more" on `/home`; live `coins-of-the-day` data)
-- [x] Premium home — `1584:205526` → `/home` Premium variant (`HomeDashboard premium`); gated by `getPremiumStatus` + dev-only `?premium=1` (no documented plan flag yet)
+- [x] Premium home — `1584:205526` → `/home` Premium variant (`HomeDashboard premium`); gated by `getPremiumStatus` (test `coinzy_premium` cookie via plans dialog) + dev-only `?premium=1`
+- [x] Test Premium purchase — multi-plan dialog + `POST /api/premium/test-purchase` (interim until Payments/gateway)
 - [x] Premium Coin of the Day (multi-coin panel + drawer) — `1248:98330` → `components/home/PremiumCoinOfTheDay.tsx`, `CoinOfTheDayDrawer` `pro` variant
 - [x] Premium daily-limit alert ("final popup") — `1912:211426` → `components/home/DailyLimitDialog.tsx`
 - [ ] Premium timeline task 5 remainder: real entitlement flag, expert prompt
@@ -105,7 +106,7 @@ Figma auth modals (`908:39186`, `908:39439`, `908:39567`, `905:38594`, `905:3880
 - [x] Report + feedback — `/experts/request/[id]/report` · other cases `1038:159962`
 - [x] Buy credits (interim) — Play Store for public; @trackzio.com dummy pay via `POST /api/experts/payments/dummy`
 - [ ] Web credit purchase (real payments) — deferred to Payments task 20
-- [ ] Socket.IO realtime — still open (poll is interim; Experts not fully done)
+- [x] Socket.IO realtime — user-room events (Android parity); REST refresh only; poll kept as fallback
 
 ## Feed / Community — Timeline tasks 17–18 · Figma Copy `5hhBNjumI3EaALlyW6ySXa` · `951:87324`
 - [x] Firebase web config (`coinzy-dev`) + Auth bridge (email/email · anonymous) — `lib/firebase/*` (Android parity; do not diverge Firestore paths)
@@ -115,7 +116,7 @@ Figma auth modals (`908:39186`, `908:39439`, `908:39567`, `905:38594`, `905:3880
 - [x] Delete confirm — “Delete this post?” Cancel / Delete
 - [x] Comments / replies modal — `CommentsPanel`
 - [x] Right rail — Saved posts · My posts · Notification · Trending
-- [x] Prod Firebase web app env (`coinzy-26a4d`) — required at deploy via `NEXT_PUBLIC_FIREBASE_*` (`.env.example` + `getFirebaseWebConfig` throws in production if missing)
+- [ ] Real prod Firebase web app (`coinzy-26a4d`) — deferred; debug/staging uses `coinzy-dev` defaults until we flip `NEXT_PUBLIC_FIREBASE_*`
 
 ## Not in Figma (from `COINZY-WEB-SPEC.md` Phase 1)
 - [ ] Pricing, FAQ marketing page, Download — design needed or skip (in-app FAQ is under Settings)

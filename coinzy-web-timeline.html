@@ -4,55 +4,63 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Coinzy Web — Dynamic Timeline</title>
 <style>
-:root{font-family:Inter,Arial,sans-serif;color:#19283a;background:#f4f7fb}*{box-sizing:border-box}body{margin:0}header{background:#17283f;color:white;padding:24px clamp(18px,4vw,52px)}h1{margin:0 0 7px;font-size:28px}header p{margin:0;color:#bfd0e4}main{max-width:1600px;margin:auto;padding:24px}.card{background:white;border:1px solid #dce4ee;border-radius:12px;box-shadow:0 2px 8px #18304a0a;padding:18px;margin-bottom:18px}h2{font-size:18px;margin:0 0 14px}.controls{display:flex;flex-wrap:wrap;gap:14px;align-items:end}.controls label{font-size:13px;font-weight:700;color:#526579;display:grid;gap:6px}.controls input{width:170px}.controls input,.tasks input,.tasks select{font:inherit;padding:8px;border:1px solid #cbd6e2;border-radius:7px;background:white;color:#19283a}.tasks input[type=number]{width:75px}.tasks select{min-width:76px}.controls button,button{font:inherit;border:0;border-radius:7px;padding:9px 13px;cursor:pointer;background:#dfeaf5;color:#17334f;font-weight:700}.primary{background:#2457a6;color:white}.danger{background:#fce7e7;color:#a33333}.metrics{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));gap:12px}.metric{border:1px solid #e1e8f0;background:#f9fbfe;border-radius:9px;padding:13px}.metric strong{display:block;font-size:23px;color:#174a87;margin-top:5px}.metric span{font-size:12px;color:#5b6c7c}.table-wrap{overflow:auto}.tasks{border-collapse:collapse;width:100%;min-width:1250px;font-size:13px}.tasks th,.tasks td{border-bottom:1px solid #e5ebf2;padding:8px;text-align:left;vertical-align:middle}.tasks th{background:#edf3fa;position:sticky;top:0;z-index:1;white-space:nowrap}.tasks td:nth-child(3) input{width:240px}.tasks td:nth-child(2) input{width:145px}.tasks td:nth-child(4) input{width:340px}.tasks .date{white-space:nowrap}.tasks .pending{color:#9a6b00}.tasks .done{color:#15784e}.hint{font-size:13px;color:#5c6f82;margin:9px 0 0}.gantt{overflow:auto}.gantt table{border-collapse:collapse;min-width:100%;font-size:12px}.gantt th,.gantt td{border:1px solid #e3eaf2;padding:7px 9px;min-width:70px;text-align:center}.gantt th:first-child,.gantt td:first-child{text-align:left;min-width:260px;position:sticky;left:0;background:white;z-index:1}.gantt th{background:#edf3fa}.gantt .bar{background:#4f83cd;color:white;font-weight:700}.gantt .qa{background:#33a67a}.gantt .muted{color:#95a4b4}@media(max-width:720px){main{padding:12px}.metrics{grid-template-columns:repeat(2,1fr)}h1{font-size:23px}}
+:root{font-family:Inter,Arial,sans-serif;color:#19283a;background:#f4f7fb}*{box-sizing:border-box}body{margin:0}header{background:#17283f;color:white;padding:24px clamp(18px,4vw,52px)}h1{margin:0 0 7px;font-size:28px}header p{margin:0;color:#bfd0e4}main{max-width:1600px;margin:auto;padding:24px}.card{background:white;border:1px solid #dce4ee;border-radius:12px;box-shadow:0 2px 8px #18304a0a;padding:18px;margin-bottom:18px}h2{font-size:18px;margin:0 0 14px}.controls{display:flex;flex-wrap:wrap;gap:14px;align-items:end}.controls label{font-size:13px;font-weight:700;color:#526579;display:grid;gap:6px}.controls input{width:170px}.controls input,.tasks input,.tasks select{font:inherit;padding:8px;border:1px solid #cbd6e2;border-radius:7px;background:white;color:#19283a}.tasks input[type=number]{width:75px}.tasks select{min-width:76px}.controls button,button{font:inherit;border:0;border-radius:7px;padding:9px 13px;cursor:pointer;background:#dfeaf5;color:#17334f;font-weight:700}.primary{background:#2457a6;color:white}.danger{background:#fce7e7;color:#a33333}.metrics{display:grid;grid-template-columns:repeat(6,minmax(110px,1fr));gap:12px}.metric{border:1px solid #e1e8f0;background:#f9fbfe;border-radius:9px;padding:13px}.metric strong{display:block;font-size:23px;color:#174a87;margin-top:5px}.metric span{font-size:12px;color:#5b6c7c}.table-wrap{overflow:auto}.tasks{border-collapse:collapse;width:100%;min-width:1320px;font-size:13px}.tasks th,.tasks td{border-bottom:1px solid #e5ebf2;padding:8px;text-align:left;vertical-align:middle}.tasks th{background:#edf3fa;position:sticky;top:0;z-index:1;white-space:nowrap}.tasks td:nth-child(3) input{width:240px}.tasks td:nth-child(2) input{width:145px}.tasks td:nth-child(4) input{width:340px}.tasks .date{white-space:nowrap}.tasks .pending{color:#9a6b00}.tasks .done{color:#15784e}.hint{font-size:13px;color:#5c6f82;margin:9px 0 0}.gantt{overflow:auto}.gantt table{border-collapse:collapse;min-width:100%;font-size:12px}.gantt th,.gantt td{border:1px solid #e3eaf2;padding:7px 9px;min-width:70px;text-align:center}.gantt th:first-child,.gantt td:first-child{text-align:left;min-width:260px;position:sticky;left:0;background:white;z-index:1}.gantt th{background:#edf3fa}.gantt .bar{background:#4f83cd;color:white;font-weight:700}.gantt .qa{background:#33a67a}.gantt .hour{background:#c47a2c}.gantt .muted{color:#95a4b4}@media(max-width:720px){main{padding:12px}.metrics{grid-template-columns:repeat(2,1fr)}h1{font-size:23px}}
 </style>
 </head>
 <body>
-<header><h1>Coinzy Web · Dynamic Timeline</h1><p>Edit screens, agent lane, dependencies, or progress. Early completions bring remaining work forward automatically.</p></header>
+<header><h1>Coinzy Web · Dynamic Timeline</h1><p>Edit screens, hours, agent lane, dependencies, or progress. Near-done work is closed; leftovers are hour-tracked subtasks.</p></header>
 <main>
-<section class="card"><div class="controls"><label>Project start<input id="start" type="date"></label><label>Forecast from<input id="asOf" type="date"></label><label>Screens per agent per day<input id="rate" type="number" min="0.1" step="0.1"></label><button id="add" class="primary">Add task</button><button id="export">Export current CSV</button><button id="reset" class="danger">Reset estimates</button></div><p class="hint">Changes save in this browser. The default rate is 2 screens per agent per day; an agent handles one task at a time. Completed work uses no remaining days. Partial progress reduces the forecast; dependencies and agent availability still apply. QA starts after all scheduled tasks.</p><p class="hint">Status checked 9 Oct 2026 (link/flow audit): Sidebar routes work. Broken/inactive CTAs: landing Expert “Get opinion / View all” → <code>#experts</code> (self, not /auth or /experts); all Subscribe/Go Premium/See plans → <code>/home#premium</code> with no checkout (Subscribe self-loops); Settings Plan &amp; billing toast; Experts Buy credits → Play Store (non-staff); Identify rate-match dummy. Still open: Premium JWT+prompt (5 ~75%), Experts Socket.IO (8–9 ~90%), manage polish (16 ~90%), Settings ~95%. <strong>Payments task 20 deferred</strong>. QA (22). Marketing Pricing/FAQ/Download + SEO/deploy later.</p></section>
-<section class="card"><div class="metrics"><div class="metric"><span>Planned screens</span><strong id="screensTotal">—</strong></div><div class="metric"><span>Remaining agent workdays</span><strong id="effort">—</strong></div><div class="metric"><span>Calendar weeks</span><strong id="weeks">—</strong></div><div class="metric"><span>Projected finish</span><strong id="finish">—</strong></div><div class="metric"><span>Overall progress</span><strong id="progressTotal">—</strong></div></div></section>
-<section class="card"><h2>Tasks and estimates</h2><div class="table-wrap"><table class="tasks"><thead><tr><th>ID</th><th>Section</th><th>Task</th><th>Deliverable</th><th>Screens</th><th>Agent</th><th>After ID</th><th>Progress %</th><th>Remaining days</th><th>Start</th><th>Finish</th><th>Recorded completion</th><th>Status</th></tr></thead><tbody id="taskRows"></tbody></table></div><p class="hint">Tasks and timeline rows sort automatically by progress (highest first), then task ID. <strong>Start</strong> / <strong>Finish</strong> for Done tasks use <strong>Recorded completion</strong> (defaults: 5 Oct for landing/feature landings/blogs/listing details; 6 Oct for auth, /home, catalogue browse + coin details, marketplace browse). Incomplete tasks show forecast dates from <strong>Forecast from</strong> + agent load. Top <strong>Projected finish</strong> is the latest scheduled end (including QA after all feature work). Reload this page after pulling timeline updates — stored dates sync automatically. A blank screen count leaves work unscheduled. “After ID” must finish first; use 0 for none.</p></section>
+<section class="card"><div class="controls"><label>Project start<input id="start" type="date"></label><label>Forecast from<input id="asOf" type="date"></label><label>Screens per agent per day<input id="rate" type="number" min="0.1" step="0.1"></label><label>Hours per agent day<input id="hoursPerDay" type="number" min="1" step="1"></label><button id="add" class="primary">Add task</button><button id="export">Export current CSV</button><button id="reset" class="danger">Reset estimates</button></div><p class="hint">Changes save in this browser. Screen tasks use screens ÷ rate. <strong>Leftover</strong> tasks (section “Leftovers (hours)”) use hours ÷ hours-per-day for the gantt; the table shows remaining <em>hours</em>. Completed work uses no remaining effort. Dependencies and agent lanes still apply. QA starts after all scheduled tasks.</p><p class="hint">Status 14 Oct 2026 (sync 22): Hour leftovers closed (24–26, 28 done; 27 cancelled). <strong>Next before / as testing:</strong> E2E QA task <strong>22</strong>. Deferred (not QA blockers): Payments <strong>20</strong> real gateway, Premium task <strong>5</strong> remainder (real JWT entitlement — test cookie is enough for QA).</p></section>
+<section class="card"><div class="metrics"><div class="metric"><span>Planned screens</span><strong id="screensTotal">—</strong></div><div class="metric"><span>Leftover hours</span><strong id="hoursLeft">—</strong></div><div class="metric"><span>Remaining agent workdays</span><strong id="effort">—</strong></div><div class="metric"><span>Calendar weeks</span><strong id="weeks">—</strong></div><div class="metric"><span>Projected finish</span><strong id="finish">—</strong></div><div class="metric"><span>Overall progress</span><strong id="progressTotal">—</strong></div></div></section>
+<section class="card"><h2>Tasks and estimates</h2><div class="table-wrap"><table class="tasks"><thead><tr><th>ID</th><th>Section</th><th>Task</th><th>Deliverable</th><th>Screens</th><th>Hours</th><th>Agent</th><th>After ID</th><th>Progress %</th><th>Remaining</th><th>Start</th><th>Finish</th><th>Recorded completion</th><th>Status</th></tr></thead><tbody id="taskRows"></tbody></table></div><p class="hint">Tasks and timeline rows sort automatically by progress (highest first), then task ID. <strong>Start</strong> / <strong>Finish</strong> for Done tasks use <strong>Recorded completion</strong>. Incomplete tasks show forecast dates from <strong>Forecast from</strong> + agent load. Hour leftovers show remaining as <code>Nh</code>. Reload after pulling timeline updates — stored progress syncs automatically. A blank screen count and blank hours leaves work unscheduled. “After ID” must finish first; use 0 for none.</p></section>
 <section class="card"><h2>Weekly timeline</h2><div class="gantt" id="gantt"></div></section>
 </main>
 <script>
 const seed=[
 ['Landing pages','Main landing page','Main page, shared header/footer and navigation; done with real coin images and favicon',2,'A',0],
-['Landing pages','Feature landing pages','Done (~98%): Marketplace, Catalogue, view-all, other apps, Blogs (6/6); auth via /auth?next=. Audit: Expert section CTAs still href #experts (self-scroll) — should go /auth?next=/experts or /experts when signed in',6,'A',1],
+['Landing pages','Feature landing pages','Done: Marketplace, Catalogue, view-all, other apps, Blogs (6/6); auth via /auth?next=. Expert CTAs → /auth?next=/experts (leftover 24 done)',6,'A',1],
 ['Auth and login','Account access','Done: welcome, email signup/login, guest sessions, forgot/reset APIs, OTP and new-password flow, Figma error states (1758:124172), Trackzio Terms/Privacy links, HTTP-only cookies, signed-in redirects and single-history auth steps; logged-out CTAs use /auth?next= (908/905 auth modals out of scope); Google sign-in disabled on web',8,'A',2],
 ['Homepage','Free user dashboard','Done: signed-in /home (Figma 1898:205770) with live marketplace rows, Coin of the Day (free drawer and Premium upsell modal) and a 3-item Global Catalogue widget',4,'B',0],
-['Homepage','Premium experience','~75%: Premium UI behind ?premium=1. Audit: Subscribe / See all plans / Go Premium all point at /home#premium with no purchase (Subscribe self-loops). Still need: JWT entitlement, expert prompt, gate verification. Checkout → Payments task 20.',4,'B',4],
+['Homepage','Premium experience','~95%: Test multi-plan purchase (POST /api/premium/test-purchase → coinzy_premium cookie) unlocks pro UI. Still later: real JWT entitlement + Payments 20 gateway. Dev ?premium=1 still works.',4,'B',4],
 ['AI Identification','Start identification','Done: /identify upload (1828:206837), flip-coin (1828:206843), camera + zoom (1828:206846), blocked camera (1828:206844), analyse (1828:206840), failure / not-found (2098:158944), free plan card (1828:206842), error toasts (1493:236892), POST /api/ai/identify-v2; dev black-image debug to force failure',8,'C',0],
-['AI Identification','Results and actions','Done (~98%): matches, result details, collection add. Audit: rate-match rail is dummy UI (toast + dismiss, no API) — still not a real flow',8,'C',6],
-['Expert evaluation','New request','~90%: hub + upload/submit + buy dialog. Audit: public Buy credits → Play Store only; staff dummy pay works. Real web credits → Payments 20. Landing CTAs to experts still broken (#experts).',6,'C',7],
-['Expert evaluation','Existing requests','~90%: list, poll+retry, report+feedback. Still open: Socket.IO realtime (poll interim). Not fully done.',8,'C',8],
+['AI Identification','Results and actions','Done: matches, result details, collection add, rate-match rail (Figma give feedback + Solid selected; dummy Feedback sent).',8,'C',6],
+['Expert evaluation','New request','Done: hub + upload/submit + buy dialog (staff dummy pay). Public web credits → Payments 20. Landing Expert CTAs → leftover 24 (done).',6,'C',7],
+['Expert evaluation','Existing requests','Done: list, poll+retry, report+feedback, Socket.IO user-room (REST refresh on events; Android ExpertsSocketManager parity).',8,'C',8],
 ['Global Catalogue','Browse catalogue','Done: live API coin grid, category filters, pagination and name search (?q=, composes with category filters; the API matches whole coin names only; search UI is not in Figma, built on the dashboard search pill)',6,'D',0],
 ['Global Catalogue','Coin details','Done: live API details, grades, tabs; free vs Premium tab gating (1348:137792 / 1341:249499); signed-in app shell; wishlist hearts via PUT/DELETE archetypes/wishlist (grid + details)',4,'D',10],
 ['Marketplace','Browse listings','Done: logged-out landing (793:77834) and category pages (793:77612) with live rows, pagination and title search (?q=, case-insensitive whole words; search UI is not in Figma, built on the dashboard search pill); signed-in /marketplace (1356:154252) with filterItems filters and fetchAll; /home marketplace chips and search; logged-out List a coin → /auth?next=',6,'D',11],
 ['Marketplace','Listing details','Done: live listing, seller details; signed-in Contact seller modal (1356:164759); logged-out redacted contact + /auth?next= (no auth modal)',4,'D',12],
 ['Marketplace','Create listings','Done: List a coin menu (1362:168657) on /marketplace + /home; From Owned picker (1362:171575) via POST /api/coin/fetchAll; Set Seller Profile (1363:172631) via GET|PATCH /api/auth/me; Add for Sale drawer (1363:176354 / 1349:128590) → POST /api/marketplace/sell/private/[coinId]; self listing (1363:178858) /marketplace/my-listing/[id] with Remove + Mark as sold (PATCH /api/marketplace/markSold/[id]); Add new coin → /identify',8,'D',13],
 ['Collections','Browse collections','Done: /collection home (1341:262557), bucket grids + filter rail, private grid via `_collection` filter, empty state, coin details (1348:175552) with free-user tab blur/Premium overlay, recently identified + free-plan cards, sidebar nested lists; shared catalogue Pagination on bucket + private grids',6,'E',7],
-['Collections','Manage collection','~90%: create/add/delete/sell + overflow menu; edit/rename private collection cancelled for web. Leave room for leftover manage polish.',6,'E',15],
+['Collections','Manage collection','Done: create/add/delete/sell + overflow menu. Edit/rename private + leftover 27 cancelled (out of scope for web).',6,'E',15],
 ['Feed','Community feed','Done: /feed (Figma Copy 951:87324) — composer, post cards (like/bookmark/⋯ edit·delete), create/edit modal (title+content, max 2 images, Discussion/Buy-Sell), delete confirm, toast; Firebase all-posts + Storage posts/{id}/images (Android PostRepository parity)',6,'B',5],
 ['Feed','Personal activity','Done: Saved posts + My posts rail; comments/replies modal; inline Notification rail; report; Firestore comments/likes/bookmarks/notifications same paths as Android',4,'B',17],
-['Settings','Account settings','~95%: hub works. Audit: Plan & billing → toast “coming soon”; aside Go Premium → /home#premium (Coming soon). Billing → Payments 20.',6,'B',18],
-['Payments (deferred)','Web payments later','Deferred/unscheduled: Experts web credits (replace Play Store); Premium Subscribe/See plans/Go Premium checkout (today self-loop /home#premium); Settings Plan & billing. Staff dummy pay ships. Screens null until gateway chosen.',null,'A',0],
+['Settings','Account settings','Done: settings hub (profile, FAQ, aside). Plan & billing opens test Premium plans (leftover 28). Real billing → Payments 20.',6,'B',18],
+['Payments (deferred)','Web payments later','Deferred/unscheduled: real payment gateway. Interim: Premium test purchase cookie + Experts staff dummy credits. Replace Play Store / test cookie when gateway chosen. Screens null until then.',null,'A',0],
 ['Payments (deferred)','(folded into 20)','Deferred — folded into task 20 (was separate Premium account billing). ID kept for continuity; unscheduled.',null,'A',20],
-['Review and fixes','End-to-end review','Responsive + flow QA. Audit backlog: landing #experts CTAs, Premium CTA self-loops, rate-match dummy, british-coins empty chip, other-apps Coming soon tiles, Socket.IO, JWT premium',6,'QA',0],
-['Blogs','Blog experience','Done: six articles, category filtering and load more; duration unscheduled',null,'F',0]
+['Review and fixes','End-to-end review','Responsive + flow QA after leftovers 28 + Premium 5 (25/26 done). Also: british-coins empty chip, other-apps Coming soon tiles (intentional).',6,'QA',0],
+['Blogs','Blog experience','Done: six articles, category filtering and load more; duration unscheduled',null,'F',0],
+['Leftovers (hours)','Landing Expert CTAs','Done: “Get Expert’s opinion?” / “View all” → /auth?next=/experts (post-login lands on /experts)',null,'A',2,1],
+['Leftovers (hours)','Identify rate-match','Done: Figma rate card (Stroke faces + Solid primary selected) + Message/Submit; dummy Feedback sent toast (no API).',null,'C',7,3],
+['Leftovers (hours)','Experts Socket.IO','Done: socket.io-client → Experts host with auth.userId; events trigger REST refresh / router.refresh (no payload business logic). Poll kept as fallback.',null,'C',9,8],
+['Leftovers (hours)','(cancelled — was manage polish)','Cancelled / out of scope: manage polish + edit/rename private collection not on web. ID kept for continuity.',null,'E',0],
+['Leftovers (hours)','Settings billing entry','Done: Plan & billing opens test Premium plans dialog (same as Subscribe). Real gateway → Payments 20.',null,'B',19,1]
 ];
 const key='coinzy-web-timeline-v1';
-const TIMELINE_SYNC=16;
-// Default progress by task index (9 Oct 2026 link/flow audit). Payments stay deferred/unscheduled.
-const DEFAULT_PROGRESS={0:100,1:98,2:100,3:100,4:75,5:100,6:98,7:90,8:90,13:100,14:100,15:90,16:100,17:100,18:95,9:100,10:100,11:100,12:100,19:0,20:0,21:0,22:100};
+const TIMELINE_SYNC=22;
+// Default progress by task index (14 Oct 2026 sync 22: leftover 26 Socket.IO done).
+const DEFAULT_PROGRESS={0:100,1:100,2:100,3:100,4:95,5:100,6:100,7:100,8:100,13:100,14:100,15:100,16:100,17:100,18:100,9:100,10:100,11:100,12:100,19:0,20:0,21:0,22:100,23:100,24:100,25:100,26:100,27:100};
 const DEFAULT_DONE={
-  0:'2026-10-05',1:'2026-10-05',2:'2026-10-06',3:'2026-10-06',5:'2026-10-06',6:'2026-10-06',
+  0:'2026-10-05',1:'2026-10-09',2:'2026-10-06',3:'2026-10-06',5:'2026-10-06',6:'2026-10-09',
+  7:'2026-10-09',8:'2026-10-09',
   9:'2026-10-06',10:'2026-10-06',11:'2026-10-06',12:'2026-10-05',
-  13:'2026-10-09',14:'2026-10-09',
-  16:'2026-10-09',17:'2026-10-09',
+  13:'2026-10-09',14:'2026-10-09',15:'2026-10-09',
+  16:'2026-10-09',17:'2026-10-09',18:'2026-10-09',
+  23:'2026-10-09',24:'2026-10-14',25:'2026-10-14',26:'2026-10-09',27:'2026-10-14',
 };
 const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
-const initial=()=>({timelineSync:TIMELINE_SYNC,asOf:today(),start:'2026-10-05',rate:2,tasks:seed.map((x,i)=>({id:i+1,section:x[0],name:x[1],detail:x[2],screens:x[3],agent:x[4],after:x[5],progress:DEFAULT_PROGRESS[i]||0,completedOn:DEFAULT_DONE[i]||''}))});
+const mapSeed=x=>({section:x[0],name:x[1],detail:x[2],screens:x[3],agent:x[4],after:x[5],hours:x[6]??null});
+const initial=()=>({timelineSync:TIMELINE_SYNC,asOf:today(),start:'2026-10-05',rate:2,hoursPerDay:8,tasks:seed.map((x,i)=>({id:i+1,...mapSeed(x),progress:DEFAULT_PROGRESS[i]||0,completedOn:DEFAULT_DONE[i]||''}))});
 function applyDefaultCompletionDates(){
   if(!Array.isArray(state.tasks))return;
   state.tasks.forEach(t=>{
@@ -65,12 +73,23 @@ function applyDefaultCompletionDates(){
     }
   });
 }
+function ensureSeedTasks(){
+  if(!Array.isArray(state.tasks))return;
+  const byId=new Map(state.tasks.map(t=>[Number(t.id),t]));
+  seed.forEach((x,i)=>{
+    const id=i+1;
+    if(byId.has(id))return;
+    state.tasks.push({id,...mapSeed(x),progress:DEFAULT_PROGRESS[i]||0,completedOn:DEFAULT_DONE[i]||''});
+  });
+  state.tasks.sort((a,b)=>Number(a.id)-Number(b.id));
+}
 let state;try{state=JSON.parse(localStorage.getItem(key))||initial()}catch{state=initial()}
 if((state.timelineSync|0)<TIMELINE_SYNC){
   state.timelineSync=TIMELINE_SYNC;
   if(Array.isArray(state.tasks))state.tasks.forEach(t=>{const d=DEFAULT_PROGRESS[Number(t.id)-1]||0;if((Number(t.progress)||0)<d)t.progress=d});
   applyDefaultCompletionDates();
 }
+state.hoursPerDay=state.hoursPerDay||8;
 // Progress only moves forward: lift saved values to the current defaults so new progress shows without a Reset.
 if(Array.isArray(state.tasks))state.tasks.forEach(t=>{const d=DEFAULT_PROGRESS[Number(t.id)-1]||0;if((Number(t.progress)||0)<d)t.progress=d});
 // Reclassify old default descriptions/counts while retaining browser-edited estimates.
@@ -120,6 +139,68 @@ if(Array.isArray(state.tasks))state.tasks.forEach(t=>{if(!t.linkAuditOct9){
   if([20,21].includes(id)){t.screens=null;t.progress=0;t.completedOn=''}
   t.linkAuditOct9=true;
 }});
+// Sync 17: close ≥90% parents; peel leftovers into hour-tracked tasks 24–28.
+if(Array.isArray(state.tasks)){
+  if(!state.splitNearDoneOct9){
+    ensureSeedTasks();
+    state.tasks.forEach(t=>{
+      const id=Number(t.id);
+      const s=seed[id-1];
+      if(!s)return;
+      t.section=s[0];t.name=s[1];t.detail=s[2];t.agent=s[4];t.after=s[5];
+      if(s[6]!=null){t.hours=s[6];t.screens=null}
+      else if(id<=23)t.screens=s[3];
+      const d=DEFAULT_PROGRESS[id-1];
+      if(d!=null)t.progress=d;
+      if(DEFAULT_DONE[id-1])t.completedOn=DEFAULT_DONE[id-1];
+      else if((Number(t.progress)||0)<100)t.completedOn='';
+    });
+    state.splitNearDoneOct9=true;
+    state.timelineSync=TIMELINE_SYNC;
+  }
+}
+// Sync 18: leftover 24 Landing Expert CTAs done.
+if(Array.isArray(state.tasks))state.tasks.forEach(t=>{if(!t.leftover24DoneOct9){
+  if(Number(t.id)===24){t.detail=seed[23][2];t.progress=100;t.completedOn='2026-10-09';t.hours=1;t.screens=null}
+  if([2,8,22].includes(Number(t.id)))t.detail=seed[Number(t.id)-1][2];
+  t.leftover24DoneOct9=true;
+  state.timelineSync=TIMELINE_SYNC;
+}});
+// Sync 19: leftover 27 manage polish cancelled (out of scope).
+if(Array.isArray(state.tasks))state.tasks.forEach(t=>{if(!t.leftover27CancelledOct9){
+  if(Number(t.id)===27){t.section=seed[26][0];t.name=seed[26][1];t.detail=seed[26][2];t.hours=null;t.screens=null;t.progress=100;t.completedOn='2026-10-09';t.after=0}
+  if([16,22].includes(Number(t.id)))t.detail=seed[Number(t.id)-1][2];
+  t.leftover27CancelledOct9=true;
+  state.timelineSync=TIMELINE_SYNC;
+}});
+// Sync 20: test Premium purchase + leftover 28 done.
+if(Array.isArray(state.tasks))state.tasks.forEach(t=>{if(!t.testPremiumOct14){
+  const id=Number(t.id);
+  if([5,19,20,28].includes(id))t.detail=seed[id-1][2];
+  if(id===5){t.progress=95;t.completedOn=''}
+  if(id===28){t.detail=seed[27][2];t.progress=100;t.completedOn='2026-10-14';t.hours=1;t.screens=null}
+  t.testPremiumOct14=true;
+  state.timelineSync=TIMELINE_SYNC;
+}});
+// Sync 21: leftover 25 Identify rate-match done (Figma Solid selected + dummy Feedback sent).
+if(Array.isArray(state.tasks))state.tasks.forEach(t=>{if(!t.leftover25DoneOct14){
+  const id=Number(t.id);
+  if(id===25){t.detail=seed[24][2];t.progress=100;t.completedOn='2026-10-14';t.hours=3;t.screens=null}
+  if(id===7)t.detail=seed[6][2];
+  if(id===22)t.detail=seed[21][2];
+  t.leftover25DoneOct14=true;
+  state.timelineSync=TIMELINE_SYNC;
+}});
+// Sync 22: leftover 26 Experts Socket.IO done (REST refresh on events).
+if(Array.isArray(state.tasks))state.tasks.forEach(t=>{if(!t.leftover26DoneOct14){
+  const id=Number(t.id);
+  if(id===26){t.detail=seed[25][2];t.progress=100;t.completedOn='2026-10-14';t.hours=8;t.screens=null}
+  if(id===9)t.detail=seed[8][2];
+  if(id===22)t.detail=seed[21][2];
+  t.leftover26DoneOct14=true;
+  state.timelineSync=TIMELINE_SYNC;
+}});
+ensureSeedTasks();
 state.asOf=state.asOf||today();
 // The forecast never starts in the past: roll a stale saved date forward to today.
 if(state.asOf<today())state.asOf=today();
@@ -129,13 +210,25 @@ const day=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d,12)
 const addWork=(date,n)=>{let d=new Date(date);while(d.getDay()===0||d.getDay()===6)d.setDate(d.getDate()+1);while(n>0){d.setDate(d.getDate()+1);if(d.getDay()!==0&&d.getDay()!==6)n--}return d};
 const fmt=d=>d?d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—';
 const maxDate=(a,b)=>!a?b:!b?a:a>b?a:b;
+const isHourTask=t=>t.hours!=null&&t.hours!==''&&Number(t.hours)>0;
 const taskStatus=t=>Number(t.progress)>=100?'Done':!t.plannedDays?'Scope pending':t.blocked?'Waiting on dependency':Number(t.progress)>0?'In progress':'Planned';
 function calculate(){
- const start=day(state.start||'2026-10-05'),forecast=maxDate(start,day(state.asOf||today())),rate=Math.max(.1,Number(state.rate)||2),avail={},done={};let last=null,effort=0,count=0,weighted=0,planned=0;
+ const start=day(state.start||'2026-10-05'),forecast=maxDate(start,day(state.asOf||today())),rate=Math.max(.1,Number(state.rate)||2),hpd=Math.max(1,Number(state.hoursPerDay)||8),avail={},done={};let last=null,effort=0,count=0,weighted=0,planned=0,hoursLeft=0;
  for(const t of state.tasks){
   const progress=Math.max(0,Math.min(100,Number(t.progress)||0));
-  t.plannedDays=t.screens==null||t.screens===''||Number(t.screens)<=0?0:Math.ceil(Number(t.screens)/rate);
-  t.days=Math.ceil(t.plannedDays*(1-progress/100));t.begin=null;t.end=null;t.blocked=false;
+  t.begin=null;t.end=null;t.blocked=false;
+  if(isHourTask(t)){
+   const hours=Number(t.hours);
+   t.plannedHours=hours;
+   t.hoursLeft=Math.round(hours*(1-progress/100)*10)/10;
+   t.plannedDays=hours/hpd;
+   t.days=progress>=100?0:(t.hoursLeft<=0?0:Math.max(1,Math.ceil(t.hoursLeft/hpd)));
+   hoursLeft+=t.hoursLeft;
+  }else{
+   t.plannedHours=0;t.hoursLeft=0;
+   t.plannedDays=t.screens==null||t.screens===''||Number(t.screens)<=0?0:Math.ceil(Number(t.screens)/rate);
+   t.days=Math.ceil(t.plannedDays*(1-progress/100));
+  }
   count+=Math.max(0,Number(t.screens)||0);planned+=t.plannedDays;weighted+=t.plannedDays*progress/100;effort+=t.days;
   if(progress>=100){t.end=t.completedOn?day(t.completedOn):day(state.asOf||today());t.begin=t.end;done[t.id]=t.end;last=maxDate(last,t.end)}
  }
@@ -151,22 +244,28 @@ function calculate(){
   t.begin=addWork(maxDate(forecast,last?addWork(last,1):null),0);t.end=addWork(t.begin,t.days-1);last=maxDate(last,t.end);
  }
  const weeks=last?Math.max(0,Math.ceil((Math.floor((last-start)/86400000)+1)/7)):0;
- return {start,last,weeks,effort,count,progress:planned?Math.round(weighted/planned*100):0};
+ return {start,last,weeks,effort,count,hoursLeft:Math.round(hoursLeft*10)/10,progress:planned?Math.round(weighted/planned*100):0};
 }
-function save(){localStorage.setItem(key,JSON.stringify({timelineSync:state.timelineSync,start:state.start,asOf:state.asOf,rate:state.rate,tasks:state.tasks.map(({id,section,name,detail,screens,agent,after,progress,completedOn,authScopeUpdated,authApisUpdated,statusOct6,premiumOct6,catalogueOct6,catalogueWishlistOct6,marketplaceOct6,marketplaceSignedInOct6,authErrorsOct6,authPopUpsOutOfScope})=>({id,section,name,detail,screens,agent,after,progress,completedOn,authScopeUpdated,authApisUpdated,statusOct6,premiumOct6,catalogueOct6,catalogueWishlistOct6,marketplaceOct6,marketplaceSignedInOct6,authErrorsOct6,authPopUpsOutOfScope}))}))}
+function save(){localStorage.setItem(key,JSON.stringify({timelineSync:state.timelineSync,start:state.start,asOf:state.asOf,rate:state.rate,hoursPerDay:state.hoursPerDay,splitNearDoneOct9:state.splitNearDoneOct9,tasks:state.tasks.map(({id,section,name,detail,screens,hours,agent,after,progress,completedOn,authScopeUpdated,authApisUpdated,statusOct6,premiumOct6,catalogueOct6,catalogueWishlistOct6,marketplaceOct6,marketplaceSignedInOct6,authErrorsOct6,authPopUpsOutOfScope})=>({id,section,name,detail,screens,hours,agent,after,progress,completedOn,authScopeUpdated,authApisUpdated,statusOct6,premiumOct6,catalogueOct6,catalogueWishlistOct6,marketplaceOct6,marketplaceSignedInOct6,authErrorsOct6,authPopUpsOutOfScope}))}))}
 const sortedTasks=()=>[...state.tasks].sort((a,b)=>(Number(b.progress)||0)-(Number(a.progress)||0)||Number(a.id)-Number(b.id));
-function render(){const x=calculate(),tasks=sortedTasks();$('start').value=state.start;$('asOf').value=state.asOf;$('rate').value=state.rate;$('screensTotal').textContent=x.count;$('effort').textContent=x.effort;$('weeks').textContent=x.weeks;$('finish').textContent=fmt(x.last);$('progressTotal').textContent=x.progress+'%';
- $('taskRows').innerHTML=tasks.map(t=>`<tr data-id="${t.id}"><td>${t.id}</td><td><input data-field="section" value="${esc(t.section)}"></td><td><input data-field="name" value="${esc(t.name)}"></td><td><input data-field="detail" value="${esc(t.detail)}"></td><td><input data-field="screens" type="number" min="0" step="1" value="${t.screens??''}"></td><td><input data-field="agent" value="${esc(t.agent)}" style="width:65px"></td><td><input data-field="after" type="number" min="0" max="${t.id-1}" value="${t.after||0}"></td><td><input data-field="progress" type="number" min="0" max="100" value="${t.progress||0}"></td><td>${t.days===0&&Number(t.progress)>=100?'0':t.days||'—'}</td><td class="date">${fmt(t.begin)}</td><td class="date">${fmt(t.end)}</td><td><input data-field="completedOn" type="date" value="${esc(t.completedOn||'')}" ${Number(t.progress)<100?'disabled':''}></td><td class="${Number(t.progress)>=100?'done':!t.plannedDays||t.blocked?'pending':''}">${taskStatus(t)}</td></tr>`).join('');
+const remainingLabel=t=>{
+  if(Number(t.progress)>=100)return isHourTask(t)?'0h':'0';
+  if(isHourTask(t))return `${t.hoursLeft}h`;
+  return t.days||'—';
+};
+function render(){const x=calculate(),tasks=sortedTasks();$('start').value=state.start;$('asOf').value=state.asOf;$('rate').value=state.rate;$('hoursPerDay').value=state.hoursPerDay;$('screensTotal').textContent=x.count;$('hoursLeft').textContent=x.hoursLeft;$('effort').textContent=x.effort;$('weeks').textContent=x.weeks;$('finish').textContent=fmt(x.last);$('progressTotal').textContent=x.progress+'%';
+ $('taskRows').innerHTML=tasks.map(t=>`<tr data-id="${t.id}"><td>${t.id}</td><td><input data-field="section" value="${esc(t.section)}"></td><td><input data-field="name" value="${esc(t.name)}"></td><td><input data-field="detail" value="${esc(t.detail)}"></td><td><input data-field="screens" type="number" min="0" step="1" value="${t.screens??''}" ${isHourTask(t)?'disabled':''}></td><td><input data-field="hours" type="number" min="0" step="0.5" value="${t.hours??''}"></td><td><input data-field="agent" value="${esc(t.agent)}" style="width:65px"></td><td><input data-field="after" type="number" min="0" max="${Math.max(0,...state.tasks.map(x=>x.id))}" value="${t.after||0}"></td><td><input data-field="progress" type="number" min="0" max="100" value="${t.progress||0}"></td><td>${remainingLabel(t)}</td><td class="date">${fmt(t.begin)}</td><td class="date">${fmt(t.end)}</td><td><input data-field="completedOn" type="date" value="${esc(t.completedOn||'')}" ${Number(t.progress)<100?'disabled':''}></td><td class="${Number(t.progress)>=100?'done':!t.plannedDays||t.blocked?'pending':''}">${taskStatus(t)}</td></tr>`).join('');
  const n=Math.max(4,x.weeks+1),headers=Array.from({length:n},(_,i)=>`<th>Week ${i+1}</th>`).join('');
- $('gantt').innerHTML=`<table><thead><tr><th>Task</th>${headers}</tr></thead><tbody>${tasks.map(t=>`<tr><td>${esc(t.section)} · ${esc(t.name)}</td>${Array.from({length:n},(_,i)=>{const a=addWork(x.start,i*5),b=addWork(a,4),hit=t.begin&&t.begin<=b&&t.end>=a;return `<td class="${hit?(t.section==='Review and fixes'?'bar qa':'bar'):'muted'}">${hit?'■':''}</td>`}).join('')}</tr>`).join('')}</tbody></table>`;
+ $('gantt').innerHTML=`<table><thead><tr><th>Task</th>${headers}</tr></thead><tbody>${tasks.map(t=>`<tr><td>${esc(t.section)} · ${esc(t.name)}</td>${Array.from({length:n},(_,i)=>{const a=addWork(x.start,i*5),b=addWork(a,4),hit=t.begin&&t.begin<=b&&t.end>=a;const cls=hit?(t.section==='Review and fixes'?'bar qa':isHourTask(t)?'bar hour':'bar'):'muted';return `<td class="${cls}">${hit?'■':''}</td>`}).join('')}</tr>`).join('')}</tbody></table>`;
  save()}
 $('start').addEventListener('change',e=>{state.start=e.target.value||state.start;render()});
 $('asOf').addEventListener('change',e=>{state.asOf=e.target.value||state.asOf;render()});
 $('rate').addEventListener('change',e=>{state.rate=Math.max(.1,Number(e.target.value)||2);render()});
-$('taskRows').addEventListener('change',e=>{let t=state.tasks.find(t=>t.id===Number(e.target.closest('tr')?.dataset.id));if(!t)return;let f=e.target.dataset.field,v=e.target.value;if(f==='screens')v=v===''?null:Math.max(0,Math.floor(Number(v)||0));if(f==='after')v=Math.max(0,Math.min(t.id-1,Math.floor(Number(v)||0)));if(f==='progress'){v=Math.max(0,Math.min(100,Number(v)||0));if(v>=100&&Number(t.progress)<100)t.completedOn=state.asOf||today();if(v<100)t.completedOn=''}if(f==='completedOn')v=v||state.asOf||today();if(f==='agent')v=v.trim()||'A';t[f]=v;render()});
-$('add').onclick=()=>{const id=Math.max(0,...state.tasks.map(t=>t.id))+1;state.tasks.push({id,section:'New section',name:'New task',detail:'Describe the deliverable',screens:2,agent:'F',after:0,progress:0});render();document.querySelector(`[data-id="${id}"] input[data-field="name"]`).focus()};
-$('reset').onclick=()=>{if(confirm('Reset all estimates and saved changes?')){state=initial();state.timelineSync=TIMELINE_SYNC;render()}};
-$('export').onclick=()=>{calculate();const cols=['ID','Section','Task','Deliverable','Screens','Screens per agent per day','Agent','After ID','Remaining agent workdays','Start','Finish','Progress %','Recorded completion','Status'];const q=v=>'"'+String(v??'').replaceAll('"','""')+'"';let lines=[cols.map(q).join(',')];for(const t of sortedTasks())lines.push([t.id,t.section,t.name,t.detail,t.screens,state.rate,t.agent,t.after,t.days,t.begin?fmt(t.begin):'',t.end?fmt(t.end):'',t.progress,t.completedOn||'',taskStatus(t)].map(q).join(','));const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='coinzy-web-live-timeline.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+$('hoursPerDay').addEventListener('change',e=>{state.hoursPerDay=Math.max(1,Number(e.target.value)||8);render()});
+$('taskRows').addEventListener('change',e=>{let t=state.tasks.find(t=>t.id===Number(e.target.closest('tr')?.dataset.id));if(!t)return;let f=e.target.dataset.field,v=e.target.value;if(f==='screens')v=v===''?null:Math.max(0,Math.floor(Number(v)||0));if(f==='hours'){v=v===''?null:Math.max(0,Number(v)||0);if(v)t.screens=null}if(f==='after')v=Math.max(0,Math.floor(Number(v)||0));if(f==='progress'){v=Math.max(0,Math.min(100,Number(v)||0));if(v>=100&&Number(t.progress)<100)t.completedOn=state.asOf||today();if(v<100)t.completedOn=''}if(f==='completedOn')v=v||state.asOf||today();if(f==='agent')v=v.trim()||'A';t[f]=v;render()});
+$('add').onclick=()=>{const id=Math.max(0,...state.tasks.map(t=>t.id))+1;state.tasks.push({id,section:'Leftovers (hours)',name:'New leftover',detail:'Describe the leftover',screens:null,hours:2,agent:'F',after:0,progress:0});render();document.querySelector(`[data-id="${id}"] input[data-field="name"]`).focus()};
+$('reset').onclick=()=>{if(confirm('Reset all estimates and saved changes?')){state=initial();state.timelineSync=TIMELINE_SYNC;state.splitNearDoneOct9=true;render()}};
+$('export').onclick=()=>{calculate();const cols=['ID','Section','Task','Deliverable','Screens','Hours','Hours per agent day','Screens per agent per day','Agent','After ID','Remaining','Start','Finish','Progress %','Recorded completion','Status'];const q=v=>'"'+String(v??'').replaceAll('"','""')+'"';let lines=[cols.map(q).join(',')];for(const t of sortedTasks())lines.push([t.id,t.section,t.name,t.detail,t.screens,t.hours,state.hoursPerDay,state.rate,t.agent,t.after,remainingLabel(t),t.begin?fmt(t.begin):'',t.end?fmt(t.end):'',t.progress,t.completedOn||'',taskStatus(t)].map(q).join(','));const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='coinzy-web-live-timeline.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
 render();
 </script>
 </body>

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { EditProfileDialog } from "@/components/settings/EditProfileDialog";
 import { FaqDialog } from "@/components/settings/FaqDialog";
@@ -11,11 +12,13 @@ import {
   SetSellerProfileDialog,
   type PublicSellerProfile,
 } from "@/components/marketplace/SetSellerProfileDialog";
+import { PremiumPlansDialog } from "@/components/premium/PremiumPlansDialog";
 import type { SellerDetails } from "@/lib/api/auth-session";
 import { COINZY_PRIVACY_URL, COINZY_TERMS_URL } from "@/lib/constants";
 import { isSellerProfileComplete } from "@/lib/marketplace/sellerProfile";
 
 const NOTIFY_KEY = "coinzy_notifications_enabled";
+const IS_DEV = process.env.NODE_ENV !== "production";
 
 type Profile = PublicSellerProfile;
 
@@ -26,11 +29,15 @@ type Profile = PublicSellerProfile;
 export function SettingsPanel({
   initialProfile,
   isGuest,
+  premium = false,
 }: {
   initialProfile: Profile | null;
   isGuest: boolean;
+  premium?: boolean;
 }) {
+  const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(initialProfile);
+  const [isPremium, setIsPremium] = useState(premium);
   const [notifications, setNotifications] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
   const [sellerOpen, setSellerOpen] = useState(false);
@@ -38,10 +45,15 @@ export function SettingsPanel({
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [plansOpen, setPlansOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    setIsPremium(premium);
+  }, [premium]);
 
   useEffect(() => {
     try {
@@ -207,12 +219,43 @@ export function SettingsPanel({
                 label="Plan & billing"
                 action={
                   <span className="inline-flex items-center gap-2">
-                    <span className="rounded-full bg-[#f5f5f5] px-2 py-0.5 text-xs font-medium text-[#606062]">Free plan</span>
+                    <span className="rounded-full bg-[#f5f5f5] px-2 py-0.5 text-xs font-medium text-[#606062]">
+                      {isPremium ? "Premium" : "Free plan"}
+                    </span>
                     <Chevron />
                   </span>
                 }
-                onClick={() => setToast("Plan & billing — coming soon")}
+                onClick={() => {
+                  if (isPremium) setToast("You’re on Premium (test). Real billing comes later.");
+                  else setPlansOpen(true);
+                }}
               />
+              {IS_DEV && isPremium ? (
+                <Row
+                  label="Remove Premium (dev)"
+                  action={<span className="text-sm font-medium text-[#b45353]">Clear test</span>}
+                  onClick={() => {
+                    if (busy) return;
+                    setBusy(true);
+                    void fetch("/api/premium/test-clear", {
+                      method: "POST",
+                      credentials: "same-origin",
+                    })
+                      .then(async (res) => {
+                        const json = (await res.json().catch(() => null)) as { error?: boolean; message?: string } | null;
+                        if (!res.ok || json?.error) {
+                          setToast(json?.message || "Could not clear Premium.");
+                          return;
+                        }
+                        setIsPremium(false);
+                        setToast("Premium test cookie cleared — you’re on Free.");
+                        router.refresh();
+                      })
+                      .catch(() => setToast("Could not clear Premium."))
+                      .finally(() => setBusy(false));
+                  }}
+                />
+              ) : null}
               <Row
                 label="Delete account"
                 action={<span className="text-sm font-medium text-[#dc2626]">Delete</span>}
@@ -317,6 +360,13 @@ export function SettingsPanel({
         onClose={() => setFeedbackOpen(false)}
         defaultName={displayName}
         defaultEmail={email}
+      />
+      <PremiumPlansDialog
+        open={plansOpen}
+        onClose={() => {
+          setPlansOpen(false);
+          router.refresh();
+        }}
       />
 
       <SettingsConfirmDialog

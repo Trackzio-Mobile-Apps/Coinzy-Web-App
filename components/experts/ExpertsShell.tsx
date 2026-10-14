@@ -1,4 +1,5 @@
 import { ExpertsDummyPayProvider } from "@/components/experts/ExpertsPayContext";
+import { ExpertsRealtimeBridge } from "@/components/experts/ExpertsRealtimeBridge";
 import { AppSidebar } from "@/components/home/AppSidebar";
 import { MarketplaceAppHeader } from "@/components/marketplace/MarketplaceAppHeader";
 import type { SessionUser } from "@/lib/auth/session";
@@ -22,7 +23,10 @@ export function ExpertsShell({
       <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-[#faf7f5]">
         <MarketplaceAppHeader user={user} premium={premium} />
         <div className="min-h-0 flex-1 overflow-y-auto">
-          <ExpertsDummyPayProvider allow={allowDummyPay}>{children}</ExpertsDummyPayProvider>
+          <ExpertsDummyPayProvider allow={allowDummyPay}>
+            <ExpertsRealtimeBridge />
+            {children}
+          </ExpertsDummyPayProvider>
         </div>
       </div>
     </div>

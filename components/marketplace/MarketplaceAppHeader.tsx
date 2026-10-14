@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { PremiumUpgradeButton } from "@/components/premium/PremiumUpgradeButton";
 import type { SessionUser } from "@/lib/auth/session";
 
 const A = "/assets/home";
@@ -22,13 +23,10 @@ export function MarketplaceAppHeader({ user, premium }: { user: SessionUser; pre
         </div>
       ) : (
         <div className="flex items-center gap-4">
-          <Link
-            href="/home#premium"
-            className="inline-flex h-6 items-center gap-1 rounded-full bg-[linear-gradient(90deg,#6366f1,#a855f7)] px-2 py-0.5 text-xs font-medium leading-4 text-white"
-          >
+          <PremiumUpgradeButton className="inline-flex h-6 items-center gap-1 rounded-full bg-[linear-gradient(90deg,#6366f1,#a855f7)] px-2 py-0.5 text-xs font-medium leading-4 text-white">
             <Image src={`${A}/icon-crown-16.svg`} alt="" width={12} height={12} className="brightness-0 invert" />
             Go Premium
-          </Link>
+          </PremiumUpgradeButton>
           <Link href="/settings" aria-label="Settings" className="flex size-6 items-center justify-center">
             <Image src={`${A}/icon-settings.svg`} alt="" width={24} height={24} />
           </Link>

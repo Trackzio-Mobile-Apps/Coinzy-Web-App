@@ -1,7 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { SectionShell } from "@/components/ui/SectionShell";
+import { authHref } from "@/lib/auth/returnTo";
 import { APPRAISERS } from "@/lib/constants";
+
+const EXPERTS_AUTH_HREF = authHref(undefined, "/experts");
 
 const ICONS = "/assets/landing-page/09-expert-evaluation";
 
@@ -34,7 +37,7 @@ export function ExpertEvaluationSection() {
               </div>
             </div>
             <Link
-              href="#experts"
+              href={EXPERTS_AUTH_HREF}
               className="inline-flex items-center justify-center rounded-[var(--radius-button)] border border-primary-500 px-7 py-[7px] text-sm font-medium leading-5 text-primary-500 transition-colors hover:bg-primary-50"
             >
               Get Expert’s opinion?
@@ -102,7 +105,7 @@ export function ExpertEvaluationSection() {
                 Meet some of our appraisers
               </p>
               <Link
-                href="#experts"
+                href={EXPERTS_AUTH_HREF}
                 className="inline-flex items-center gap-1.5 rounded-[var(--radius-button)] px-3 py-1.5 text-sm font-medium leading-5 text-primary-500 hover:text-primary-700"
               >
                 View all

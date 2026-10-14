@@ -2,10 +2,15 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useId, useRef, useState, useTransition } from "react";
 import { ExpertsAside } from "@/components/experts/ExpertsAside";
 import { ExpertsBreadcrumb } from "@/components/experts/ExpertsBreadcrumb";
-import { getExpertRequest, retryExpertRequest } from "@/lib/experts/client";
+import { getExpertRequest, getExpertsCredits, retryExpertRequest } from "@/lib/experts/client";
+import {
+  isRequestLifecycleEvent,
+  type ExpertsRealtimeMessage,
+} from "@/lib/experts/realtime";
+import { useExpertsRealtime } from "@/lib/experts/useExpertsRealtime";
 import {
   expertDisplayTitle,
   expertRequestId,
@@ -14,12 +19,13 @@ import {
 } from "@/lib/experts/types";
 
 /**
- * Status / deadline / in-progress — poll like Android; `POST …/retry` on
- * `deadline_missed` (Figma extend deadline `1327:206087`).
+ * Status / deadline / in-progress — poll like Android; Socket.IO triggers REST
+ * refresh (Android `ExpertEvaluationStatusViewModel.onExpertsRtn`).
+ * `POST …/retry` on `deadline_missed` (Figma extend deadline `1327:206087`).
  */
 export function ExpertStatusPanel({
   initial,
-  creditBalance,
+  creditBalance: initialCredits,
   experts,
 }: {
   initial: ExpertRequest;
@@ -28,6 +34,7 @@ export function ExpertStatusPanel({
 }) {
   const router = useRouter();
   const [request, setRequest] = useState(initial);
+  const [credits, setCredits] = useState(initialCredits);
   const [error, setError] = useState("");
   const [extendOpen, setExtendOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -36,25 +43,58 @@ export function ExpertStatusPanel({
   const id = expertRequestId(request);
   const status = (request.status || "").toLowerCase();
 
+  const refreshRequest = useCallback(
+    (requestId = id) => {
+      void getExpertRequest(requestId).then((res) => {
+        if (!res.error && res.data?.request) {
+          setRequest(res.data.request);
+          const s = (res.data.request.status || "").toLowerCase();
+          if (s === "completed") {
+            router.replace(`/experts/request/${expertRequestId(res.data.request)}/report`);
+          }
+        }
+      });
+    },
+    [id, router],
+  );
+
+  const onRealtime = useCallback(
+    (message: ExpertsRealtimeMessage) => {
+      if (message.event === "credit.updated") {
+        if (typeof message.creditBalance === "number") {
+          setCredits(message.creditBalance);
+        } else {
+          void getExpertsCredits().then((res) => {
+            if (!res.error && typeof res.data?.creditBalance === "number") {
+              setCredits(res.data.creditBalance);
+            }
+          });
+        }
+        return;
+      }
+      if (!isRequestLifecycleEvent(message.event)) return;
+      const eventId = message.requestId;
+      if (eventId && eventId !== id && eventId !== request.displayId) return;
+      if (message.event === "report.submitted" && (eventId === id || !eventId)) {
+        router.replace(`/experts/request/${id}/report`);
+        return;
+      }
+      refreshRequest(eventId && eventId === id ? eventId : id);
+    },
+    [id, request.displayId, refreshRequest, router],
+  );
+
+  useExpertsRealtime(onRealtime);
+
   useEffect(() => {
     if (status === "completed") {
       router.replace(`/experts/request/${id}/report`);
       return;
     }
     if (status !== "offered" && status !== "accepted") return;
-    const t = setInterval(() => {
-      void getExpertRequest(id).then((res) => {
-        if (!res.error && res.data?.request) {
-          setRequest(res.data.request);
-          const s = (res.data.request.status || "").toLowerCase();
-          if (s === "completed") {
-            router.replace(`/experts/request/${id}/report`);
-          }
-        }
-      });
-    }, 12000);
+    const t = setInterval(() => refreshRequest(id), 12000);
     return () => clearInterval(t);
-  }, [id, status, router]);
+  }, [id, status, router, refreshRequest]);
 
   useEffect(() => {
     const el = dialogRef.current;
@@ -198,7 +238,7 @@ export function ExpertStatusPanel({
           </p>
         </section>
       </div>
-      <ExpertsAside creditBalance={creditBalance} experts={experts} />
+      <ExpertsAside creditBalance={credits} experts={experts} onCreditsPurchased={setCredits} />
 
       <dialog
         ref={dialogRef}

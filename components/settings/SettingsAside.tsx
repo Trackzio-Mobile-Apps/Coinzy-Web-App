@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { PremiumUpgradeButton } from "@/components/premium/PremiumUpgradeButton";
 import { HOME_OTHER_APPS } from "@/lib/home";
 
 /** Right rail on Settings — Figma `1368:256937` (Premium + other apps + QR). */
@@ -20,14 +21,10 @@ export function SettingsAside({ premium }: { premium: boolean }) {
               Unlock <span className="text-base font-bold text-white">200,000+</span> Coins from Around the World
             </p>
           </div>
-          <Link
-            href="/home#premium"
-            className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-[#34228f]"
-            title="Coming soon"
-          >
+          <PremiumUpgradeButton className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-[#34228f]">
             Go Premium
             <Image src="/assets/home/icon-arrow-right.svg" alt="" width={16} height={12} className="opacity-80" />
-          </Link>
+          </PremiumUpgradeButton>
         </div>
       )}
 

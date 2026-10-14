@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useCallback, useState, useTransition } from "react";
 import { ExpertsAside } from "@/components/experts/ExpertsAside";
 import { ExpertsBreadcrumb } from "@/components/experts/ExpertsBreadcrumb";
-import { submitExpertFeedback } from "@/lib/experts/client";
+import { getExpertsCredits, submitExpertFeedback } from "@/lib/experts/client";
+import type { ExpertsRealtimeMessage } from "@/lib/experts/realtime";
+import { useExpertsRealtime } from "@/lib/experts/useExpertsRealtime";
 import type { ExpertReport, ExpertRequest, ExpertsDirectoryItem } from "@/lib/experts/types";
 import { expertDisplayTitle, expertRequestId } from "@/lib/experts/types";
 
@@ -20,7 +22,7 @@ function authenticityTone(value: string | null | undefined) {
 export function ExpertReportPanel({
   request,
   report,
-  creditBalance,
+  creditBalance: initialCredits,
   experts,
 }: {
   request: ExpertRequest;
@@ -31,11 +33,26 @@ export function ExpertReportPanel({
   const title = report.coinTitle || expertDisplayTitle(request);
   const reportId = report._id || report.id || "";
   const fields = report.contentFields || [];
+  const [credits, setCredits] = useState(initialCredits);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
+
+  const onRealtime = useCallback((message: ExpertsRealtimeMessage) => {
+    if (message.event !== "credit.updated") return;
+    if (typeof message.creditBalance === "number") {
+      setCredits(message.creditBalance);
+      return;
+    }
+    void getExpertsCredits().then((res) => {
+      if (!res.error && typeof res.data?.creditBalance === "number") {
+        setCredits(res.data.creditBalance);
+      }
+    });
+  }, []);
+  useExpertsRealtime(onRealtime);
 
   const sendFeedback = () => {
     if (!reportId || rating < 1) return;
@@ -170,7 +187,7 @@ export function ExpertReportPanel({
           </Link>
         </p>
       </div>
-      <ExpertsAside creditBalance={creditBalance} experts={experts} />
+      <ExpertsAside creditBalance={credits} experts={experts} onCreditsPurchased={setCredits} />
     </div>
   );
 }

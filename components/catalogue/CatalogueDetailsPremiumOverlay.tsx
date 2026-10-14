@@ -1,5 +1,7 @@
+"use client";
+
 import Image from "next/image";
-import Link from "next/link";
+import { PremiumUpgradeButton } from "@/components/premium/PremiumUpgradeButton";
 
 const A = "/assets/home";
 
@@ -23,12 +25,9 @@ export function CatalogueDetailsPremiumOverlay() {
           <p className="text-xl font-medium leading-7">Subscribe to Premium</p>
           <p className="text-sm leading-5">Unlock more coin details with Premium.</p>
         </div>
-        <Link
-          href="/home#premium"
-          className="inline-flex h-10 items-center justify-center rounded-[14px] border border-white bg-white px-6 text-base font-medium leading-6 text-primary-500 shadow-[0_0_0_2px_#b155bf] hover:opacity-95"
-        >
+        <PremiumUpgradeButton className="inline-flex h-10 items-center justify-center rounded-[14px] border border-white bg-white px-6 text-base font-medium leading-6 text-primary-500 shadow-[0_0_0_2px_#b155bf] hover:opacity-95">
           Go Premium
-        </Link>
+        </PremiumUpgradeButton>
       </div>
     </div>
   );

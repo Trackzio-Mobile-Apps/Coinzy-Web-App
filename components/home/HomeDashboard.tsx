@@ -6,6 +6,7 @@ import { CoinFacts, CoinThumb } from "@/components/home/CoinThumb";
 import { PremiumCoinOfTheDay, type CotdCoin } from "@/components/home/PremiumCoinOfTheDay";
 import { PremiumCountdown } from "@/components/home/PremiumCountdown";
 import { CoinOfTheDayDrawer, type CoinOfTheDayDrawerCoin } from "@/components/home/CoinOfTheDayDrawer";
+import { PremiumUpgradeButton } from "@/components/premium/PremiumUpgradeButton";
 import { CatalogueSearch } from "@/components/catalogue/CatalogueSearch";
 import { ListCoinButton } from "@/components/marketplace/ListCoinButton";
 import { HOME_CATALOGUE_FALLBACK, HOME_MARKETPLACE_FALLBACK, HOME_OTHER_APPS } from "@/lib/home";
@@ -103,13 +104,10 @@ export function HomeDashboard({
           </div>
         ) : (
           <div className="flex items-center gap-3">
-            <Link
-              href="/home#premium"
-              className="inline-flex h-9 items-center gap-2 rounded-[10px] bg-[linear-gradient(90deg,#6a65ed_0%,#e54a9f_100%)] px-4 text-sm font-medium leading-5 text-white shadow-[0_0_0_2px_rgba(177,85,191,0.35)]"
-            >
+            <PremiumUpgradeButton className="inline-flex h-9 items-center gap-2 rounded-[10px] bg-[linear-gradient(90deg,#6a65ed_0%,#e54a9f_100%)] px-4 text-sm font-medium leading-5 text-white shadow-[0_0_0_2px_rgba(177,85,191,0.35)]">
               <Image src={`${A}/icon-crown.svg`} alt="" width={12} height={12} />
               Go Premium
-            </Link>
+            </PremiumUpgradeButton>
             <Link
               href="/settings"
               aria-label="Settings"
@@ -193,15 +191,15 @@ export function HomeDashboard({
                 </p>
               </div>
               <div className="flex flex-col items-center gap-3 sm:items-end">
-                <Link
-                  href="/home#premium"
+                <PremiumUpgradeButton
+                  openOnHash
                   className="inline-flex h-10 items-center justify-center rounded-[14px] border border-white bg-white px-6 text-base font-medium leading-6 text-primary-500 shadow-[0_0_0_2px_#b155bf]"
                 >
                   Subscribe
-                </Link>
-                <Link href="/home#premium" className="text-sm font-medium leading-5 text-white underline">
+                </PremiumUpgradeButton>
+                <PremiumUpgradeButton className="text-sm font-medium leading-5 text-white underline">
                   See all plans
-                </Link>
+                </PremiumUpgradeButton>
               </div>
             </section>
             )}

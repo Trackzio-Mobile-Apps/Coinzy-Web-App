@@ -2,12 +2,14 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useId, useMemo, useRef, useState, useTransition, type DragEvent } from "react";
+import { useCallback, useId, useMemo, useRef, useState, useTransition, type DragEvent } from "react";
 import { ExpertDebugBar, type ExpertsDebugMedia } from "@/components/experts/ExpertDebugBar";
 import { ExpertsAside } from "@/components/experts/ExpertsAside";
 import { ExpertsBreadcrumb } from "@/components/experts/ExpertsBreadcrumb";
 import { ExpertsBuyCreditsDialog } from "@/components/experts/ExpertsBuyCreditsDialog";
-import { createExpertRequest, uploadExpertFiles } from "@/lib/experts/client";
+import { createExpertRequest, getExpertsCredits, uploadExpertFiles } from "@/lib/experts/client";
+import type { ExpertsRealtimeMessage } from "@/lib/experts/realtime";
+import { useExpertsRealtime } from "@/lib/experts/useExpertsRealtime";
 import {
   hasRequiredHttpsSlots,
   isInsufficientCreditsError,
@@ -43,6 +45,20 @@ export function ExpertUploadFlow({
   const [error, setError] = useState("");
   const [buyOpen, setBuyOpen] = useState(false);
   const [pending, startTransition] = useTransition();
+
+  const onRealtime = useCallback((message: ExpertsRealtimeMessage) => {
+    if (message.event !== "credit.updated") return;
+    if (typeof message.creditBalance === "number") {
+      setCredits(message.creditBalance);
+      return;
+    }
+    void getExpertsCredits().then((res) => {
+      if (!res.error && typeof res.data?.creditBalance === "number") {
+        setCredits(res.data.creditBalance);
+      }
+    });
+  }, []);
+  useExpertsRealtime(onRealtime);
 
   const draftId = useMemo(() => {
     const d = new Date();

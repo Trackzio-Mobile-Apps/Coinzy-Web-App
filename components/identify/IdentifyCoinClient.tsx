@@ -20,7 +20,34 @@ import {
 import { addCoinViaApi, createCollectionViaApi, fetchCollectionsViaApi } from "@/lib/identify/collectionClient";
 import { readIdentifySession } from "@/lib/identify/storage";
 
-const EMOJI_RATINGS = ["😞", "😐", "🙂", "😊", "😍"];
+/** Figma `1254:103144` faces — Stroke default, Solid primary when selected (`1252:102854`). */
+const RATE_FACES = [
+  {
+    src: "/assets/identify/rate/sad-02.png",
+    selectedSrc: "/assets/identify/rate/sad-02-selected.png",
+    label: "Very dissatisfied",
+  },
+  {
+    src: "/assets/identify/rate/sad-01.png",
+    selectedSrc: "/assets/identify/rate/sad-01-selected.png",
+    label: "Dissatisfied",
+  },
+  {
+    src: "/assets/identify/rate/flushed.png",
+    selectedSrc: "/assets/identify/rate/flushed-selected.png",
+    label: "Neutral",
+  },
+  {
+    src: "/assets/identify/rate/happy.png",
+    selectedSrc: "/assets/identify/rate/happy-selected.png",
+    label: "Satisfied",
+  },
+  {
+    src: "/assets/identify/rate/star-face.png",
+    selectedSrc: "/assets/identify/rate/star-face-selected.png",
+    label: "Very satisfied",
+  },
+] as const;
 
 function userUploadUrls(): [string, string] | null {
   const session = readIdentifySession();
@@ -31,7 +58,7 @@ function userUploadUrls(): [string, string] | null {
   return null;
 }
 
-/** Figma right rail: user uploads, add to collection (`1828:206836`). Rate block is dummy UI (toast + dismiss). */
+/** Figma right rail: user uploads, add to collection (`1828:206836`). Rate card `1254:103144` is dummy (toast + dismiss). */
 export function IdentifyResultRail({
   archetypeId,
   coin,
@@ -178,44 +205,59 @@ export function IdentifyResultRail({
         </div>
 
         {rateCardVisible && (
-          <div className="rounded-xl border border-[#efefef] bg-white px-4 py-3">
-            <p className="text-sm font-medium text-ink">Rate this match!</p>
-            <p className="mt-1 text-xs text-muted">Your feedback makes us better.</p>
-            <div className="mt-3 flex justify-between gap-1">
-              {EMOJI_RATINGS.map((emoji, i) => (
-                <button
-                  key={emoji}
-                  type="button"
-                  onClick={() => setRating(i + 1)}
-                  className={`flex size-9 items-center justify-center rounded-lg text-lg ${
-                    rating === i + 1 ? "bg-primary-50 ring-1 ring-primary-200" : "hover:bg-[#fafafa]"
-                  }`}
-                  aria-label={`Rate ${i + 1} of 5`}
-                >
-                  {emoji}
-                </button>
-              ))}
+          <div className="flex flex-col items-end gap-4 rounded-xl bg-[#f2f2f3] p-3">
+            <div className="flex w-full flex-col gap-1">
+              <p className="text-lg font-medium leading-7 text-ink">Rate this match!</p>
+              <p className="text-sm leading-5 text-[#5d5d5d]">Your feedback makes us better.</p>
             </div>
-            <label className="mt-4 block text-xs font-medium text-[#606062]">Message</label>
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Type here"
-              rows={3}
-              className="mt-1.5 w-full resize-none rounded-lg border border-[#e5e5e5] px-3 py-2 text-sm text-ink placeholder:text-[#87878a]"
-            />
-            <div className="mt-2 flex justify-end">
-              <button
-                type="button"
-                className="text-sm font-medium text-primary-500"
-                onClick={() => {
-                  setRateCardVisible(false);
-                  setFeedbackToast(true);
-                }}
-              >
-                Submit
-              </button>
+            <div className="flex w-full items-center justify-center gap-3">
+              {RATE_FACES.map((face, i) => {
+                const selected = rating === i + 1;
+                return (
+                  <button
+                    key={face.src}
+                    type="button"
+                    onClick={() => setRating(i + 1)}
+                    className="flex size-6 items-center justify-center"
+                    aria-label={face.label}
+                    aria-pressed={selected}
+                  >
+                    <Image
+                      src={selected ? face.selectedSrc : face.src}
+                      alt=""
+                      width={24}
+                      height={24}
+                      aria-hidden
+                      className="size-6"
+                    />
+                  </button>
+                );
+              })}
             </div>
+            <div className="flex w-full flex-col gap-2">
+              <label htmlFor="identify-rate-message" className="text-sm font-medium text-ink">
+                Message
+              </label>
+              <textarea
+                id="identify-rate-message"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Type here"
+                rows={2}
+                className="h-16 w-full resize-none rounded-lg border border-[#e5e5e5] bg-white px-2.5 py-2 text-sm text-ink placeholder:text-[#737373]"
+              />
+            </div>
+            <button
+              type="button"
+              disabled={rating == null}
+              className="rounded-lg border border-[#e5e5e5] bg-white px-2 py-1 text-xs font-medium text-ink disabled:opacity-50"
+              onClick={() => {
+                setRateCardVisible(false);
+                setFeedbackToast(true);
+              }}
+            >
+              Submit
+            </button>
           </div>
         )}
 
@@ -250,8 +292,8 @@ export function IdentifyResultRail({
 
       {feedbackToast && (
         <IdentifySuccessToast
-          title="Thank you!"
-          body="Your feedback helps us improve matches."
+          title="Feedback sent"
+          body="Thanks — your rating helps us improve matches."
           onClose={() => setFeedbackToast(false)}
         />
       )}

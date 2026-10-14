@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useSyncExternalStore } from "react";
+import { PremiumUpgradeButton } from "@/components/premium/PremiumUpgradeButton";
 import {
   FREE_AI_SCAN_LIMIT,
   FREE_SCAN_USAGE_STORAGE_KEY,
@@ -49,12 +49,9 @@ export function IdentifyFreePlanCard({ hidden }: { hidden?: boolean }) {
           style={{ width: used > 0 ? `${pct}%` : "8px" }}
         />
       </div>
-      <Link
-        href="/home#premium"
-        className="flex h-8 w-full items-center justify-center rounded-[10px] border border-[#e5e5e5] bg-white text-sm font-medium text-[#1e1e1f]"
-      >
+      <PremiumUpgradeButton className="flex h-8 w-full items-center justify-center rounded-[10px] border border-[#e5e5e5] bg-white text-sm font-medium text-[#1e1e1f]">
         Upgrade
-      </Link>
+      </PremiumUpgradeButton>
     </div>
   );
 }

@@ -1,9 +1,9 @@
 /**
  * Firebase web config — mirrors Android projects:
- * - Dev / local → `coinzy-dev`
- * - Production → `coinzy-26a4d` (set `NEXT_PUBLIC_FIREBASE_*` in prod env)
+ * - Current debug / staging deploys → `coinzy-dev` (defaults below)
+ * - Real prod later → `coinzy-26a4d` via `NEXT_PUBLIC_FIREBASE_*`
  *
- * Defaults below are the official web app for `coinzy-dev` (Console → Project settings).
+ * Defaults are the official web app for `coinzy-dev` (Console → Project settings).
  */
 
 export type FirebaseWebConfig = {
@@ -40,14 +40,7 @@ function fromEnv(): FirebaseWebConfig | null {
   return { apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId, measurementId };
 }
 
-/** Resolve config: env override (prod) → else coinzy-dev defaults for local/dev. */
+/** Resolve config: env override → else coinzy-dev (ok for debug server deploys). */
 export function getFirebaseWebConfig(): FirebaseWebConfig {
-  const env = fromEnv();
-  if (env) return env;
-  if (process.env.NODE_ENV === "production") {
-    throw new Error(
-      "Firebase web config missing. Set NEXT_PUBLIC_FIREBASE_* for the coinzy-26a4d web app.",
-    );
-  }
-  return DEV_CONFIG;
+  return fromEnv() ?? DEV_CONFIG;
 }

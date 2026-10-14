@@ -52,11 +52,13 @@ async function SettingsPanelLoader({
   fallbackName,
   fallbackEmail,
   isGuest,
+  premium,
 }: {
   token: string;
   fallbackName: string;
   fallbackEmail: string;
   isGuest: boolean;
+  premium: boolean;
 }) {
   const about = await fetchAboutMe(token);
   const profile = about.error
@@ -76,7 +78,7 @@ async function SettingsPanelLoader({
       }
     : toPanelProfile(about.user, fallbackName, fallbackEmail);
 
-  return <SettingsPanel initialProfile={profile} isGuest={isGuest} />;
+  return <SettingsPanel initialProfile={profile} isGuest={isGuest} premium={premium} />;
 }
 
 /** Settings — Figma canvas `796:17452` / hub `1368:256937`. Shell first; profile streams. */
@@ -105,6 +107,7 @@ export default async function SettingsPage({
               fallbackName={user.name}
               fallbackEmail={user.email}
               isGuest={user.isGuest}
+              premium={premium}
             />
           </Suspense>
           <SettingsAside premium={premium} />
