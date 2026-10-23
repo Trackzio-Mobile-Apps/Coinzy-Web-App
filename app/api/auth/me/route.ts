@@ -111,7 +111,14 @@ export async function GET(request: NextRequest) {
   const result = await fetchAboutMe(token);
   if (result.error) {
     const status = result._status >= 500 ? 502 : result._status || 502;
-    return reply({ error: true, reason: result.reason ?? "Could not load profile." }, status);
+    const response = reply(
+      { error: true, reason: result.reason ?? "Could not load profile." },
+      status,
+    );
+    if (result._status === 401 || result._status === 404) {
+      response.cookies.set("coinzy_session", "", { ...cookieOptions, maxAge: 0 });
+    }
+    return response;
   }
   const response = reply({ error: false, user: publicProfile(result.user, token) });
   if (result.sessionToken) {

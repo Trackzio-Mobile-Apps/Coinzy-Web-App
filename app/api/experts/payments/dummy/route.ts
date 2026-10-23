@@ -3,6 +3,7 @@ import { adminAdjustUserCredits, hasExpertsAdminKey } from "@/lib/api/experts-ad
 import { fetchExpertsProfile } from "@/lib/api/experts-session";
 import { isAllowedAuthOrigin } from "@/lib/auth/origin";
 import { getSessionToken, getSessionUser } from "@/lib/auth/session";
+import { parseCreditBalance } from "@/lib/experts/creditBalance";
 import { EXPERT_CREDIT_PACKS } from "@/lib/experts/creditPacks";
 import { isTrackzioStaffEmail } from "@/lib/experts/staffAccess";
 
@@ -63,7 +64,8 @@ export async function POST(request: NextRequest) {
   if (adjust.configError) {
     return reply({ error: true, message: adjust.configError }, 503);
   }
-  if (!adjust.ok || adjust.body?.error || typeof adjust.body?.data?.creditBalance !== "number") {
+  const balance = parseCreditBalance(adjust.body?.data?.creditBalance);
+  if (!adjust.ok || adjust.body?.error || balance === null) {
     return reply(
       {
         error: true,
@@ -77,7 +79,7 @@ export async function POST(request: NextRequest) {
     error: false,
     message: null,
     data: {
-      creditBalance: adjust.body.data.creditBalance,
+      creditBalance: balance,
       creditsGranted: pack.credits,
       packId: pack.id,
       dummy: true,

@@ -153,7 +153,7 @@ Runtime under `public/assets/<area>/` (landing numbered folders `01-top-nav`…`
 - Figma icon exports are unreliable (hearts/arcs/wrong hashes). Prefer hand-written Hugeicons (`icons/shared/`, area folders). Eyeball MCP downloads.
 - After replacing an image under the same name, delete `.next/cache/images`.
 - Hero coin must cover baked-in Zeus on `02-hero/background-texture-layer-2.jpeg` at every breakpoint (no `hidden xl:block` on the crab coin).
-- Image caching: API/S3 through Next optimizer; `minimumCacheTTL` 30d; `/assets/*` headers in `next.config.ts`. Add new remote hosts to `images.remotePatterns`.
+- Image caching: API/S3 through Next optimizer; `minimumCacheTTL` 30d; `/assets/*` headers in `next.config.ts`. Add new remote hosts to `images.remotePatterns` (prod CoTD / home tiles: `trackzio-archetype-images.s3.us-west-2.amazonaws.com`; QA archetypes: `trackzio-coinzy-archetypes-images-v3.s3.amazonaws.com`).
 - `getDetails` field types differ by tranche (strings vs numbers) — normalize in view-models.
 - Details streaming returns HTTP 200 + `noindex` for unknown coins (Suspense).
 - Marketplace listings: fetch-all + local newest-first sort (API sort is title/price only); ~207 prod listings (5 Oct 2026).

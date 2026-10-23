@@ -152,6 +152,7 @@ export function ExpertsHub({
 
         {requests.length > 0 ? (
           <div className="flex flex-col gap-4">
+            <CreditsCard creditBalance={creditBalance} />
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm leading-5 text-[#737373]">Your evaluations</p>
               <Link

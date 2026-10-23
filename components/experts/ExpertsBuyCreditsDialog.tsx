@@ -5,6 +5,7 @@ import { useId, useState, useTransition } from "react";
 import { useExpertsDummyPayAllowed } from "@/components/experts/ExpertsPayContext";
 import { useModalDialog } from "@/components/ui/useModalDialog";
 import { PLAY_STORE_URL } from "@/lib/constants";
+import { parseCreditBalance } from "@/lib/experts/creditBalance";
 import { purchaseDummyCredits } from "@/lib/experts/client";
 import {
   DEFAULT_CREDIT_PACK_ID,
@@ -114,11 +115,12 @@ export function ExpertsBuyCreditsDialog({
     setPayError("");
     startTransition(async () => {
       const res = await purchaseDummyCredits(pack.id);
-      if (res.error || typeof res.data?.creditBalance !== "number") {
+      const balance = parseCreditBalance(res.data?.creditBalance);
+      if (res.error || balance === null) {
         setPayError(res.message || "Dummy payment failed.");
         return;
       }
-      onPurchased?.(res.data.creditBalance);
+      onPurchased?.(balance);
       onClose();
     });
   };

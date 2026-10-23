@@ -22,6 +22,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "trackzio-coinzy-archetypes-images-v3.s3.amazonaws.com",
       },
+      // Prod catalogue archetype photos (`coinsV3/` on coins-api-prod).
+      {
+        protocol: "https",
+        hostname: "trackzio-archetype-images.s3.us-west-2.amazonaws.com",
+      },
       // Marketplace listing photos (seller uploads, production backend).
       {
         protocol: "https",

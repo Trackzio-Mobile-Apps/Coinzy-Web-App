@@ -3,6 +3,8 @@
  * REST remains source of truth; socket events only trigger data refresh.
  */
 
+import { parseCreditBalance } from "@/lib/experts/creditBalance";
+
 export const EXPERTS_USER_EVENTS = [
   "request.accepted",
   "request.withdrawn",
@@ -95,12 +97,7 @@ export function parseExpertsRealtimePayload(
       : undefined;
 
   const creditRaw = obj.creditBalance ?? nested.creditBalance;
-  const creditBalance =
-    typeof creditRaw === "number"
-      ? creditRaw
-      : typeof creditRaw === "string" && creditRaw.trim() !== "" && !Number.isNaN(Number(creditRaw))
-        ? Number(creditRaw)
-        : undefined;
+  const creditBalance = parseCreditBalance(creditRaw) ?? undefined;
 
   return {
     event,
