@@ -6,9 +6,10 @@
 # QA / internal: use the `internal` branch netlify.toml (coins-api.trackzio.com + experts QA).
 
 [build.environment]
-  # Public Firebase web API key is inlined in client bundles; smart scan false-positives it.
-  SECRETS_SCAN_SMART_DETECTION_OMIT_VALUES = "AIzaSyBqPVKoGuEl55qm0wagIxKEUTWBzBhhL44"
+  # NEXT_PUBLIC_* values are inlined in client JS — never mark them “secret” in Netlify UI.
+  # If they were marked secret, omit keys so env-var secret scanning allows the build output.
   SECRETS_SCAN_SMART_DETECTION_ENABLED = "false"
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_FIREBASE_API_KEY,NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,NEXT_PUBLIC_FIREBASE_PROJECT_ID,NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,NEXT_PUBLIC_FIREBASE_APP_ID,NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,SECRETS_SCAN_SMART_DETECTION_OMIT_VALUES"
   COINZY_API_ORIGIN = "https://coins-api-prod.trackzio.com"
   COINZY_AUTH_API_ORIGIN = "https://coins-api-prod.trackzio.com"
   COINZY_MARKETPLACE_API_ORIGIN = "https://coins-api-prod.trackzio.com"
@@ -16,7 +17,7 @@
   COINZY_ALLOWED_ORIGINS = "https://coinzy-web-prod.netlify.app"
 
   # coinzy-dev until coinzy-26a4d web keys are in Firebase Console (Feed / Google auth).
-  NEXT_PUBLIC_FIREBASE_API_KEY = "AIzaSyBqPVKoGuEl55qm0wagIxKEUTWBzBhhL44"
+  # Set NEXT_PUBLIC_FIREBASE_API_KEY in Netlify UI (plain env, not “secret”) — not committed.
   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN = "coinzy-dev.firebaseapp.com"
   NEXT_PUBLIC_FIREBASE_PROJECT_ID = "coinzy-dev"
   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET = "coinzy-dev.firebasestorage.app"

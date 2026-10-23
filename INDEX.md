@@ -26,7 +26,7 @@ Hosting is on the **Trackzio company Netlify team** (not personal accounts). Con
 | **Prod** | `main` | Root `netlify.toml` — `coins-api-prod`, experts prod, `COINZY_ALLOWED_ORIGINS` = prod site URL(s) |
 | **QA** | `internal` | Branch `netlify.toml` — QA catalogue + experts QA |
 
-Plugin: `@netlify/plugin-nextjs`. Env vars in `netlify.toml` `[build.environment]`; add secrets (e.g. `COINZY_EXPERTS_ADMIN_API_KEY`) in the Netlify UI. After deploy URL or custom domain changes, update **`COINZY_ALLOWED_ORIGINS`** and Firebase **Authorized domains**. Latest prod should include `main@2961b00+` (Experts credits + stale-session guard) once builds run.
+Plugin: `@netlify/plugin-nextjs`. Env vars in `netlify.toml` `[build.environment]`; add server secrets (e.g. `COINZY_EXPERTS_ADMIN_API_KEY`) in the Netlify UI. **`NEXT_PUBLIC_FIREBASE_API_KEY`** — set in UI only (not in git); do **not** mark `NEXT_PUBLIC_*` or `SECRETS_SCAN_*` as “secret” (they end up in client bundles; use `SECRETS_SCAN_OMIT_KEYS` in `netlify.toml` if needed). After deploy URL or custom domain changes, update **`COINZY_ALLOWED_ORIGINS`** and Firebase **Authorized domains**.
 
 ---
 
