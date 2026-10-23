@@ -228,6 +228,8 @@ These top-level fields are non-null in the Kotlin declaration. The profile user 
 
 `user.sellerDetails` holds marketplace seller contact fields (`name`, `contactEmail`, `location`, `phoneNumber`, `bio`, `externalLinks`). An empty or missing name/contactEmail means the seller profile is incomplete for listing. Note: `user.isProfileComplete` is a separate account-FTUE flag and does **not** reflect seller-profile readiness.
 
+`user.isSubscribed` (and optional `subscriptionProvider` / `subscriptionDate`) reflect Play/App Store Premium — same contract as other Trackzio auth backends. Web: server `getPremiumStatus` reads this via `fetchAboutMe`; `GET /api/auth/me` returns `isSubscribed` to the browser (no web checkout).
+
 ### Update seller profile
 
 `PATCH auth/me` with the session bearer token. Web sends a JSON body that includes `sellerDetails` (verified live on `coins-api.trackzio.com` / prod, 8 Oct 2026). The nested `sellerDetails` object is **replaced** on write — omit optional fields only when clearing them.

@@ -74,6 +74,10 @@ function publicProfile(user: AboutMeUser, token: string) {
       externalLinks: sellerDetails?.externalLinks ?? [],
     },
     sellerProfileComplete: isSellerProfileComplete(sellerDetails),
+    isSubscribed: user.isSubscribed === true,
+    subscriptionProvider:
+      typeof user.subscriptionProvider === "string" ? user.subscriptionProvider : null,
+    subscriptionDate: typeof user.subscriptionDate === "string" ? user.subscriptionDate : null,
   };
 }
 

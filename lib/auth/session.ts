@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { isPremiumPlanId, PREMIUM_COOKIE } from "@/lib/premium/plans";
+import { resolveIsSubscribed } from "@/lib/auth/subscription";
 
 export type SessionUser = {
   name: string;
@@ -18,18 +18,15 @@ function decodeJwtPayload(token: string): Record<string, unknown> | null {
 }
 
 /**
- * Premium entitlement for the signed-in user.
- *
- * Interim: test purchase sets HTTP-only `coinzy_premium` (plan id) via `POST /api/premium/test-purchase`.
- * No JWT plan claim is documented yet (docs/auth-api.md). When the backend exposes one, prefer the JWT here and
- * treat the cookie as a fallback until real web payments ship.
+ * Premium entitlement for the signed-in user (`auth/me` `user.isSubscribed`, same as Android).
  *
  * Dev-only preview: `?premium=1` is still honoured by pages when `NODE_ENV !== "production"`.
  */
 export async function getPremiumStatus(user: SessionUser | null): Promise<boolean> {
   if (!user || user.isGuest) return false;
-  const raw = (await cookies()).get(PREMIUM_COOKIE)?.value ?? "";
-  return isPremiumPlanId(raw);
+  const token = await getSessionToken();
+  if (!token) return false;
+  return resolveIsSubscribed(token);
 }
 
 /** Raw session JWT for server-side catalogue calls (wishlist, user-scoped fetch). Never send to the client. */

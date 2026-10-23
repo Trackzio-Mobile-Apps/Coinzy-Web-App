@@ -23,6 +23,11 @@ export type AboutMeUser = {
   email?: string | null;
   isGuest?: boolean;
   isProfileComplete?: boolean;
+  /** Play / App Store subscription — same contract as Android `AboutMeResponse.User`. */
+  isSubscribed?: boolean;
+  subscriptionDate?: string | null;
+  subscriptionProvider?: string | null;
+  hasUsedTrial?: boolean;
   name?: { first?: string; last?: string; full?: string } | string | null;
   phone?: string | null;
   sellerDetails?: SellerDetails | null;

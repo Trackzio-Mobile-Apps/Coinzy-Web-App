@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { PremiumPlansDialog } from "@/components/premium/PremiumPlansDialog";
+import { PremiumSubscribeDialog } from "@/components/premium/PremiumSubscribeDialog";
 
-/**
- * Opens the test Premium plans dialog. Use anywhere “Go Premium” / Subscribe used to link `#premium`.
- */
+/** Opens the mobile-app Premium subscribe dialog (no web checkout). */
 export function PremiumUpgradeButton({
   className,
   children,
@@ -33,7 +31,7 @@ export function PremiumUpgradeButton({
       <button type="button" className={className} onClick={() => setOpen(true)}>
         {children}
       </button>
-      <PremiumPlansDialog open={open} onClose={() => setOpen(false)} />
+      <PremiumSubscribeDialog open={open} onClose={() => setOpen(false)} />
     </>
   );
 }

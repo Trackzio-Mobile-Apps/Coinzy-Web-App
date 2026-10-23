@@ -95,8 +95,7 @@ export default async function SignedInHomePage({
   const user = await getSessionUser();
   if (!user) redirect("/auth");
 
-  // Entitlement lives in `getPremiumStatus` (false until the backend exposes a plan claim). `?premium=1` is a
-  // development-only preview switch so the premium screens can be reviewed; it is ignored in production builds.
+  // Entitlement: `getPremiumStatus` → catalogue `auth/me` `user.isSubscribed`. `?premium=1` is dev-only UI preview.
   const params = await searchParams;
   const premium =
     (await getPremiumStatus(user)) || (process.env.NODE_ENV !== "production" && params.premium === "1");

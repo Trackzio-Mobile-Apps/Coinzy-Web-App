@@ -12,13 +12,12 @@ import {
   SetSellerProfileDialog,
   type PublicSellerProfile,
 } from "@/components/marketplace/SetSellerProfileDialog";
-import { PremiumPlansDialog } from "@/components/premium/PremiumPlansDialog";
+import { PremiumSubscribeDialog } from "@/components/premium/PremiumSubscribeDialog";
 import type { SellerDetails } from "@/lib/api/auth-session";
 import { COINZY_PRIVACY_URL, COINZY_TERMS_URL } from "@/lib/constants";
 import { isSellerProfileComplete } from "@/lib/marketplace/sellerProfile";
 
 const NOTIFY_KEY = "coinzy_notifications_enabled";
-const IS_DEV = process.env.NODE_ENV !== "production";
 
 type Profile = PublicSellerProfile;
 
@@ -226,36 +225,15 @@ export function SettingsPanel({
                   </span>
                 }
                 onClick={() => {
-                  if (isPremium) setToast("You’re on Premium (test). Real billing comes later.");
-                  else setPlansOpen(true);
+                  if (isPremium) {
+                    setToast(
+                      "Premium is active on this account. Manage billing in Google Play or the App Store.",
+                    );
+                  } else {
+                    setPlansOpen(true);
+                  }
                 }}
               />
-              {IS_DEV && isPremium ? (
-                <Row
-                  label="Remove Premium (dev)"
-                  action={<span className="text-sm font-medium text-[#b45353]">Clear test</span>}
-                  onClick={() => {
-                    if (busy) return;
-                    setBusy(true);
-                    void fetch("/api/premium/test-clear", {
-                      method: "POST",
-                      credentials: "same-origin",
-                    })
-                      .then(async (res) => {
-                        const json = (await res.json().catch(() => null)) as { error?: boolean; message?: string } | null;
-                        if (!res.ok || json?.error) {
-                          setToast(json?.message || "Could not clear Premium.");
-                          return;
-                        }
-                        setIsPremium(false);
-                        setToast("Premium test cookie cleared — you’re on Free.");
-                        router.refresh();
-                      })
-                      .catch(() => setToast("Could not clear Premium."))
-                      .finally(() => setBusy(false));
-                  }}
-                />
-              ) : null}
               <Row
                 label="Delete account"
                 action={<span className="text-sm font-medium text-[#dc2626]">Delete</span>}
@@ -361,7 +339,7 @@ export function SettingsPanel({
         defaultName={displayName}
         defaultEmail={email}
       />
-      <PremiumPlansDialog
+      <PremiumSubscribeDialog
         open={plansOpen}
         onClose={() => {
           setPlansOpen(false);

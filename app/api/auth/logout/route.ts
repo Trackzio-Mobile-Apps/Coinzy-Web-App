@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isAllowedAuthOrigin } from "@/lib/auth/origin";
-import { PREMIUM_COOKIE } from "@/lib/premium/plans";
 
 const cookieOptions = { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax" as const, path: "/" };
 
 /**
- * Local logout (Android: no HTTP logout). Clears `coinzy_session` and test Premium cookie.
+ * Local logout (Android: no HTTP logout). Clears `coinzy_session`.
  * Guest id cookie is kept so the next guest login can resume the same guestId.
  */
 export async function POST(request: NextRequest) {
@@ -14,6 +13,5 @@ export async function POST(request: NextRequest) {
   }
   const response = NextResponse.json({ error: false }, { headers: { "Cache-Control": "no-store" } });
   response.cookies.set("coinzy_session", "", { ...cookieOptions, maxAge: 0 });
-  response.cookies.set(PREMIUM_COOKIE, "", { ...cookieOptions, maxAge: 0 });
   return response;
 }

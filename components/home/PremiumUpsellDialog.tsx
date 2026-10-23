@@ -2,14 +2,14 @@
 
 import Image from "next/image";
 import { useId, useState } from "react";
-import { PremiumPlansDialog } from "@/components/premium/PremiumPlansDialog";
+import { PremiumSubscribeDialog } from "@/components/premium/PremiumSubscribeDialog";
 import { useModalDialog } from "@/components/ui/useModalDialog";
 
 const A = "/assets/home";
 
 /**
  * "More knowledge, more fun!" Premium upsell — Figma `1248:114479` (Modal `1248:119042`).
- * "Go Premium" opens the test plans dialog (interim until real payments).
+ * "Go Premium" opens the app-store subscribe dialog.
  */
 export function PremiumUpsellDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const titleId = useId();
@@ -67,7 +67,7 @@ export function PremiumUpsellDialog({ open, onClose }: { open: boolean; onClose:
           </button>
         </div>
       </dialog>
-      <PremiumPlansDialog open={plansOpen} onClose={() => setPlansOpen(false)} />
+      <PremiumSubscribeDialog open={plansOpen} onClose={() => setPlansOpen(false)} />
     </>
   );
 }
