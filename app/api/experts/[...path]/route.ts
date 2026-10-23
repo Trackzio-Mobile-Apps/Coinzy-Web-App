@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { expertsApiOrigin } from "@/lib/api/experts-session";
 import { isAllowedAuthOrigin } from "@/lib/auth/origin";
 import { getSessionToken } from "@/lib/auth/session";
+import { expertsBearerForSession } from "@/lib/experts/experts-bearer";
 import { httpLogStart } from "@/lib/dev/httpLog";
 
 const reply = (body: object, status = 200) =>
@@ -36,8 +37,9 @@ async function proxy(request: NextRequest, pathParts: string[]) {
   const qs = url.searchParams.toString();
   const upstreamUrl = `${expertsApiOrigin()}/${joined}${qs ? `?${qs}` : ""}`;
 
+  const bearer = await expertsBearerForSession(token);
   const headers = new Headers();
-  headers.set("Authorization", `Bearer ${token}`);
+  headers.set("Authorization", `Bearer ${bearer}`);
   headers.set("App-Version", "web-1.0");
 
   let body: BodyInit | undefined;

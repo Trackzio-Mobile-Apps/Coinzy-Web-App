@@ -19,7 +19,8 @@ export default async function AuthPage({ searchParams }: { searchParams: Promise
   const { mode: requestedMode, next: requestedNext } = await searchParams;
   // `?next=` (validated, same-origin relative paths only) returns the visitor to the page that asked them to sign in.
   const next = safeReturnPath(requestedNext);
-  if (await getSessionUser()) redirect(next ?? "/home");
+  const session = await getSessionUser();
+  if (session && !session.isGuest) redirect(next ?? "/home");
 
   const modes: AuthMode[] = ["welcome", "signup", "login", "forgot", "otp", "reset"];
   const mode = modes.includes(requestedMode as AuthMode) ? requestedMode as AuthMode : "welcome";
