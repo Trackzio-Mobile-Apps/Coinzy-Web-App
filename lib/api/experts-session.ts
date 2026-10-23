@@ -1,14 +1,15 @@
 /**
  * Server-only Experts API client (Android `ExpertsApiService`).
- * Uses `coinzy_session` JWT — same shared secret as mobile-user Bearer.
+ * Uses the catalogue session JWT unchanged, same as Android `TokenInterceptor`.
  * Never import into client components.
  *
  * Android `gradle.properties` (app `build.gradle.kts` flavors):
  * - QA / `dev` flavor → `EXPERTS_BASE_URL_QA` = https://api.coinzy-experts-qa.trackzio.com/
  * - Prod / `prod` flavor → `EXPERTS_BASE_URL` = https://coinzy-experts-api.trackzio.com/
  *
- * Web default matches Android `dev` (catalogue host is also QA `coins-api.trackzio.com`).
- * Override with `COINZY_EXPERTS_API_ORIGIN` for production deploys.
+ * `COINZY_EXPERTS_API_ORIGIN` wins when set. Netlify may not inject `netlify.toml`
+ * env at request time; a production build then uses the prod Experts host, same as
+ * `resolveCatalogueOrigin()`. Dev (`next dev`) stays on QA.
  */
 
 import type {
@@ -21,7 +22,6 @@ import type {
   ExpertsProfileData,
   ExpertRequestMedia,
 } from "@/lib/experts/types";
-import { expertsBearerForSession } from "@/lib/experts/experts-bearer";
 import { httpLogStart } from "@/lib/dev/httpLog";
 
 /** Android `EXPERTS_BASE_URL_QA` — `dev` flavor. */
@@ -30,10 +30,10 @@ export const EXPERTS_API_ORIGIN_QA = "https://api.coinzy-experts-qa.trackzio.com
 /** Android `EXPERTS_BASE_URL` — `prod` flavor / `PRODUCTION_EXPERTS_HOST`. */
 export const EXPERTS_API_ORIGIN_PROD = "https://coinzy-experts-api.trackzio.com";
 
-const DEFAULT_ORIGIN = EXPERTS_API_ORIGIN_QA;
-
 export function expertsApiOrigin(): string {
-  return (process.env.COINZY_EXPERTS_API_ORIGIN || DEFAULT_ORIGIN).replace(/\/$/, "");
+  const explicit = process.env.COINZY_EXPERTS_API_ORIGIN?.trim();
+  if (explicit) return explicit.replace(/\/$/, "");
+  return process.env.NODE_ENV === "production" ? EXPERTS_API_ORIGIN_PROD : EXPERTS_API_ORIGIN_QA;
 }
 
 async function expertsFetch<T>(
@@ -42,9 +42,8 @@ async function expertsFetch<T>(
   init?: RequestInit & { timeoutMs?: number },
 ): Promise<{ ok: boolean; status: number; body: ExpertsEnvelope<T> | null }> {
   const { timeoutMs = 20000, ...rest } = init ?? {};
-  const bearer = await expertsBearerForSession(token);
   const headers = new Headers(rest.headers);
-  headers.set("Authorization", `Bearer ${bearer}`);
+  headers.set("Authorization", `Bearer ${token}`);
   headers.set("App-Version", "web-1.0");
   if (rest.body && !(rest.body instanceof FormData) && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
