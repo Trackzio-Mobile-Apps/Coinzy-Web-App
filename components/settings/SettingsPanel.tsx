@@ -14,6 +14,7 @@ import {
 } from "@/components/marketplace/SetSellerProfileDialog";
 import { PremiumSubscribeDialog } from "@/components/premium/PremiumSubscribeDialog";
 import type { SellerDetails } from "@/lib/api/auth-session";
+import { authHref } from "@/lib/auth/returnTo";
 import { COINZY_PRIVACY_URL, COINZY_TERMS_URL } from "@/lib/constants";
 import { isSellerProfileComplete } from "@/lib/marketplace/sellerProfile";
 
@@ -182,7 +183,7 @@ export function SettingsPanel({
           <SectionLabel>Account</SectionLabel>
           {isGuest ? (
             <Link
-              href="/auth?next=/settings"
+              href={authHref("login", "/settings")}
               className="flex items-center justify-between px-4 py-3 text-sm font-medium text-primary-500 hover:bg-black/[0.02]"
             >
               Login to view account settings
