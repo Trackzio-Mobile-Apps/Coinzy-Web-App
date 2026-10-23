@@ -158,7 +158,7 @@ Runtime under `public/assets/<area>/` (landing numbered folders `01-top-nav`…`
 - Details streaming returns HTTP 200 + `noindex` for unknown coins (Suspense).
 - Marketplace listings: fetch-all + local newest-first sort (API sort is title/price only); ~207 prod listings (5 Oct 2026).
 - Auth: Google via Firebase popup → Google ID token → `/api/auth/google` → upstream `auth/social-login/google` (same `GLogin` as Android); then Feed Firebase bridge uses email/password (`password === email`). OTP has no standalone verify API (code goes to reset as `token`); `coinzy_guest_id` reused on guest + forwarded on signup/Google. Catalogue guest client is independent of browser session cookies. Enable **Google** under Firebase Auth → Sign-in method; authorize `localhost` (and prod host).
-- Tests: `node tests/auth-api.cjs` for auth proxy/cookies/origin. Auth `POST` rejects mismatched `Origin` (CSRF); in dev, `localhost` and `127.0.0.1` on the same port are treated as equivalent (`lib/auth/origin.ts`). Production aliases (e.g. `www`) → `COINZY_ALLOWED_ORIGINS` comma-separated full origins.
+- Tests: `node tests/auth-api.cjs` for auth proxy/cookies/origin. Auth `POST` rejects mismatched `Origin` (CSRF); in dev, `localhost` and `127.0.0.1` on the same port are treated as equivalent (`lib/auth/origin.js`). Netlify: origin check uses `x-forwarded-host` / `x-forwarded-proto`. Production aliases (e.g. `www`, deploy URL) → `COINZY_ALLOWED_ORIGINS` comma-separated full origins.
 
 ### Back-navigation rules
 
