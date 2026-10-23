@@ -1,6 +1,6 @@
 /**
  * Server-only Experts API client (Android `ExpertsApiService`).
- * Uses `coinzy_session` JWT — same shared secret as mobile-user Bearer.
+ * Uses the catalogue session JWT unchanged, same as Android `TokenInterceptor`.
  * Never import into client components.
  *
  * Android `gradle.properties` (app `build.gradle.kts` flavors):
@@ -22,7 +22,6 @@ import type {
   ExpertsProfileData,
   ExpertRequestMedia,
 } from "@/lib/experts/types";
-import { expertsBearerForSession } from "@/lib/experts/experts-bearer";
 import { httpLogStart } from "@/lib/dev/httpLog";
 
 /** Android `EXPERTS_BASE_URL_QA` — `dev` flavor. */
@@ -43,9 +42,8 @@ async function expertsFetch<T>(
   init?: RequestInit & { timeoutMs?: number },
 ): Promise<{ ok: boolean; status: number; body: ExpertsEnvelope<T> | null }> {
   const { timeoutMs = 20000, ...rest } = init ?? {};
-  const bearer = await expertsBearerForSession(token);
   const headers = new Headers(rest.headers);
-  headers.set("Authorization", `Bearer ${bearer}`);
+  headers.set("Authorization", `Bearer ${token}`);
   headers.set("App-Version", "web-1.0");
   if (rest.body && !(rest.body instanceof FormData) && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
