@@ -4,6 +4,7 @@ import { ExpertStatusPanel } from "@/components/experts/ExpertStatusPanel";
 import { ExpertsShell } from "@/components/experts/ExpertsShell";
 import { fetchExpertRequest, fetchExpertsCredits, fetchExpertsDirectory } from "@/lib/api/experts-session";
 import { getPremiumStatus, getSessionToken, getSessionUser } from "@/lib/auth/session";
+import { creditBalanceFromData } from "@/lib/experts/creditBalance";
 import { expertRequestId } from "@/lib/experts/types";
 
 export const metadata: Metadata = {
@@ -38,8 +39,7 @@ export default async function ExpertRequestStatusPage({
   const status = (request.status || "").toLowerCase();
   if (status === "completed") redirect(`/experts/request/${id}/report`);
 
-  const creditBalance =
-    typeof creditsRes.body?.data?.creditBalance === "number" ? creditsRes.body.data.creditBalance : 0;
+  const creditBalance = creditBalanceFromData(creditsRes.body?.data);
   const experts = dirRes.body?.data?.experts ?? [];
 
   return (

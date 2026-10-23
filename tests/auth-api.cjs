@@ -8,7 +8,13 @@ const path = require('node:path');
 const compile = (file) => ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const load = (file) => { const mod = new Module(file, module); mod.filename = file; mod.paths = module.paths; mod._compile(compile(file), file); return mod.exports; };
 const routeFile = path.resolve('app/api/auth/[action]/route.ts');
-const routeSource = fs.readFileSync(routeFile, 'utf8').replace('@/lib/auth/origin', path.resolve('lib/auth/origin.js').replace(/\\/g, '/'));
+const routeSource = fs
+  .readFileSync(routeFile, 'utf8')
+  .replace('@/lib/auth/origin', path.resolve('lib/auth/origin.js').replace(/\\/g, '/'))
+  .replace(
+    /import \{ resolveCatalogueOrigin \} from ["']@\/lib\/api\/catalogue-origin["'];\n/,
+    'function resolveCatalogueOrigin() { return "https://coins-api.trackzio.com"; }\n',
+  );
 const routeMod = new Module(routeFile, module);
 routeMod.filename = routeFile;
 routeMod.paths = module.paths;

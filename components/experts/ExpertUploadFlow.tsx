@@ -2,11 +2,12 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useCallback, useId, useMemo, useRef, useState, useTransition, type DragEvent } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, useTransition, type DragEvent } from "react";
 import { ExpertDebugBar, type ExpertsDebugMedia } from "@/components/experts/ExpertDebugBar";
 import { ExpertsAside } from "@/components/experts/ExpertsAside";
 import { ExpertsBreadcrumb } from "@/components/experts/ExpertsBreadcrumb";
 import { ExpertsBuyCreditsDialog } from "@/components/experts/ExpertsBuyCreditsDialog";
+import { creditBalanceFromData, parseCreditBalance } from "@/lib/experts/creditBalance";
 import { createExpertRequest, getExpertsCredits, uploadExpertFiles } from "@/lib/experts/client";
 import type { ExpertsRealtimeMessage } from "@/lib/experts/realtime";
 import { useExpertsRealtime } from "@/lib/experts/useExpertsRealtime";
@@ -46,15 +47,23 @@ export function ExpertUploadFlow({
   const [buyOpen, setBuyOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
+  useEffect(() => {
+    void getExpertsCredits().then((res) => {
+      if (!res.error) setCredits(creditBalanceFromData(res.data, initialCredits));
+    });
+  }, [initialCredits]);
+
   const onRealtime = useCallback((message: ExpertsRealtimeMessage) => {
     if (message.event !== "credit.updated") return;
-    if (typeof message.creditBalance === "number") {
-      setCredits(message.creditBalance);
+    const fromEvent = parseCreditBalance(message.creditBalance);
+    if (fromEvent !== null) {
+      setCredits(fromEvent);
       return;
     }
     void getExpertsCredits().then((res) => {
-      if (!res.error && typeof res.data?.creditBalance === "number") {
-        setCredits(res.data.creditBalance);
+      if (!res.error) {
+        const n = parseCreditBalance(res.data?.creditBalance);
+        if (n !== null) setCredits(n);
       }
     });
   }, []);
@@ -213,7 +222,8 @@ export function ExpertUploadFlow({
           setError(msg);
           return;
         }
-        if (typeof created.data.creditBalance === "number") setCredits(created.data.creditBalance);
+        const afterCreate = parseCreditBalance(created.data?.creditBalance);
+        if (afterCreate !== null) setCredits(afterCreate);
         const id = created.data.request._id || created.data.request.id;
         if (!id) {
           setError("Created without an id. Check Expert analysis history.");

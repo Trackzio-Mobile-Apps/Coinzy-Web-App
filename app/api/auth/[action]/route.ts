@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { resolveCatalogueOrigin } from "@/lib/api/catalogue-origin";
 import { isAllowedAuthOrigin } from "@/lib/auth/origin";
 
 const paths: Record<string, string> = {
@@ -73,7 +74,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
               : { handle: email, ...(action === "login" ? { password } : {}) };
     }
 
-    const origin = process.env.COINZY_AUTH_API_ORIGIN || process.env.COINZY_API_ORIGIN || "https://coins-api.trackzio.com";
+    const origin = resolveCatalogueOrigin();
     const upstream = await fetch(`${origin.replace(/\/$/, "")}/auth/${paths[action]}`, {
       method: "POST",
       headers: {

@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { ExpertsHub } from "@/components/experts/ExpertsHub";
+import { ExpertsHubLive } from "@/components/experts/ExpertsHubLive";
 import { ExpertsShell } from "@/components/experts/ExpertsShell";
 import { getPremiumStatus, getSessionToken, getSessionUser } from "@/lib/auth/session";
 import { loadExpertsHub } from "@/lib/experts/loadHub";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Expert analysis | Coinzy AI",
@@ -35,7 +37,11 @@ export default async function ExpertsPage({
           </p>
         </div>
       ) : (
-        <ExpertsHub requests={requests} creditBalance={creditBalance} experts={experts} />
+        <ExpertsHubLive
+          initialCreditBalance={creditBalance}
+          requests={requests}
+          experts={experts}
+        />
       )}
     </ExpertsShell>
   );

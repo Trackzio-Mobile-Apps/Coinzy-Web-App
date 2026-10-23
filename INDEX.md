@@ -17,6 +17,19 @@ Figma: primary `YV6ArWhD2eVlLPH6M090gc`; **Experts + updated Feed** also in Copy
 
 ---
 
+## Deploy (Netlify — company account)
+
+Hosting is on the **Trackzio company Netlify team** (not personal accounts). Connect this repo from GitHub under that team.
+
+| Site | Branch | Config |
+| --- | --- | --- |
+| **Prod** | `main` | Root `netlify.toml` — `coins-api-prod`, experts prod, `COINZY_ALLOWED_ORIGINS` = prod site URL(s) |
+| **QA** | `internal` | `coinzy-web-qa` — QA catalogue + experts QA + `COINZY_ALLOWED_ORIGINS` |
+
+Plugin: `@netlify/plugin-nextjs`. Env vars in `netlify.toml` `[build.environment]`; add server secrets (e.g. `COINZY_EXPERTS_ADMIN_API_KEY`) in the Netlify UI. **`NEXT_PUBLIC_FIREBASE_API_KEY`** — set in UI only (not in git); do **not** mark `NEXT_PUBLIC_*` or `SECRETS_SCAN_*` as “secret” (they end up in client bundles; use `SECRETS_SCAN_OMIT_KEYS` in `netlify.toml` if needed). After deploy URL or custom domain changes, update **`COINZY_ALLOWED_ORIGINS`** and Firebase **Authorized domains**.
+
+---
+
 ## Status (9 Oct 2026)
 
 | Area | Progress | Notes |
@@ -127,8 +140,8 @@ Active nav: `components/landing/NavLinks.tsx` (`usePathname`).
 - `components/home/DailyLimitDialog.tsx` — client; "Oops!" daily-limit alert (Figma `1912:211426`, the "final popup"): shown when a Premium user presses "Show more coins" with 0 left. Single "Okay"/X close; no purchase or subscription flow. Focus returns to "Learn more".
 - `components/home/CoinThumb.tsx` — shared `CoinThumb` (round 40/tile 60) + `CoinFacts` used by free and Premium panels.
 - `/home` sidebar (`components/home/AppSidebar.tsx`, items in `lib/sidebarNav.ts`): **Identify** → `/identify`; **Expert analysis** → `/experts`; **Feed** → `/feed`; **Settings** → `/settings`. Landing top-nav "Identify" is `/#identify` so it works from sub-pages. Footer About → `TRACKZIO_ABOUT_URL`; socials in `FOOTER_SOCIALS` (`lib/constants.ts`). Experts buy-credits: public Continue → Play Store; `@trackzio.com` → staff dummy pay.
-- **Firebase / Feed:** Client SDK only (`lib/firebase/*`, `lib/feed/*`). Defaults = Console web app for `coinzy-dev` (also in `.env.local` + `netlify.toml` on **`internal`** branch). Prod site: set `coinzy-26a4d` `NEXT_PUBLIC_FIREBASE_*` + prod API origins on **`main`**. Auth bridge: email/password with password === email (Android), guests anonymous. Post author id = Coinzy `user.id` from `GET /api/auth/me`, not Firebase UID.
-- **Netlify internal branch:** `internal` branch `netlify.toml` pins QA APIs (`coins-api.trackzio.com` catalogue + marketplace browse, experts QA). Set `COINZY_ALLOWED_ORIGINS` in the internal Netlify site UI to that site’s public URL(s).
+- **Firebase / Feed:** Client SDK only (`lib/firebase/*`, `lib/feed/*`). `main` / `internal` `netlify.toml` bake **coinzy-dev** Firebase until `coinzy-26a4d` `NEXT_PUBLIC_*` are set; **`NEXT_PUBLIC_FIREBASE_API_KEY`** in Netlify UI only (not git). Prod **API** hosts on `main` (`coins-api-prod` + experts prod); QA on `internal` (`coins-api.trackzio.com` + experts QA). `lib/api/catalogue-origin.ts` defaults prod when `NODE_ENV=production` if env is missing at runtime. Auth bridge: email/password with password === email (Android), guests anonymous. Post author id = Coinzy `user.id` from `GET /api/auth/me`, not Firebase UID.
+- **Netlify QA:** `internal` → site **`coinzy-web-qa`** — `COINZY_ALLOWED_ORIGINS` = `https://coinzy-web-qa.netlify.app` in branch `netlify.toml`.
 - **Experts:** `lib/api/experts-session.ts` (server) + `/api/experts/*` proxy with `coinzy_session`. Origins from Android `gradle.properties`: QA `https://api.coinzy-experts-qa.trackzio.com` (`EXPERTS_BASE_URL_QA` / `dev`), prod `https://coinzy-experts-api.trackzio.com` (`EXPERTS_BASE_URL` / `prod`). Web default = **QA** (matches catalogue `coins-api.trackzio.com`). Flow: `POST /users/uploads` → `POST /users/requests` → poll + Socket.IO user-room (`auth.userId`, REST refresh only) → report + feedback. Config: `GET /api/experts/socket-config`. Android media still via Firebase Storage; web uses `/users/uploads`. Buy credits: `ExpertsBuyCreditsDialog` (Figma `1500:289177`) via `BuyCreditsButton` on hub/aside; opens on upload when `credits < 1` or insufficient-credit API error. Public → Play Store; **`@trackzio.com`** (non-guest) → `POST /api/experts/payments/dummy` (admin adjust via `COINZY_EXPERTS_ADMIN_API_KEY`, gate in `lib/experts/staffAccess.ts`). Packs in `lib/experts/creditPacks.ts`. Figma Copy `5hhBNjumI3EaALlyW6ySXa`. Dev HTTP cards (`lib/dev/httpLog.ts`) print in the `npm run dev` terminal for Experts proxy + SSR fetches; disable with `COINZY_HTTP_LOG=0`.
 - `fetchArchetypes({ pageNo: 0, pageSize: 3 })` on `/home` — list items carry `archetypeId, name, issuer, rarity, imageUrls` only (no year / `estimatedPrice`), so card subtitle = issuer (falls back to price span or issuer · year if the API ever sends them).
 - `lib/catalogue/categories.ts` / `lib/marketplace/categories.ts` — slug → regex/filter rules.
@@ -154,12 +167,12 @@ Runtime under `public/assets/<area>/` (landing numbered folders `01-top-nav`…`
 - Figma icon exports are unreliable (hearts/arcs/wrong hashes). Prefer hand-written Hugeicons (`icons/shared/`, area folders). Eyeball MCP downloads.
 - After replacing an image under the same name, delete `.next/cache/images`.
 - Hero coin must cover baked-in Zeus on `02-hero/background-texture-layer-2.jpeg` at every breakpoint (no `hidden xl:block` on the crab coin).
-- Image caching: API/S3 through Next optimizer; `minimumCacheTTL` 30d; `/assets/*` headers in `next.config.ts`. Add new remote hosts to `images.remotePatterns`.
+- Image caching: API/S3 through Next optimizer; `minimumCacheTTL` 30d; `/assets/*` headers in `next.config.ts`. Add new remote hosts to `images.remotePatterns` (prod CoTD / home tiles: `trackzio-archetype-images.s3.us-west-2.amazonaws.com`; QA archetypes: `trackzio-coinzy-archetypes-images-v3.s3.amazonaws.com`).
 - `getDetails` field types differ by tranche (strings vs numbers) — normalize in view-models.
 - Details streaming returns HTTP 200 + `noindex` for unknown coins (Suspense).
 - Marketplace listings: fetch-all + local newest-first sort (API sort is title/price only); ~207 prod listings (5 Oct 2026).
 - Auth: Google via Firebase popup → Google ID token → `/api/auth/google` → upstream `auth/social-login/google` (same `GLogin` as Android); then Feed Firebase bridge uses email/password (`password === email`). OTP has no standalone verify API (code goes to reset as `token`); `coinzy_guest_id` reused on guest + forwarded on signup/Google. Catalogue guest client is independent of browser session cookies. Enable **Google** under Firebase Auth → Sign-in method; authorize `localhost` (and prod host).
-- Tests: `node tests/auth-api.cjs` for auth proxy/cookies/origin. Auth `POST` rejects mismatched `Origin` (CSRF); in dev, `localhost` and `127.0.0.1` on the same port are treated as equivalent (`lib/auth/origin.ts`). Production aliases (e.g. `www`) → `COINZY_ALLOWED_ORIGINS` comma-separated full origins.
+- Tests: `node tests/auth-api.cjs` for auth proxy/cookies/origin. Auth `POST` rejects mismatched `Origin` (CSRF); in dev, `localhost` and `127.0.0.1` on the same port are treated as equivalent (`lib/auth/origin.js`). Netlify: origin check uses `x-forwarded-host` / `x-forwarded-proto`. Production aliases (e.g. `www`, deploy URL) → `COINZY_ALLOWED_ORIGINS` comma-separated full origins.
 
 ### Back-navigation rules
 

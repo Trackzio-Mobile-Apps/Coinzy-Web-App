@@ -16,8 +16,8 @@ export type FirebaseWebConfig = {
   measurementId?: string;
 };
 
-const DEV_CONFIG: FirebaseWebConfig = {
-  apiKey: "AIzaSyBqPVKoGuEl55qm0wagIxKEUTWBzBhhL44",
+/** coinzy-dev project fields (apiKey must come from env — never commit `AIza…` keys). */
+const DEV_PROJECT_DEFAULTS: Omit<FirebaseWebConfig, "apiKey"> = {
   authDomain: "coinzy-dev.firebaseapp.com",
   projectId: "coinzy-dev",
   storageBucket: "coinzy-dev.firebasestorage.app",
@@ -40,7 +40,16 @@ function fromEnv(): FirebaseWebConfig | null {
   return { apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId, measurementId };
 }
 
-/** Resolve config: env override → else coinzy-dev (ok for debug server deploys). */
+/** Resolve config: full env → else coinzy-dev defaults + `NEXT_PUBLIC_FIREBASE_API_KEY`. */
 export function getFirebaseWebConfig(): FirebaseWebConfig {
-  return fromEnv() ?? DEV_CONFIG;
+  const fromAllEnv = fromEnv();
+  if (fromAllEnv) return fromAllEnv;
+
+  const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+  if (!apiKey) {
+    throw new Error(
+      "Missing NEXT_PUBLIC_FIREBASE_API_KEY. Copy .env.example to .env.local for local dev.",
+    );
+  }
+  return { apiKey, ...DEV_PROJECT_DEFAULTS };
 }

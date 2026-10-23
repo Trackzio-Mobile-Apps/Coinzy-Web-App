@@ -9,10 +9,10 @@
  */
 
 import type { ListingDetails } from "@/lib/api/coinzy";
+import { resolveCatalogueOrigin } from "@/lib/api/catalogue-origin";
 
 /** Session marketplace host = catalogue/auth origin (not the prod guest-browse host). */
-const SESSION_ORIGIN =
-  process.env.COINZY_API_ORIGIN ?? "https://coins-api.trackzio.com";
+const SESSION_ORIGIN = resolveCatalogueOrigin();
 
 export type SellPrivateListingBody = {
   title?: string;

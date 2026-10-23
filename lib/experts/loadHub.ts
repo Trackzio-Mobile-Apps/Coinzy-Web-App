@@ -2,20 +2,23 @@ import {
   fetchExpertRequests,
   fetchExpertsCredits,
   fetchExpertsDirectory,
+  fetchExpertsProfile,
 } from "@/lib/api/experts-session";
+import { resolveExpertsCreditBalance } from "@/lib/experts/creditBalance";
 import type { ExpertRequest, ExpertsDirectoryItem } from "@/lib/experts/types";
 
 export async function loadExpertsHub(token: string, country?: string) {
-  const [creditsRes, requestsRes, directoryRes] = await Promise.all([
+  const [creditsRes, profileRes, requestsRes, directoryRes] = await Promise.all([
     fetchExpertsCredits(token),
+    fetchExpertsProfile(token),
     fetchExpertRequests(token),
     fetchExpertsDirectory(token, { country, available: true }),
   ]);
 
-  const creditBalance =
-    !creditsRes.body?.error && typeof creditsRes.body?.data?.creditBalance === "number"
-      ? creditsRes.body.data.creditBalance
-      : 0;
+  const creditBalance = resolveExpertsCreditBalance(
+    !creditsRes.body?.error ? creditsRes.body?.data : null,
+    !profileRes.body?.error ? profileRes.body?.data?.user : null,
+  );
 
   const requests: ExpertRequest[] =
     !requestsRes.body?.error && Array.isArray(requestsRes.body?.data?.requests)

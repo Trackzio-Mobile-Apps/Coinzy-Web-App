@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { ExpertsAside } from "@/components/experts/ExpertsAside";
 import { ExpertsBreadcrumb } from "@/components/experts/ExpertsBreadcrumb";
+import { creditBalanceFromData, parseCreditBalance } from "@/lib/experts/creditBalance";
 import { getExpertsCredits, submitExpertFeedback } from "@/lib/experts/client";
 import type { ExpertsRealtimeMessage } from "@/lib/experts/realtime";
 import { useExpertsRealtime } from "@/lib/experts/useExpertsRealtime";
@@ -34,6 +35,11 @@ export function ExpertReportPanel({
   const reportId = report._id || report.id || "";
   const fields = report.contentFields || [];
   const [credits, setCredits] = useState(initialCredits);
+  useEffect(() => {
+    void getExpertsCredits().then((res) => {
+      if (!res.error) setCredits(creditBalanceFromData(res.data, initialCredits));
+    });
+  }, [initialCredits]);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [sent, setSent] = useState(false);
@@ -42,13 +48,15 @@ export function ExpertReportPanel({
 
   const onRealtime = useCallback((message: ExpertsRealtimeMessage) => {
     if (message.event !== "credit.updated") return;
-    if (typeof message.creditBalance === "number") {
-      setCredits(message.creditBalance);
+    const fromEvent = parseCreditBalance(message.creditBalance);
+    if (fromEvent !== null) {
+      setCredits(fromEvent);
       return;
     }
     void getExpertsCredits().then((res) => {
-      if (!res.error && typeof res.data?.creditBalance === "number") {
-        setCredits(res.data.creditBalance);
+      if (!res.error) {
+        const n = parseCreditBalance(res.data?.creditBalance);
+        if (n !== null) setCredits(n);
       }
     });
   }, []);

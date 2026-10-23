@@ -9,6 +9,7 @@ import {
   fetchExpertsDirectory,
 } from "@/lib/api/experts-session";
 import { getPremiumStatus, getSessionToken, getSessionUser } from "@/lib/auth/session";
+import { creditBalanceFromData } from "@/lib/experts/creditBalance";
 import { expertRequestId } from "@/lib/experts/types";
 
 export const metadata: Metadata = {
@@ -46,8 +47,7 @@ export default async function ExpertReportPage({
     redirect(`/experts/request/${id}`);
   }
 
-  const creditBalance =
-    typeof creditsRes.body?.data?.creditBalance === "number" ? creditsRes.body.data.creditBalance : 0;
+  const creditBalance = creditBalanceFromData(creditsRes.body?.data);
   const experts = dirRes.body?.data?.experts ?? [];
 
   return (
