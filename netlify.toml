@@ -2,9 +2,22 @@
   command = "npm run build"
   publish = ".next"
 
-# Debug/staging: bake coinzy-dev into the client bundle (NEXT_PUBLIC_* are build-time).
-# Flip these to coinzy-26a4d when cutting real prod.
+# ---------------------------------------------------------------------------
+# Internal / QA deploy — point your Netlify *internal* site at the `internal` branch.
+# Production (`main`) should use a separate site or context with prod API + Firebase.
+#
+# Also set in Netlify UI for this site (runtime):
+#   COINZY_ALLOWED_ORIGINS = https://<your-internal-site>.netlify.app
+#   (comma-separate aliases, e.g. custom staging domain)
+# Optional: COINZY_EXPERTS_ADMIN_API_KEY for @trackzio.com dummy expert credits.
+# ---------------------------------------------------------------------------
 [build.environment]
+  COINZY_API_ORIGIN = "https://coins-api.trackzio.com"
+  COINZY_AUTH_API_ORIGIN = "https://coins-api.trackzio.com"
+  COINZY_MARKETPLACE_API_ORIGIN = "https://coins-api.trackzio.com"
+  COINZY_EXPERTS_API_ORIGIN = "https://api.coinzy-experts-qa.trackzio.com"
+
+  # coinzy-dev Firebase (debug/staging) — baked into client bundle (NEXT_PUBLIC_*).
   NEXT_PUBLIC_FIREBASE_API_KEY = "AIzaSyBqPVKoGuEl55qm0wagIxKEUTWBzBhhL44"
   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN = "coinzy-dev.firebaseapp.com"
   NEXT_PUBLIC_FIREBASE_PROJECT_ID = "coinzy-dev"
