@@ -17,6 +17,19 @@ Figma: primary `YV6ArWhD2eVlLPH6M090gc`; **Experts + updated Feed** also in Copy
 
 ---
 
+## Deploy (Netlify — company account)
+
+Hosting is on the **Trackzio company Netlify team** (not personal accounts). Connect this repo from GitHub under that team.
+
+| Site | Branch | Config |
+| --- | --- | --- |
+| **Prod** | `main` | Root `netlify.toml` — `coins-api-prod`, experts prod, `COINZY_ALLOWED_ORIGINS` = prod site URL(s) |
+| **QA** | `internal` | Branch `netlify.toml` — QA catalogue + experts QA |
+
+Plugin: `@netlify/plugin-nextjs`. Env vars in `netlify.toml` `[build.environment]`; add secrets (e.g. `COINZY_EXPERTS_ADMIN_API_KEY`) in the Netlify UI. After deploy URL or custom domain changes, update **`COINZY_ALLOWED_ORIGINS`** and Firebase **Authorized domains**. Latest prod should include `main@2961b00+` (Experts credits + stale-session guard) once builds run.
+
+---
+
 ## Status (9 Oct 2026)
 
 | Area | Progress | Notes |

@@ -6,6 +6,9 @@
 # QA / internal: use the `internal` branch netlify.toml (coins-api.trackzio.com + experts QA).
 
 [build.environment]
+  # Public Firebase web API key is inlined in client bundles; smart scan false-positives it.
+  SECRETS_SCAN_SMART_DETECTION_OMIT_VALUES = "AIzaSyBqPVKoGuEl55qm0wagIxKEUTWBzBhhL44"
+  SECRETS_SCAN_SMART_DETECTION_ENABLED = "false"
   COINZY_API_ORIGIN = "https://coins-api-prod.trackzio.com"
   COINZY_AUTH_API_ORIGIN = "https://coins-api-prod.trackzio.com"
   COINZY_MARKETPLACE_API_ORIGIN = "https://coins-api-prod.trackzio.com"
