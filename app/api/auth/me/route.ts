@@ -8,6 +8,8 @@ import {
   type SellerDetails,
 } from "@/lib/api/auth-session";
 import { isAllowedAuthOrigin } from "@/lib/auth/origin";
+import { isUserSubscribed } from "@/lib/auth/subscription";
+import { sessionCookieMaxAge } from "@/lib/auth/session-cookie";
 import { isSellerProfileComplete } from "@/lib/marketplace/sellerProfile";
 
 const reply = (body: object, status = 200) =>
@@ -74,7 +76,7 @@ function publicProfile(user: AboutMeUser, token: string) {
       externalLinks: sellerDetails?.externalLinks ?? [],
     },
     sellerProfileComplete: isSellerProfileComplete(sellerDetails),
-    isSubscribed: user.isSubscribed === true,
+    isSubscribed: isUserSubscribed(user),
     subscriptionProvider:
       typeof user.subscriptionProvider === "string" ? user.subscriptionProvider : null,
     subscriptionDate: typeof user.subscriptionDate === "string" ? user.subscriptionDate : null,
@@ -111,7 +113,14 @@ export async function GET(request: NextRequest) {
     const status = result._status >= 500 ? 502 : result._status || 502;
     return reply({ error: true, reason: result.reason ?? "Could not load profile." }, status);
   }
-  return reply({ error: false, user: publicProfile(result.user, token) });
+  const response = reply({ error: false, user: publicProfile(result.user, token) });
+  if (result.sessionToken) {
+    response.cookies.set("coinzy_session", result.sessionToken, {
+      ...cookieOptions,
+      maxAge: sessionCookieMaxAge(result.sessionToken),
+    });
+  }
+  return response;
 }
 
 /**

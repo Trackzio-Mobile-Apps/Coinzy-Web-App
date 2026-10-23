@@ -9,14 +9,16 @@
  */
 
 import { unstable_cache } from "next/cache";
+import { resolveCatalogueOrigin } from "@/lib/api/catalogue-origin";
 
 /**
  * Two backends: the catalogue lives on `coins-api` (the original host), while real marketplace
  * listings only exist on production (`coins-api-prod`; `coins-api` has none). Each gets its own token.
  */
 const ORIGINS = {
-  catalogue: process.env.COINZY_API_ORIGIN ?? "https://coins-api.trackzio.com",
-  marketplace: process.env.COINZY_MARKETPLACE_API_ORIGIN ?? "https://coins-api-prod.trackzio.com",
+  catalogue: resolveCatalogueOrigin(),
+  marketplace:
+    process.env.COINZY_MARKETPLACE_API_ORIGIN?.replace(/\/$/, "") ?? "https://coins-api-prod.trackzio.com",
 };
 type Backend = keyof typeof ORIGINS;
 

@@ -4,8 +4,7 @@
  * not the marketplace listings host.
  */
 
-const AUTH_ORIGIN =
-  process.env.COINZY_AUTH_API_ORIGIN || process.env.COINZY_API_ORIGIN || "https://coins-api.trackzio.com";
+import { resolveCatalogueOrigin } from "@/lib/api/catalogue-origin";
 
 export type SellerDetails = {
   name?: string | null;
@@ -51,17 +50,26 @@ function displayName(user: AboutMeUser | null | undefined): string {
 /** `GET auth/me` — current user + nested `sellerDetails`. */
 export async function fetchAboutMe(
   token: string,
-): Promise<{ error: false; user: AboutMeUser } | { error: true; reason?: string; _status: number }> {
-  const res = await fetch(`${AUTH_ORIGIN.replace(/\/$/, "")}/auth/me`, {
+): Promise<
+  | { error: false; user: AboutMeUser; sessionToken?: string }
+  | { error: true; reason?: string; _status: number }
+> {
+  const res = await fetch(`${resolveCatalogueOrigin()}/auth/me`, {
     method: "GET",
     headers: authHeaders(token),
     cache: "no-store",
   });
-  const json = (await res.json()) as { error?: boolean; reason?: string; user?: AboutMeUser };
+  const json = (await res.json()) as {
+    error?: boolean;
+    reason?: string;
+    user?: AboutMeUser;
+    token?: string;
+  };
   if (!res.ok || json.error || !json.user) {
     return { error: true, reason: json.reason, _status: res.status };
   }
-  return { error: false, user: json.user };
+  const sessionToken = typeof json.token === "string" && json.token.trim() ? json.token.trim() : undefined;
+  return { error: false, user: json.user, sessionToken };
 }
 
 /** `PATCH auth/me` with `{ sellerDetails }` — replaces the nested seller object (send full fields). */
@@ -80,7 +88,7 @@ export async function patchAboutMe(
   token: string,
   body: Record<string, unknown>,
 ): Promise<{ error: false; user: AboutMeUser } | { error: true; reason?: string; _status: number }> {
-  const res = await fetch(`${AUTH_ORIGIN.replace(/\/$/, "")}/auth/me`, {
+  const res = await fetch(`${resolveCatalogueOrigin()}/auth/me`, {
     method: "PATCH",
     headers: authHeaders(token),
     body: JSON.stringify(body),
@@ -97,7 +105,7 @@ export async function patchAboutMe(
 export async function deleteAccount(
   token: string,
 ): Promise<{ error: false } | { error: true; reason?: string; _status: number }> {
-  const res = await fetch(`${AUTH_ORIGIN.replace(/\/$/, "")}/auth/me`, {
+  const res = await fetch(`${resolveCatalogueOrigin()}/auth/me`, {
     method: "DELETE",
     headers: authHeaders(token),
     cache: "no-store",

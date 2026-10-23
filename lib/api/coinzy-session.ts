@@ -6,7 +6,9 @@
 import type { Archetype, ArchetypeDetails, ArchetypePage } from "@/lib/api/coinzy";
 import { CoinzyApiError, isArchetypeId } from "@/lib/api/coinzy";
 
-const ORIGIN = process.env.COINZY_API_ORIGIN ?? "https://coins-api.trackzio.com";
+import { resolveCatalogueOrigin } from "@/lib/api/catalogue-origin";
+
+const ORIGIN = resolveCatalogueOrigin();
 
 async function sessionApiFetch<T>(token: string, path: string, init: RequestInit = {}): Promise<T> {
   const res = await fetch(`${ORIGIN}/api${path}`, {
