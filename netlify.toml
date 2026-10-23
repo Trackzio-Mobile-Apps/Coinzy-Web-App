@@ -2,19 +2,17 @@
   command = "npm run build"
   publish = ".next"
 
-# ---------------------------------------------------------------------------
-# Production (`main`) — Android `prod` / `BASE_URL_PROD` parity.
-# Set in Netlify UI (runtime): COINZY_ALLOWED_ORIGINS = production site URL(s).
-# Optional: COINZY_EXPERTS_ADMIN_API_KEY, COINZY_FEEDBACK_URL.
-# Firebase: flip NEXT_PUBLIC_FIREBASE_* to coinzy-26a4d when prod web app keys are ready.
-# ---------------------------------------------------------------------------
+# Production (`main`) — Android prod (`BASE_URL_PROD` + `EXPERTS_BASE_URL`).
+# QA / internal: use the `internal` branch netlify.toml (coins-api.trackzio.com + experts QA).
+
 [build.environment]
   COINZY_API_ORIGIN = "https://coins-api-prod.trackzio.com"
   COINZY_AUTH_API_ORIGIN = "https://coins-api-prod.trackzio.com"
   COINZY_MARKETPLACE_API_ORIGIN = "https://coins-api-prod.trackzio.com"
   COINZY_EXPERTS_API_ORIGIN = "https://coinzy-experts-api.trackzio.com"
+  COINZY_ALLOWED_ORIGINS = "https://coinzy-web-prod.netlify.app"
 
-  # coinzy-dev until coinzy-26a4d web keys are in Console (Feed / Google auth).
+  # coinzy-dev until coinzy-26a4d web keys are in Firebase Console (Feed / Google auth).
   NEXT_PUBLIC_FIREBASE_API_KEY = "AIzaSyBqPVKoGuEl55qm0wagIxKEUTWBzBhhL44"
   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN = "coinzy-dev.firebaseapp.com"
   NEXT_PUBLIC_FIREBASE_PROJECT_ID = "coinzy-dev"
@@ -22,6 +20,13 @@
   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = "658935682252"
   NEXT_PUBLIC_FIREBASE_APP_ID = "1:658935682252:web:03f3defa38b2306e741e69"
   NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID = "G-NSL6S0JE4X"
+
+[context.production.environment]
+  COINZY_API_ORIGIN = "https://coins-api-prod.trackzio.com"
+  COINZY_AUTH_API_ORIGIN = "https://coins-api-prod.trackzio.com"
+  COINZY_MARKETPLACE_API_ORIGIN = "https://coins-api-prod.trackzio.com"
+  COINZY_EXPERTS_API_ORIGIN = "https://coinzy-experts-api.trackzio.com"
+  COINZY_ALLOWED_ORIGINS = "https://coinzy-web-prod.netlify.app"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
