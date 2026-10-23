@@ -2,9 +2,19 @@
   command = "npm run build"
   publish = ".next"
 
-# Debug/staging: bake coinzy-dev into the client bundle (NEXT_PUBLIC_* are build-time).
-# Flip these to coinzy-26a4d when cutting real prod.
+# ---------------------------------------------------------------------------
+# Production (`main`) — Android `prod` / `BASE_URL_PROD` parity.
+# Set in Netlify UI (runtime): COINZY_ALLOWED_ORIGINS = production site URL(s).
+# Optional: COINZY_EXPERTS_ADMIN_API_KEY, COINZY_FEEDBACK_URL.
+# Firebase: flip NEXT_PUBLIC_FIREBASE_* to coinzy-26a4d when prod web app keys are ready.
+# ---------------------------------------------------------------------------
 [build.environment]
+  COINZY_API_ORIGIN = "https://coins-api-prod.trackzio.com"
+  COINZY_AUTH_API_ORIGIN = "https://coins-api-prod.trackzio.com"
+  COINZY_MARKETPLACE_API_ORIGIN = "https://coins-api-prod.trackzio.com"
+  COINZY_EXPERTS_API_ORIGIN = "https://coinzy-experts-api.trackzio.com"
+
+  # coinzy-dev until coinzy-26a4d web keys are in Console (Feed / Google auth).
   NEXT_PUBLIC_FIREBASE_API_KEY = "AIzaSyBqPVKoGuEl55qm0wagIxKEUTWBzBhhL44"
   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN = "coinzy-dev.firebaseapp.com"
   NEXT_PUBLIC_FIREBASE_PROJECT_ID = "coinzy-dev"
