@@ -80,10 +80,19 @@ export async function ensureFirebaseSession(identity: {
               typeof createErr === "object" && createErr && "code" in createErr
                 ? String((createErr as { code: string }).code)
                 : "";
-            // Race: account created elsewhere between sign-in and create
             if (createCode === "auth/email-already-in-use") {
-              const cred = await signInWithEmailAndPassword(auth, email, password);
-              return cred.user;
+              // Google popup already owns this email and it has no password === email.
+              // Retrying email/password throws auth/invalid-credential. A fresh Google
+              // sign-in leaves that Firebase user in place.
+              const signedIn = auth.currentUser;
+              if (
+                signedIn &&
+                !signedIn.isAnonymous &&
+                signedIn.email?.toLowerCase() === email.toLowerCase()
+              ) {
+                return signedIn;
+              }
+              throw new Error("Sign in with Google again to open Feed.");
             }
             throw createErr;
           }
