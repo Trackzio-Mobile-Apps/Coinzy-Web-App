@@ -1,9 +1,10 @@
 /**
- * Firebase web config — mirrors Android projects:
- * - Current debug / staging deploys → `coinzy-dev` (defaults below)
- * - Real prod later → `coinzy-26a4d` via `NEXT_PUBLIC_FIREBASE_*`
+ * Firebase web config — Android release project `coinzy-26a4d`.
  *
- * Defaults are the official web app for `coinzy-dev` (Console → Project settings).
+ * The web API key is a public client key (enforced by Firebase Auth domains
+ * and Security Rules). It has to be in the browser bundle, so the default
+ * below is what Netlify builds when `NEXT_PUBLIC_FIREBASE_API_KEY` was never
+ * set in the UI. A complete `NEXT_PUBLIC_FIREBASE_*` set still overrides it.
  */
 
 export type FirebaseWebConfig = {
@@ -16,14 +17,15 @@ export type FirebaseWebConfig = {
   measurementId?: string;
 };
 
-/** coinzy-dev project fields (apiKey must come from env — never commit `AIza…` keys). */
-const DEV_PROJECT_DEFAULTS: Omit<FirebaseWebConfig, "apiKey"> = {
-  authDomain: "coinzy-dev.firebaseapp.com",
-  projectId: "coinzy-dev",
-  storageBucket: "coinzy-dev.firebasestorage.app",
-  messagingSenderId: "658935682252",
-  appId: "1:658935682252:web:03f3defa38b2306e741e69",
-  measurementId: "G-NSL6S0JE4X",
+/** Official web app for `coinzy-26a4d` (Console → Project settings). */
+const PROD_WEB_CONFIG: FirebaseWebConfig = {
+  apiKey: "AIzaSyDp5u7EgrZ1NmJs7sBQaBoyG_KdOiA47fg",
+  authDomain: "coinzy-26a4d.firebaseapp.com",
+  projectId: "coinzy-26a4d",
+  storageBucket: "coinzy-26a4d.firebasestorage.app",
+  messagingSenderId: "1005300770086",
+  appId: "1:1005300770086:web:bc49173769b3460ad9cde7",
+  measurementId: "G-6474GBCE3W",
 };
 
 function fromEnv(): FirebaseWebConfig | null {
@@ -40,16 +42,7 @@ function fromEnv(): FirebaseWebConfig | null {
   return { apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId, measurementId };
 }
 
-/** Resolve config: full env → else coinzy-dev defaults + `NEXT_PUBLIC_FIREBASE_API_KEY`. */
+/** Full env override, otherwise the `coinzy-26a4d` web app. */
 export function getFirebaseWebConfig(): FirebaseWebConfig {
-  const fromAllEnv = fromEnv();
-  if (fromAllEnv) return fromAllEnv;
-
-  const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
-  if (!apiKey) {
-    throw new Error(
-      "Missing NEXT_PUBLIC_FIREBASE_API_KEY. Copy .env.example to .env.local for local dev.",
-    );
-  }
-  return { apiKey, ...DEV_PROJECT_DEFAULTS };
+  return fromEnv() ?? PROD_WEB_CONFIG;
 }
