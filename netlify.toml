@@ -16,14 +16,15 @@
   COINZY_EXPERTS_API_ORIGIN = "https://api.coinzy-experts-qa.trackzio.com"
   COINZY_ALLOWED_ORIGINS = "https://coinzy-web-qa.netlify.app"
 
-  # coinzy-dev until coinzy-26a4d web keys are in Firebase Console (Feed / Google auth).
-  # Set NEXT_PUBLIC_FIREBASE_API_KEY in Netlify UI (plain env, not “secret”) — not committed.
-  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN = "coinzy-dev.firebaseapp.com"
-  NEXT_PUBLIC_FIREBASE_PROJECT_ID = "coinzy-dev"
-  NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET = "coinzy-dev.firebasestorage.app"
-  NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = "658935682252"
-  NEXT_PUBLIC_FIREBASE_APP_ID = "1:658935682252:web:03f3defa38b2306e741e69"
-  NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID = "G-NSL6S0JE4X"
+  # coinzy-26a4d web app (same project as Android release). Public client config —
+  # do not mark these “secret” in the Netlify UI or the Feed bundle is built without them.
+  NEXT_PUBLIC_FIREBASE_API_KEY = "AIzaSyDp5u7EgrZ1NmJs7sBQaBoyG_KdOiA47fg"
+  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN = "coinzy-26a4d.firebaseapp.com"
+  NEXT_PUBLIC_FIREBASE_PROJECT_ID = "coinzy-26a4d"
+  NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET = "coinzy-26a4d.firebasestorage.app"
+  NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = "1005300770086"
+  NEXT_PUBLIC_FIREBASE_APP_ID = "1:1005300770086:web:bc49173769b3460ad9cde7"
+  NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID = "G-6474GBCE3W"
 
 [context.production.environment]
   COINZY_API_ORIGIN = "https://coins-api.trackzio.com"

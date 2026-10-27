@@ -109,14 +109,14 @@ Figma auth modals (`908:39186`, `908:39439`, `908:39567`, `905:38594`, `905:3880
 - [x] Socket.IO realtime — user-room events (Android parity); REST refresh only; poll kept as fallback
 
 ## Feed / Community — Timeline tasks 17–18 · Figma Copy `5hhBNjumI3EaALlyW6ySXa` · `951:87324`
-- [x] Firebase web config (`coinzy-dev`) + Auth bridge (email/email · anonymous) — `lib/firebase/*` (Android parity; do not diverge Firestore paths)
+- [x] Firebase web config (`coinzy-26a4d`) + Auth bridge (email/email · anonymous) — `lib/firebase/*` (Android parity; do not diverge Firestore paths)
 - [x] Feed home — `1366:257022` → `/feed` composer + post cards (thumbs-up likes, bookmark, ⋯ menu)
 - [x] Feed empty — “No posts yet” / “Share a coin find to get started.”
 - [x] Add / edit post modal — title + content, max **2** images (Android), Discussion / Buy-Sell, success toast
 - [x] Delete confirm — “Delete this post?” Cancel / Delete
 - [x] Comments / replies modal — `CommentsPanel`
 - [x] Right rail — Saved posts · My posts · Notification · Trending
-- [ ] Real prod Firebase web app (`coinzy-26a4d`) — deferred; debug/staging uses `coinzy-dev` defaults until we flip `NEXT_PUBLIC_FIREBASE_*`
+- [x] Prod Firebase web app (`coinzy-26a4d`) — `lib/firebase/config.ts` + `netlify.toml` (Feed fails closed if the API key is missing from the client bundle)
 
 ## Not in Figma (from `COINZY-WEB-SPEC.md` Phase 1)
 - [ ] Pricing, FAQ marketing page, Download — design needed or skip (in-app FAQ is under Settings)
