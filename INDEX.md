@@ -200,3 +200,6 @@ Runtime under `public/assets/<area>/` (landing numbered folders `01-top-nav`…`
 | Footer | `Footer` | `1526:304542` |
 
 Data for landing copy/lists: `lib/constants.ts`. Favicon: `app/icon.png` + `app/apple-icon.png`.
+
+## Bug tracker
+- `docs/bug-tracker.html` — ClickUp web-bug tracker (77 issues; grouped by priority/screen/area/Figma; statuses persist in localStorage; ETA auto from velocity). Edit data in the embedded BASE array; mark fixes there or in-page then Export.
