@@ -7,7 +7,5 @@ export function resolveCatalogueOrigin(): string {
   const explicit =
     process.env.COINZY_AUTH_API_ORIGIN?.trim() || process.env.COINZY_API_ORIGIN?.trim();
   if (explicit) return explicit.replace(/\/$/, "");
-  return process.env.NODE_ENV === "production"
-    ? "https://coins-api-prod.trackzio.com"
-    : "https://coins-api.trackzio.com";
+  return "https://coins-api-prod.trackzio.com";
 }

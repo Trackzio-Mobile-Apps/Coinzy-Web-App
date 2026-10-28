@@ -15,12 +15,15 @@ import { resolveCatalogueOrigin } from "@/lib/api/catalogue-origin";
  * Two backends: the catalogue lives on `coins-api` (the original host), while real marketplace
  * listings only exist on production (`coins-api-prod`; `coins-api` has none). Each gets its own token.
  */
-const ORIGINS = {
-  catalogue: resolveCatalogueOrigin(),
-  marketplace:
-    process.env.COINZY_MARKETPLACE_API_ORIGIN?.replace(/\/$/, "") ?? "https://coins-api-prod.trackzio.com",
-};
-type Backend = keyof typeof ORIGINS;
+function getOrigin(backend: "catalogue" | "marketplace"): string {
+  if (backend === "marketplace") {
+    return (
+      process.env.COINZY_MARKETPLACE_API_ORIGIN?.replace(/\/$/, "") ?? "https://coins-api-prod.trackzio.com"
+    );
+  }
+  return resolveCatalogueOrigin();
+}
+type Backend = "catalogue" | "marketplace";
 
 const tokens: Partial<Record<Backend, { token: string; expiresAt: number }>> = {};
 
@@ -49,7 +52,7 @@ async function guestToken(backend: Backend, forceRefresh = false): Promise<strin
   if (!forceRefresh && cached && cached.expiresAt - 5 * 60 * 1000 > Date.now()) {
     return cached.token;
   }
-  const res = await fetch(`${ORIGINS[backend]}/auth/guest-login`, {
+  const res = await fetch(`${getOrigin(backend)}/auth/guest-login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: "{}",
@@ -69,7 +72,7 @@ async function apiFetch<T>(
 ): Promise<T> {
   const { revalidate = 3600, backend = "catalogue", ...rest } = init;
   const send = async (token: string) =>
-    fetch(`${ORIGINS[backend]}/api${path}`, {
+    fetch(`${getOrigin(backend)}/api${path}`, {
       ...rest,
       headers: { "Content-Type": "application/json", ...rest.headers, Authorization: `Bearer ${token}` },
       next: { revalidate },

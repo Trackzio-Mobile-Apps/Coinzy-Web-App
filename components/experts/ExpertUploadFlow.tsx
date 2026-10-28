@@ -8,7 +8,7 @@ import { ExpertsAside } from "@/components/experts/ExpertsAside";
 import { ExpertsBreadcrumb } from "@/components/experts/ExpertsBreadcrumb";
 import { ExpertsBuyCreditsDialog } from "@/components/experts/ExpertsBuyCreditsDialog";
 import { creditBalanceFromData, parseCreditBalance } from "@/lib/experts/creditBalance";
-import { createExpertRequest, getExpertsCredits, uploadExpertFiles } from "@/lib/experts/client";
+import { createExpertRequest, getExpertsCredits } from "@/lib/experts/client";
 import type { ExpertsRealtimeMessage } from "@/lib/experts/realtime";
 import { useExpertsRealtime } from "@/lib/experts/useExpertsRealtime";
 import {
@@ -19,7 +19,8 @@ import {
   resolveCountryIso,
   sanitizeMediaForApi,
 } from "@/lib/experts/mediaRules";
-import type { ExpertRequestMedia, ExpertsDirectoryItem } from "@/lib/experts/types";
+import type { ExpertsDirectoryItem } from "@/lib/experts/types";
+import { ensureExpertsFirebaseAuth, uploadExpertRequestMedia } from "@/lib/experts/uploadMedia";
 
 const A = "/assets/experts";
 type Slot = "obverse" | "reverse" | "edge";
@@ -32,9 +33,14 @@ type LocalSlot = { file: File; preview: string };
 export function ExpertUploadFlow({
   creditBalance: initialCredits,
   experts,
+  email,
+  isGuest,
 }: {
   creditBalance: number;
   experts: ExpertsDirectoryItem[];
+  /** Session email for Firebase Auth bridge (Storage rules). */
+  email: string;
+  isGuest: boolean;
 }) {
   const router = useRouter();
   const [credits, setCredits] = useState(initialCredits);
@@ -185,26 +191,15 @@ export function ExpertUploadFlow({
     startTransition(async () => {
       setError("");
       try {
-        const allFiles = [
-          ...obverse.map((s) => s.file),
-          ...reverse.map((s) => s.file),
-          ...edge.map((s) => s.file),
-          ...(video ? [video.file] : []),
-        ];
-        const uploaded = await uploadExpertFiles(allFiles);
-        if (uploaded.error || !uploaded.data?.urls?.length) {
-          setError(uploaded.message || "Upload failed. Please try again.");
-          return;
-        }
-        const urls = uploaded.data.urls;
-        let i = 0;
-        const take = (n: number) => urls.slice(i, (i += n));
-        const media: ExpertRequestMedia = sanitizeMediaForApi({
-          obverse: take(obverse.length),
-          reverse: take(reverse.length),
-          edge: take(edge.length),
-          video: video ? take(1)[0] ?? null : null,
+        // Android: Firebase Auth first, then Storage upload, then POST users/requests.
+        await ensureExpertsFirebaseAuth({ email, isGuest });
+        const rawMedia = await uploadExpertRequestMedia({
+          obverse: obverse.map((s) => s.file),
+          reverse: reverse.map((s) => s.file),
+          edge: edge.map((s) => s.file),
+          video: video?.file ?? null,
         });
+        const media = sanitizeMediaForApi(rawMedia);
         if (!hasRequiredHttpsSlots(media)) {
           setError("Upload did not return enough photo URLs. Please try again.");
           return;
@@ -231,8 +226,9 @@ export function ExpertUploadFlow({
           return;
         }
         router.replace(`/experts/request/${id}`);
-      } catch {
-        setError("Something went wrong. Please try again.");
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "";
+        setError(msg || "Something went wrong. Please try again.");
       }
     });
   };

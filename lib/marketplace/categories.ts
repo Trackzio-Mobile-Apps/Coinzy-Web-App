@@ -1,5 +1,6 @@
 import { fetchAllListings, fetchListingFilterValues, type ListingSummary } from "@/lib/api/coinzy";
 import { formatPrice } from "@/lib/catalogue/coinDetails";
+import { selfListingPath } from "@/lib/marketplace/selfListing";
 
 /**
  * Marketplace listing pages (`/marketplace/[slug]`, Figma 793:77612 "CoinListings").
@@ -70,14 +71,32 @@ export type ListingCard = {
   archetypeId: string | null;
 };
 
-const toCard = (l: ListingSummary): ListingCard => ({
+const toCard = (l: ListingSummary, opts?: { self?: boolean }): ListingCard => ({
   id: l.id,
-  href: `/marketplace/listing/${l.id}`,
+  href: opts?.self ? selfListingPath(l.id) : `/marketplace/listing/${l.id}`,
   title: l.title,
   price: formatPrice(l.price),
   images: l.imageUrls.filter(Boolean),
   archetypeId: l.archetypeId ?? null,
 });
+
+/** Map session/guest listing rows into grid cards (`self` → owner `/marketplace/my-listing/[id]`). */
+export function listingToCard(
+  l: Pick<ListingSummary, "id" | "title" | "price" | "imageUrls" | "archetypeId">,
+  opts?: { self?: boolean },
+): ListingCard {
+  return toCard(
+    {
+      id: l.id,
+      title: l.title,
+      price: l.price,
+      createdAt: "",
+      imageUrls: l.imageUrls,
+      archetypeId: l.archetypeId,
+    },
+    opts,
+  );
+}
 
 /** Resolve a category into the `fetchAll` body; `null` = a filter matched no values (empty category). */
 async function buildListingFilters(def: MarketplaceCategoryDef): Promise<Record<string, string[]> | null> {
@@ -121,7 +140,7 @@ export async function loadListingPage(
   const totalPages = Math.max(1, Math.ceil(all.length / pageSize));
   const current = Math.min(Math.max(1, page), totalPages);
   return {
-    cards: all.slice((current - 1) * pageSize, current * pageSize).map(toCard),
+    cards: all.slice((current - 1) * pageSize, current * pageSize).map((l) => toCard(l)),
     totalCount: all.length,
     totalPages,
     page: current,
@@ -182,7 +201,7 @@ export async function loadSignedInBrowse({
   const totalPages = Math.max(1, Math.ceil(all.length / pageSize));
   const current = Math.min(Math.max(1, page), totalPages);
   return {
-    cards: all.slice((current - 1) * pageSize, current * pageSize).map(toCard),
+    cards: all.slice((current - 1) * pageSize, current * pageSize).map((l) => toCard(l)),
     totalCount: all.length,
     totalPages,
     page: current,

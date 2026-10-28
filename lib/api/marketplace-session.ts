@@ -2,7 +2,7 @@
  * Marketplace mutations (and owner-scoped reads) with the visitor's session JWT (`coinzy_session`).
  * Anonymous catalogue/marketplace reads stay on guest tokens in `lib/api/coinzy.ts`.
  *
- * Sell / owner listing / delete must hit the **same host as auth + private coins**
+ * Sell / owner listing / delete / myListingsOnly must hit the **same host as auth + private coins**
  * (`COINZY_API_ORIGIN`). Android uses one BASE_URL for both. Posting sell to
  * `COINZY_MARKETPLACE_API_ORIGIN` (prod browse host) with a catalogue session returns
  * 404 "Coin not found or you don't own this coin" because that coin inventory lives on catalogue.
@@ -11,8 +11,20 @@
 import type { ListingDetails } from "@/lib/api/coinzy";
 import { resolveCatalogueOrigin } from "@/lib/api/catalogue-origin";
 
-/** Session marketplace host = catalogue/auth origin (not the prod guest-browse host). */
-const SESSION_ORIGIN = resolveCatalogueOrigin();
+/** Session marketplace host = catalogue/auth origin (defaults to prod coins-api-prod.trackzio.com). */
+const getSessionOrigin = () => resolveCatalogueOrigin();
+
+/** Card row from session `POST …/listing/fetchAll` (Android `myListingsOnly`). */
+export type SessionListingSummary = {
+  id: string;
+  title: string;
+  price: number | string | null;
+  createdAt: string;
+  archetypeId?: string | null;
+  imageUrls: string[];
+  isMyListing?: boolean;
+  coinId?: string | null;
+};
 
 export type SellPrivateListingBody = {
   title?: string;
@@ -53,7 +65,7 @@ export async function sellPrivateCoin(
   coinId: string,
   body: SellPrivateListingBody,
 ): Promise<ApiResult<{ id?: string; listingId?: string }>> {
-  const res = await fetch(`${SESSION_ORIGIN}/api/marketplace/sell/private/${encodeURIComponent(coinId)}`, {
+  const res = await fetch(`${getSessionOrigin()}/api/marketplace/sell/private/${encodeURIComponent(coinId)}`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     body: JSON.stringify(body),
@@ -71,13 +83,55 @@ export async function sellPrivateCoin(
   return { error: false, data: { id, listingId: id } };
 }
 
+/**
+ * Android `MarketListScreen` — `POST /marketplace/listing/fetchAll?myListingsOnly=true`
+ * with the session JWT (guest tokens never return the owner's listings).
+ */
+export async function fetchMyListings(token: string): Promise<SessionListingSummary[]> {
+  const qs = new URLSearchParams({
+    pageNo: "0",
+    pageSize: "100",
+    myListingsOnly: "true",
+  });
+  const res = await fetch(`${getSessionOrigin()}/api/marketplace/listing/fetchAll?${qs}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: "{}",
+    cache: "no-store",
+  });
+  const json = (await res.json()) as {
+    error?: boolean;
+    reason?: string;
+    data?: Array<SessionListingSummary & { _id?: string }>;
+  };
+  if (!res.ok || json.error) {
+    throw new Error(json.reason ?? `My listings failed (${res.status})`);
+  }
+  const rows: SessionListingSummary[] = [];
+  for (const raw of json.data ?? []) {
+    const id = raw.id || raw._id;
+    if (!id) continue;
+    rows.push({
+      id,
+      title: raw.title,
+      price: raw.price ?? null,
+      createdAt: raw.createdAt,
+      archetypeId: raw.archetypeId ?? null,
+      imageUrls: Array.isArray(raw.imageUrls) ? raw.imageUrls.filter(Boolean) : [],
+      isMyListing: raw.isMyListing,
+      coinId: raw.coinId ?? null,
+    });
+  }
+  return rows.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
 /** `GET /marketplace/listing/getDetails/:id` with the signed-in user (for `isMyListing`). */
 export async function fetchListingDetailsForSession(
   token: string,
   listingId: string,
 ): Promise<OwnerListingDetails | null> {
   const res = await fetch(
-    `${SESSION_ORIGIN}/api/marketplace/listing/getDetails/${encodeURIComponent(listingId)}`,
+    `${getSessionOrigin()}/api/marketplace/listing/getDetails/${encodeURIComponent(listingId)}`,
     {
       headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
@@ -101,7 +155,7 @@ export async function deleteListing(
   listingId: string,
 ): Promise<ApiResult<null>> {
   const res = await fetch(
-    `${SESSION_ORIGIN}/api/marketplace/listing/delete/${encodeURIComponent(listingId)}`,
+    `${getSessionOrigin()}/api/marketplace/listing/delete/${encodeURIComponent(listingId)}`,
     {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
@@ -131,7 +185,7 @@ export async function markListingSold(
   body: MarkListingSoldBody = {},
 ): Promise<ApiResult<null>> {
   const res = await fetch(
-    `${SESSION_ORIGIN}/api/marketplace/markSold/${encodeURIComponent(listingId)}`,
+    `${getSessionOrigin()}/api/marketplace/markSold/${encodeURIComponent(listingId)}`,
     {
       method: "PATCH",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },

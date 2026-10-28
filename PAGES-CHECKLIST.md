@@ -100,7 +100,7 @@ Figma auth modals (`908:39186`, `908:39439`, `908:39567`, `905:38594`, `905:3880
 
 ## Expert evaluation — Timeline tasks 8–9 · Figma Copy `5hhBNjumI3EaALlyW6ySXa`
 - [x] Hub (new / existing) — `1049:167922` · `1045:166659` · landing `1312:115253` → `/experts`
-- [x] Upload photos + submit — `/experts/new` Figma `1312:114554` → `POST /api/experts/users/uploads` + `…/requests` (Android media rules)
+- [x] Upload photos + submit — `/experts/new` Figma `1312:114554` → Firebase Storage (`expert-evaluations/…`) + `POST …/requests` (Android media parity)
 - [x] Buy credits dialog — `1500:289177` → hub/aside Buy + zero-credit submit (Continue → Play Store stub)
 - [x] Status + deadline retry — `/experts/request/[id]` · extend `1327:206087`
 - [x] Report + feedback — `/experts/request/[id]/report` · other cases `1038:159962`

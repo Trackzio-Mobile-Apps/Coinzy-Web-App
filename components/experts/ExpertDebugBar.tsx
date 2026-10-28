@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   EXPERTS_DEBUG_SAMPLE,
   loadExpertsBlankDebugSample,
@@ -16,12 +16,18 @@ export type ExpertsDebugMedia = {
 };
 
 /**
- * Dev-only controls for `/experts/new` — mirrors identify `IdentifyDebugBar`.
+ * Dev controls for `/experts/new` — mirrors identify `IdentifyDebugBar`.
+ * Shown in development, or in production with `?debug=1`.
  */
 export function ExpertDebugBar({ onLoad }: { onLoad: (media: ExpertsDebugMedia) => void }) {
   const [loading, setLoading] = useState<"sample" | "blank" | "video" | null>(null);
+  const [show, setShow] = useState(process.env.NODE_ENV !== "production");
 
-  if (process.env.NODE_ENV === "production") return null;
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("debug") === "1") setShow(true);
+  }, []);
+
+  if (!show) return null;
 
   const run = async (kind: "sample" | "blank" | "video", fn: () => Promise<ExpertsDebugMedia>) => {
     setLoading(kind);
