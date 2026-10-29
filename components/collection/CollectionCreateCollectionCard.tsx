@@ -29,7 +29,11 @@ export function CollectionCreateCollectionCard({ privateCount }: { privateCount:
 
   const save = async () => {
     const trimmed = name.trim();
-    if (!trimmed || saving) return;
+    if (saving) return;
+    if (!trimmed) {
+      setError("Enter a collection name.");
+      return;
+    }
     setSaving(true);
     setError(null);
     const res = await createCollectionViaApi(trimmed);

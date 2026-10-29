@@ -351,7 +351,11 @@ export function IdentifySelectCollectionModal({
 
   const saveNewCollection = async (): Promise<boolean> => {
     const name = newName.trim();
-    if (!name || creating) return false;
+    if (creating) return false;
+    if (!name) {
+      setCreateError("Enter a collection name.");
+      return false;
+    }
     setCreating(true);
     setCreateError(null);
     const res = await onCreateCollection(name);
