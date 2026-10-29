@@ -36,6 +36,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   // Guest browse cache (`fetchAllListings`) — surface the new listing without waiting for TTL.
   revalidateTag("marketplace-listings");
   revalidatePath("/marketplace");
+  revalidatePath("/marketplace/my-listings");
   revalidatePath("/marketplace/all");
   return reply({ error: false, data: result.data });
 }

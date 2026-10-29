@@ -45,6 +45,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   }
   revalidateTag("marketplace-listings");
   revalidatePath("/marketplace");
+  revalidatePath("/marketplace/my-listings");
   revalidatePath("/marketplace/all");
   return reply({ error: false });
 }

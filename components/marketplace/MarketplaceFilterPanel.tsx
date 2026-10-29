@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   clearFiltersHref,
   toggleFilterHref,
@@ -21,6 +21,7 @@ function CheckboxGroup({
   options,
   selected,
   base,
+  pathname,
   maxHeight = "200px",
 }: {
   field: ListingFilterField;
@@ -28,6 +29,7 @@ function CheckboxGroup({
   options: string[];
   selected: Set<string>;
   base: URLSearchParams;
+  pathname: string;
   maxHeight?: string;
 }) {
   if (!options.length) return null;
@@ -40,7 +42,7 @@ function CheckboxGroup({
           return (
             <li key={name}>
               <Link
-                href={toggleFilterHref(base, field, name)}
+                href={toggleFilterHref(base, field, name, pathname)}
                 className={`flex items-center gap-2 text-sm leading-5 ${on ? "font-medium text-primary-500" : "text-ink"}`}
               >
                 <span
@@ -63,12 +65,14 @@ function PillGroup({
   options,
   selected,
   base,
+  pathname,
 }: {
   field: ListingFilterField;
   title: string;
   options: string[];
   selected: Set<string>;
   base: URLSearchParams;
+  pathname: string;
 }) {
   if (!options.length) return null;
   return (
@@ -78,7 +82,11 @@ function PillGroup({
         {options.map((label) => {
           const on = selected.has(label);
           return (
-            <Link key={label} href={toggleFilterHref(base, field, label)} className={on ? PILL_ON : PILL_OFF}>
+            <Link
+              key={label}
+              href={toggleFilterHref(base, field, label, pathname)}
+              className={on ? PILL_ON : PILL_OFF}
+            >
               {label}
             </Link>
           );
@@ -92,10 +100,12 @@ function IssuerSearchGroup({
   options,
   selected,
   base,
+  pathname,
 }: {
   options: string[];
   selected: Set<string>;
   base: URLSearchParams;
+  pathname: string;
 }) {
   const [needle, setNeedle] = useState("");
   const filtered = useMemo(() => {
@@ -122,7 +132,7 @@ function IssuerSearchGroup({
           return (
             <li key={name}>
               <Link
-                href={toggleFilterHref(base, "issuer", name)}
+                href={toggleFilterHref(base, "issuer", name, pathname)}
                 className={`flex items-center gap-2 text-sm leading-5 ${on ? "font-medium text-primary-500" : "text-ink"}`}
               >
                 <span
@@ -143,6 +153,7 @@ function IssuerSearchGroup({
 /** Right filter column — options from `GET /marketplace/listing/filterItems`; toggles update `?issuer=` etc. */
 export function MarketplaceFilterPanel({ options }: { options: ListingFilterValues }) {
   const params = useSearchParams();
+  const pathname = usePathname() || "/marketplace";
   const base = new URLSearchParams(params.toString());
 
   const selected = (field: ListingFilterField) => new Set(params.getAll(field));
@@ -158,22 +169,61 @@ export function MarketplaceFilterPanel({ options }: { options: ListingFilterValu
     <aside className="flex w-[266px] shrink-0 flex-col gap-4 border-l border-[#e5e7eb] bg-white px-4 py-6">
       <div className="flex items-center justify-between">
         <h2 className="text-base font-medium leading-6 text-ink">Filter</h2>
-        <Link href={clearFiltersHref(base)} className="text-xs font-medium leading-4 text-primary-500 hover:underline">
+        <Link
+          href={clearFiltersHref(base, pathname)}
+          className="text-xs font-medium leading-4 text-primary-500 hover:underline"
+        >
           Clear all
         </Link>
       </div>
 
-      <IssuerSearchGroup options={issuers} selected={selected("issuer")} base={base} />
+      <IssuerSearchGroup options={issuers} selected={selected("issuer")} base={base} pathname={pathname} />
 
-      <CheckboxGroup field="ruler" title="Ruler" options={rulers} selected={selected("ruler")} base={base} maxHeight="120px" />
+      <CheckboxGroup
+        field="ruler"
+        title="Ruler"
+        options={rulers}
+        selected={selected("ruler")}
+        base={base}
+        pathname={pathname}
+        maxHeight="120px"
+      />
 
-      <PillGroup field="yearOfMinting" title="Year of Minting" options={years} selected={selected("yearOfMinting")} base={base} />
+      <PillGroup
+        field="yearOfMinting"
+        title="Year of Minting"
+        options={years}
+        selected={selected("yearOfMinting")}
+        base={base}
+        pathname={pathname}
+      />
 
-      <PillGroup field="mintLocation" title="Mint Location" options={mints} selected={selected("mintLocation")} base={base} />
+      <PillGroup
+        field="mintLocation"
+        title="Mint Location"
+        options={mints}
+        selected={selected("mintLocation")}
+        base={base}
+        pathname={pathname}
+      />
 
-      <PillGroup field="shape" title="Shape" options={shapes} selected={selected("shape")} base={base} />
+      <PillGroup
+        field="shape"
+        title="Shape"
+        options={shapes}
+        selected={selected("shape")}
+        base={base}
+        pathname={pathname}
+      />
 
-      <PillGroup field="material" title="Material" options={materials} selected={selected("material")} base={base} />
+      <PillGroup
+        field="material"
+        title="Material"
+        options={materials}
+        selected={selected("material")}
+        base={base}
+        pathname={pathname}
+      />
     </aside>
   );
 }

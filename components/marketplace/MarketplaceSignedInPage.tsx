@@ -5,16 +5,15 @@ import { AppSidebar } from "@/components/home/AppSidebar";
 import { CatalogueSearch } from "@/components/catalogue/CatalogueSearch";
 import { CoinGridSkeleton } from "@/components/catalogue/CoinGridSkeleton";
 import { Pagination } from "@/components/catalogue/CoinGrid";
-import { ListCoinButton } from "@/components/marketplace/ListCoinButton";
 import { ListingGrid } from "@/components/marketplace/ListingGrid";
 import { MarketplaceAppHeader } from "@/components/marketplace/MarketplaceAppHeader";
 import { MarketplaceFilterPanel } from "@/components/marketplace/MarketplaceFilterPanel";
+import { YourListingsPanel } from "@/components/marketplace/YourListingsPanel";
 import { fetchListingFilterValues } from "@/lib/api/coinzy";
-import { fetchMyListings } from "@/lib/api/marketplace-session";
-import { getSessionToken, type SessionUser } from "@/lib/auth/session";
+import type { SessionUser } from "@/lib/auth/session";
 import { parsePageParam, parseQueryParam } from "@/lib/backNav";
 import { MARKETPLACE_PAGE_CATEGORIES } from "@/lib/constants";
-import { listingToCard, loadSignedInBrowse } from "@/lib/marketplace/categories";
+import { loadSignedInBrowse } from "@/lib/marketplace/categories";
 import {
   LISTING_FILTER_FIELDS,
   parseListingFilterParams,
@@ -22,7 +21,6 @@ import {
 } from "@/lib/marketplace/listingFilters";
 
 const PAGE_SIZE = 16;
-const A = "/assets/marketplace";
 
 const EXPLORE_SLUGS = ["american-coins", "roman-coins", "gold-coins"] as const;
 
@@ -114,58 +112,13 @@ async function MarketplaceFilters() {
   return <MarketplaceFilterPanel options={filterOptions} />;
 }
 
-function YourListingsEmpty() {
+function YourListingsFallback() {
   return (
-    <section className="mb-8 rounded-[12px] border border-[#e5e7eb] bg-white p-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex gap-3">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#f5f5f5]">
-            <Image src={`${A}/icon-listings.svg`} alt="" width={20} height={20} />
-          </div>
-          <div>
-            <h3 className="text-sm font-medium leading-5 text-ink">Your listings</h3>
-            <p className="mt-1 max-w-md text-sm leading-5 text-[#737373]">
-              You haven&apos;t listed anything yet. Turn your collection into cash — list a coin in under 2
-              minutes.
-            </p>
-          </div>
-        </div>
-        <ListCoinButton />
-      </div>
-    </section>
+    <section className="mb-8 h-[140px] animate-pulse rounded-[16px] border-[0.5px] border-[#dfdfe0] bg-white" />
   );
 }
 
-/** Android `MarketListScreen` — session `myListingsOnly=true` on the catalogue/prod host. */
-async function YourListingsSection() {
-  const token = await getSessionToken();
-  if (!token) return <YourListingsEmpty />;
-  const mine = await fetchMyListings(token).catch(() => []);
-  if (!mine.length) return <YourListingsEmpty />;
-
-  const cards = mine.map((l) => listingToCard(l, { self: true }));
-  return (
-    <section className="mb-8">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#f5f5f5]">
-            <Image src={`${A}/icon-listings.svg`} alt="" width={20} height={20} />
-          </div>
-          <div>
-            <h3 className="text-sm font-medium leading-5 text-ink">Your listings</h3>
-            <p className="text-sm leading-5 text-[#737373]">
-              {cards.length.toLocaleString("en-US")} active listing{cards.length === 1 ? "" : "s"}
-            </p>
-          </div>
-        </div>
-        <ListCoinButton />
-      </div>
-      <ListingGrid cards={cards} from="marketplace" columns={4} />
-    </section>
-  );
-}
-
-/** Signed-in marketplace — Figma `1356:154252`. Shell paints first; listings/filters stream. */
+/** Signed-in marketplace — Figma `1357:183164` (Your listings strip) / browse `1356:154252`. */
 export function MarketplaceSignedInPage({
   user,
   premium,
@@ -211,8 +164,8 @@ export function MarketplaceSignedInPage({
               />
             </div>
 
-            <Suspense fallback={<YourListingsEmpty />}>
-              <YourListingsSection />
+            <Suspense fallback={<YourListingsFallback />}>
+              <YourListingsPanel />
             </Suspense>
 
             <section className="mb-8">

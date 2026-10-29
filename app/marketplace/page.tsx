@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { MarketplaceSignedInPage } from "@/components/marketplace/MarketplaceSignedInPage";
 import { getPremiumStatus, getSessionUser } from "@/lib/auth/session";
 import { TopNav } from "@/components/landing/TopNav";
@@ -11,6 +12,7 @@ import { ListingRowSection } from "@/components/marketplace/ListingRowSection";
 import { WebappCTASection } from "@/components/marketplace/WebappCTASection";
 import { MARKETPLACE_BROWSE_CATEGORIES, MARKETPLACE_LISTING_ROWS } from "@/lib/constants";
 import { CatalogueSearch } from "@/components/catalogue/CatalogueSearch";
+import { CoinGridSkeleton } from "@/components/catalogue/CoinGridSkeleton";
 import { parseQueryParam } from "@/lib/backNav";
 import { loadListingRow } from "@/lib/marketplace/categories";
 
@@ -18,6 +20,37 @@ export const metadata: Metadata = {
   title: "Marketplace | Coinzy AI",
   description: "Buy and sell coins from verified sellers on Coinzy.",
 };
+
+async function MarketplaceListingRows() {
+  const rows = await Promise.all(MARKETPLACE_LISTING_ROWS.map((row) => loadListingRow(row.slug, 4)));
+  return (
+    <>
+      {MARKETPLACE_LISTING_ROWS.map((row, i) => (
+        <ListingRowSection
+          key={row.title}
+          title={row.title}
+          variant={row.variant}
+          wellClassName={row.wellClassName}
+          cards={rows[i]}
+          viewAllHref={`/marketplace/${row.slug}`}
+          from="marketplace"
+          // Search isn't in Figma; it sits beside the first row's "View all" so the layout keeps its rhythm.
+          headerExtra={
+            i === 0 ? (
+              <CatalogueSearch
+                action="/marketplace/all"
+                query=""
+                placeholder="Search listings..."
+                label="Search marketplace listings by title"
+                className="sm:w-[260px]"
+              />
+            ) : undefined
+          }
+        />
+      ))}
+    </>
+  );
+}
 
 export default async function MarketplacePage({
   searchParams,
@@ -36,7 +69,6 @@ export default async function MarketplacePage({
   // Logged-out: `/marketplace?q=` lands on the full results list.
   const query = parseQueryParam(sp.q);
   if (query) redirect(`/marketplace/all?q=${encodeURIComponent(query)}`);
-  const rows = await Promise.all(MARKETPLACE_LISTING_ROWS.map((row) => loadListingRow(row.slug, 4)));
   return (
     <>
       <TopNav />
@@ -46,29 +78,15 @@ export default async function MarketplacePage({
           title="Where collectors buy and sell."
           description="Thousands of listings from verified sellers. Browse by era, mint, or condition — or post your own listing to reach 200K+ active collectors."
         />
-        {MARKETPLACE_LISTING_ROWS.map((row, i) => (
-          <ListingRowSection
-            key={row.title}
-            title={row.title}
-            variant={row.variant}
-            wellClassName={row.wellClassName}
-            cards={rows[i]}
-            viewAllHref={`/marketplace/${row.slug}`}
-            from="marketplace"
-            // Search isn't in Figma; it sits beside the first row's "View all" so the layout keeps its rhythm.
-            headerExtra={
-              i === 0 ? (
-                <CatalogueSearch
-                  action="/marketplace/all"
-                  query=""
-                  placeholder="Search listings..."
-                  label="Search marketplace listings by title"
-                  className="sm:w-[260px]"
-                />
-              ) : undefined
-            }
-          />
-        ))}
+        <Suspense
+          fallback={
+            <section className="mx-auto w-full max-w-[1440px] px-6 pb-8 lg:px-[160px]" aria-busy="true" aria-label="Loading listings">
+              <CoinGridSkeleton count={8} />
+            </section>
+          }
+        >
+          <MarketplaceListingRows />
+        </Suspense>
         <WebappCTASection />
         <BrowseCatalogueSection
           label="Browse Marketplace"

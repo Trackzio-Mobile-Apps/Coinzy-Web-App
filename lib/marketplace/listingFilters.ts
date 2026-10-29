@@ -31,7 +31,7 @@ export function parseListingFilterParams(
 }
 
 /** Keep `q`, `category`, `premium`; drop filter keys and reset page. */
-export function clearFiltersHref(params: URLSearchParams): string {
+export function clearFiltersHref(params: URLSearchParams, pathname = "/marketplace"): string {
   const next = new URLSearchParams();
   const q = params.get("q");
   const category = params.get("category");
@@ -40,15 +40,20 @@ export function clearFiltersHref(params: URLSearchParams): string {
   if (category) next.set("category", category);
   if (premium) next.set("premium", premium);
   const s = next.toString();
-  return s ? `/marketplace?${s}` : "/marketplace";
+  return s ? `${pathname}?${s}` : pathname;
 }
 
-export function toggleFilterHref(base: URLSearchParams, field: ListingFilterField, value: string): string {
+export function toggleFilterHref(
+  base: URLSearchParams,
+  field: ListingFilterField,
+  value: string,
+  pathname = "/marketplace",
+): string {
   const next = new URLSearchParams(base);
   const all = next.getAll(field);
   if (all.includes(value)) next.delete(field, value);
   else next.append(field, value);
   next.delete("page");
   const q = next.toString();
-  return q ? `/marketplace?${q}` : "/marketplace";
+  return q ? `${pathname}?${q}` : pathname;
 }

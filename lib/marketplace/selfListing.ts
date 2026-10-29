@@ -1,7 +1,12 @@
+/** Signed-in manage grid — Android `MarketListScreen` / Figma Manage listings (`1357:183164`). */
+export function myListingsPath(): string {
+  return "/marketplace/my-listings";
+}
+
 /** Canonical URL for the seller's own listing details (Figma `1363:178858`). */
 export function selfListingPath(listingId: string, opts?: { listed?: boolean }): string {
   const id = listingId.trim();
-  if (!id) return "/marketplace";
+  if (!id) return myListingsPath();
   const qs = opts?.listed ? "?listed=1" : "";
   return `/marketplace/my-listing/${encodeURIComponent(id)}${qs}`;
 }

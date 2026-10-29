@@ -87,7 +87,10 @@ export async function sellPrivateCoin(
  * Android `MarketListScreen` — `POST /marketplace/listing/fetchAll?myListingsOnly=true`
  * with the session JWT (guest tokens never return the owner's listings).
  */
-export async function fetchMyListings(token: string): Promise<SessionListingSummary[]> {
+export async function fetchMyListings(
+  token: string,
+  filters: Record<string, string[]> = {},
+): Promise<{ listings: SessionListingSummary[]; totalCount: number }> {
   const qs = new URLSearchParams({
     pageNo: "0",
     pageSize: "100",
@@ -96,13 +99,14 @@ export async function fetchMyListings(token: string): Promise<SessionListingSumm
   const res = await fetch(`${getSessionOrigin()}/api/marketplace/listing/fetchAll?${qs}`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: "{}",
+    body: JSON.stringify(filters),
     cache: "no-store",
   });
   const json = (await res.json()) as {
     error?: boolean;
     reason?: string;
     data?: Array<SessionListingSummary & { _id?: string }>;
+    pagination?: { totalCount?: number };
   };
   if (!res.ok || json.error) {
     throw new Error(json.reason ?? `My listings failed (${res.status})`);
@@ -115,14 +119,17 @@ export async function fetchMyListings(token: string): Promise<SessionListingSumm
       id,
       title: raw.title,
       price: raw.price ?? null,
-      createdAt: raw.createdAt,
+      // API may omit createdAt on some owner rows — never throw in sort (silent catch → empty UI).
+      createdAt: typeof raw.createdAt === "string" ? raw.createdAt : "",
       archetypeId: raw.archetypeId ?? null,
       imageUrls: Array.isArray(raw.imageUrls) ? raw.imageUrls.filter(Boolean) : [],
       isMyListing: raw.isMyListing,
       coinId: raw.coinId ?? null,
     });
   }
-  return rows.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const listings = rows.sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
+  const totalCount = json.pagination?.totalCount ?? listings.length;
+  return { listings, totalCount };
 }
 
 /** `GET /marketplace/listing/getDetails/:id` with the signed-in user (for `isMyListing`). */
