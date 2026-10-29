@@ -5,7 +5,7 @@ import { useEffect, useId, useState } from "react";
 import type { ArchetypeDetails } from "@/lib/api/coinzy";
 import { coinTitle, detailTabs, overviewRows } from "@/lib/catalogue/coinDetails";
 import { useModalDialog } from "@/components/ui/useModalDialog";
-import { defaultNewCollectionName, type UserCollectionOption } from "@/lib/identify/collections";
+import { defaultNewCollectionName, MAX_COLLECTION_NAME_LENGTH, type UserCollectionOption } from "@/lib/identify/collections";
 
 function CollectionCheckbox({
   checked,
@@ -457,8 +457,9 @@ export function IdentifySelectCollectionModal({
                   id={inputId}
                   type="text"
                   value={newName}
+                  maxLength={MAX_COLLECTION_NAME_LENGTH}
                   onChange={(e) => {
-                    setNewName(e.target.value);
+                    setNewName(e.target.value.slice(0, MAX_COLLECTION_NAME_LENGTH));
                     setNameEdited(true);
                   }}
                   onKeyDown={(e) => {

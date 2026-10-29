@@ -87,6 +87,9 @@ export function privateCollectionOption(row: ApiPrivateCollection): UserCollecti
   };
 }
 
+/** Max characters for a new collection name (ClickUp 14yn59xnvu1). */
+export const MAX_COLLECTION_NAME_LENGTH = 30;
+
 export function defaultNewCollectionName(privateCount: number): string {
   return `Private collection #${privateCount + 1}`;
 }
