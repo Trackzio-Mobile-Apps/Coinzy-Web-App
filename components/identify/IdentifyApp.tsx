@@ -19,7 +19,8 @@ import { IdentifyCropModal } from "@/components/identify/IdentifyCropModal";
 import { identifyCoinsV2 } from "@/lib/identify/client";
 import { loadIdentifyDebugSample } from "@/lib/identify/debugSamples";
 import { identifyErrorMessage, isInlineIdentifyFailure } from "@/lib/identify/messages";
-import { notifyFreeScanUsageUpdated, recordFailedScan, recordFreeScanUsed } from "@/lib/identify/scanUsage";
+import type { ScanUsage } from "@/lib/identify/scanUsage";
+import { refreshScanUsage, setScanUsage } from "@/lib/identify/scanUsageStore";
 import { readIdentifySession, saveIdentifySession } from "@/lib/identify/storage";
 import type { IdentifyMatch } from "@/lib/identify/types";
 
@@ -40,13 +41,20 @@ export function IdentifyApp({
   autoLoadDebug = false,
   premium = false,
   restoreMatches = false,
+  initialUsage = null,
 }: {
   autoLoadDebug?: boolean;
   premium?: boolean;
   /** `?step=matches` — coming back from a result page: re-show the saved Top 5 matches. */
   restoreMatches?: boolean;
+  /** Server scan counters read on the page render (seeds the Free plan card). */
+  initialUsage?: ScanUsage | null;
 }) {
   const router = useRouter();
+  // Seed the shared scan-usage store from the server render (layout effect: before the first paint).
+  useLayoutEffect(() => {
+    if (!premium) setScanUsage(initialUsage);
+  }, [initialUsage, premium]);
   const [step, setStep] = useState<Step>(restoreMatches ? "matches" : "upload");
   const [restoredPreviews, setRestoredPreviews] = useState<[string, string] | null>(null);
   const [obverse, setObverse] = useState<Slot | null>(null);
@@ -158,15 +166,12 @@ export function IdentifyApp({
     }
   };
 
-  const countFreeScan = () => {
-    if (premium) return;
-    recordFreeScanUsed();
-    notifyFreeScanUsageUpdated();
-  };
-
-  const countFailedScan = () => {
-    if (premium) return;
-    if (recordFailedScan()) countFreeScan();
+  // Scan counts are owned by the server (successCount/errorCount + thresholds); nothing is stored locally.
+  // Show the counts carried by the scan response straight away, then ALWAYS re-read auth/me after the scan
+  // (success, failure or network error) so the Free plan card ends up with the backend's own numbers.
+  const applyServerUsage = (usage: ScanUsage | null | undefined) => {
+    if (premium || !usage) return;
+    setScanUsage(usage);
   };
 
   const submit = async () => {
@@ -177,12 +182,12 @@ export function IdentifyApp({
     setFailure(null);
     try {
       const res = await identifyCoinsV2(obverse.file, reverse.file);
+      applyServerUsage(res.usage);
       if (res.error) {
         const msg = identifyErrorMessage(res.aiErrorCode, res.reason);
         // Full-page failure (Figma `2098:158944`) for not-a-coin / blurry / photo issues.
         // API often omits `aiErrorCode` and only sends reason like "Coin not detected!".
         if (isInlineIdentifyFailure(res.aiErrorCode, res.reason)) {
-          countFailedScan();
           setFailure(msg);
           setStep("failure");
         } else {
@@ -193,7 +198,6 @@ export function IdentifyApp({
       }
       const list = res.data.matches ?? [];
       if (!list.length) {
-        countFailedScan();
         setFailure(identifyErrorMessage("E001"));
         setStep("failure");
         return;
@@ -208,13 +212,13 @@ export function IdentifyApp({
         matches: list,
         previewUrls: [previews[0], previews[1]],
       });
-      countFreeScan();
       setStep("matches");
     } catch {
       setToast(identifyErrorMessage("E003"));
       setStep("upload");
     } finally {
       setBusy(false);
+      if (!premium) void refreshScanUsage();
     }
   };
 
@@ -296,7 +300,7 @@ export function IdentifyApp({
 
         </div>
 
-        <IdentifySideRail premium={premium} onScanApp={() => setQrOpen(true)} />
+        <IdentifySideRail premium={premium} initialUsage={initialUsage} onScanApp={() => setQrOpen(true)} />
       </div>
 
       {flipNeedSide && !crop ? (

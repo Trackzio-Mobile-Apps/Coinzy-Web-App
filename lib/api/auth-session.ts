@@ -5,6 +5,7 @@
  */
 
 import { resolveCatalogueOrigin } from "@/lib/api/catalogue-origin";
+import { parseScanUsage, type ScanUsage } from "@/lib/identify/scanUsage";
 
 export type SellerDetails = {
   name?: string | null;
@@ -51,7 +52,7 @@ function displayName(user: AboutMeUser | null | undefined): string {
 export async function fetchAboutMe(
   token: string,
 ): Promise<
-  | { error: false; user: AboutMeUser; sessionToken?: string }
+  | { error: false; user: AboutMeUser; sessionToken?: string; usage: ScanUsage | null }
   | { error: true; reason?: string; _status: number }
 > {
   const res = await fetch(`${resolveCatalogueOrigin()}/auth/me`, {
@@ -66,10 +67,13 @@ export async function fetchAboutMe(
     token?: string;
   };
   if (!res.ok || json.error || !json.user) {
+    // Surfaces why auth/me failed (it silently drops premium to the JWT claim and hides scan counts).
+    console.warn(`[auth/me] upstream ${res.status}: ${json.reason ?? (json.user ? "error flag" : "no user in body")}`);
     return { error: true, reason: json.reason, _status: res.status };
   }
   const sessionToken = typeof json.token === "string" && json.token.trim() ? json.token.trim() : undefined;
-  return { error: false, user: json.user, sessionToken };
+  // AI scan counters live at the top level of the response (successCount / errorCount / thresholds).
+  return { error: false, user: json.user, sessionToken, usage: parseScanUsage(json) };
 }
 
 /** `PATCH auth/me` with `{ sellerDetails }` — replaces the nested seller object (send full fields). */

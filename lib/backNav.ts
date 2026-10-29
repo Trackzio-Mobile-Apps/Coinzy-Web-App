@@ -20,8 +20,8 @@ export function parsePageParam(raw: string | undefined): number {
   return Math.max(1, Number.parseInt(raw ?? "", 10) || 1);
 }
 
-/** Longest catalogue search term we accept (names are short; this also bounds the cache key). */
-export const MAX_QUERY_LENGTH = 80;
+/** Covers the Android search database's longest name (142 characters), while bounding cache keys. */
+export const MAX_QUERY_LENGTH = 160;
 
 /**
  * Clean `?q=` / `?fromQ=`: first value only, control characters dropped, whitespace collapsed and trimmed,

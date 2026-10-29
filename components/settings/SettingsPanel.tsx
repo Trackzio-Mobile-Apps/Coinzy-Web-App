@@ -107,6 +107,7 @@ export function SettingsPanel({
       setProfile(json.user);
       setEditOpen(false);
       setToast("User profile updated successfully!");
+      router.refresh();
       setBusy(false);
     } catch {
       setFormError("Could not save profile.");
@@ -132,6 +133,7 @@ export function SettingsPanel({
       setProfile(json.user);
       setSellerOpen(false);
       setToast(sellerComplete ? "Seller profile updated successfully!" : "Seller profile created successfully!");
+      router.refresh();
       setBusy(false);
     } catch {
       setFormError("Could not save seller profile.");
@@ -181,9 +183,7 @@ export function SettingsPanel({
   return (
     <>
       <div className="flex min-w-0 flex-1 flex-col gap-4">
-        <h2 className="text-xl font-medium leading-7 text-ink">Settings</h2>
-
-        <section className="overflow-hidden rounded-xl border border-[#efefef] bg-white">
+        <section className="flex min-h-[221px] flex-col overflow-hidden rounded-xl border-[0.5px] border-border-neutral bg-white px-4 py-3">
           <SectionLabel>Account</SectionLabel>
           {isGuest ? (
             <Link
@@ -197,38 +197,22 @@ export function SettingsPanel({
             <>
               <Row
                 label="Profile"
-                action={
-                  <button type="button" onClick={() => { setFormError(null); setEditOpen(true); }} className={linkBtn}>
-                    Edit
-                  </button>
-                }
+                action={<span className={linkBtn}>Edit</span>}
+                onClick={() => { setFormError(null); setEditOpen(true); }}
               />
               <Row
                 label="Seller profile"
-                action={
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFormError(null);
-                      void refresh();
-                      setSellerOpen(true);
-                    }}
-                    className={linkBtn}
-                  >
-                    {sellerComplete ? "Edit" : "Add"}
-                  </button>
-                }
+                action={<span className={linkBtn}>{sellerComplete ? "Edit" : "Add"}</span>}
+                onClick={() => {
+                  setFormError(null);
+                  void refresh();
+                  setSellerOpen(true);
+                }}
               />
               <Row
                 label="Plan & billing"
-                action={
-                  <span className="inline-flex items-center gap-2">
-                    <span className="rounded-full bg-[#f5f5f5] px-2 py-0.5 text-xs font-medium text-[#606062]">
-                      {isPremium ? "Premium" : "Free plan"}
-                    </span>
-                    <Chevron />
-                  </span>
-                }
+                badge={<span className="rounded-full bg-[#e8e8e8] px-2 py-0.5 text-xs font-medium leading-4">{isPremium ? "Premium" : "Free plan"}</span>}
+                action={<Chevron />}
                 onClick={() => {
                   if (isPremium) {
                     setToast(
@@ -239,39 +223,32 @@ export function SettingsPanel({
                   }
                 }}
               />
-              <Row
-                label="Delete account"
-                action={<span className="text-sm font-medium text-[#dc2626]">Delete</span>}
-                onClick={() => {
-                  setConfirmError(null);
-                  setDeleteOpen(true);
-                }}
-              />
             </>
           )}
         </section>
 
-        <section className="overflow-hidden rounded-xl border border-[#efefef] bg-white">
+        <section className="flex min-h-[157px] flex-col overflow-hidden rounded-xl border-[0.5px] border-border-neutral bg-white px-4 py-3">
           <SectionLabel>Support</SectionLabel>
           <Row label="FAQ" action={<Chevron />} onClick={() => setFaqOpen(true)} />
           <Row label="Feedback" action={<Chevron />} onClick={() => setFeedbackOpen(true)} />
         </section>
 
-        <section className="overflow-hidden rounded-xl border border-[#efefef] bg-white">
+        <section className="flex min-h-[165px] flex-col overflow-hidden rounded-xl border-[0.5px] border-border-neutral bg-white px-4 py-3">
           <SectionLabel>Preferences</SectionLabel>
           <Row
             label="Notifications"
             action={<Toggle on={notifications} onChange={toggleNotifications} label="Notifications" />}
           />
+          <Row label="Dark Mode" action={<Toggle on={false} label="Dark Mode" disabled />} />
         </section>
 
-        <section className="overflow-hidden rounded-xl border border-[#efefef] bg-white">
+        <section className="flex min-h-[277px] flex-col overflow-hidden rounded-xl border-[0.5px] border-border-neutral bg-white px-4 py-3">
           <SectionLabel>General</SectionLabel>
           <a
             href={COINZY_TERMS_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-between px-4 py-3 text-sm text-ink hover:bg-black/[0.02]"
+            className={rowClassName}
           >
             Terms of Use
             <Chevron />
@@ -280,7 +257,7 @@ export function SettingsPanel({
             href={COINZY_PRIVACY_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-between px-4 py-3 text-sm text-ink hover:bg-black/[0.02]"
+            className={rowClassName}
           >
             Privacy Policy
             <Chevron />
@@ -293,13 +270,23 @@ export function SettingsPanel({
                 setConfirmError(null);
                 setLogoutOpen(true);
               }}
-              className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm text-ink hover:bg-black/[0.02]"
+              className={rowClassName}
             >
               <span aria-hidden="true">Logout</span>
-              <span aria-hidden="true" className="font-medium text-[#b45353]">
+              <span aria-hidden="true" className="font-medium text-ink">
                 Logout
               </span>
             </button>
+          )}
+          {!isGuest && (
+            <Row
+              label="Delete account"
+              action={<span className="text-sm font-medium text-[#dc2626]">Delete</span>}
+              onClick={() => {
+                setConfirmError(null);
+                setDeleteOpen(true);
+              }}
+            />
           )}
         </section>
       </div>
@@ -368,7 +355,8 @@ export function SettingsPanel({
         open={deleteOpen}
         onClose={() => !busy && setDeleteOpen(false)}
         title="Delete your account?"
-        body="This action cannot be undone."
+        body="Are you sure you want to delete of your account?"
+        variant="delete"
         confirmLabel="Delete account"
         confirming={busy && deleteOpen}
         error={confirmError}
@@ -379,12 +367,13 @@ export function SettingsPanel({
   );
 }
 
-const linkBtn = "text-sm font-medium text-primary-500 hover:underline";
+const linkBtn = "px-2.5 py-1 text-sm font-medium text-ink hover:underline";
+const rowClassName = "flex min-h-11 w-full flex-1 items-center justify-between gap-3 border-b-[0.5px] border-border-neutral py-2 text-left text-sm leading-5 text-ink last:border-0 hover:bg-black/[0.02]";
 
 function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <div className="border-b border-[#f0f0f0] px-4 py-2.5">
-      <p className="text-sm font-semibold leading-6 text-ink">{children}</p>
+    <div className="mb-3">
+      <p className="text-base font-semibold leading-6 text-ink">{children}</p>
     </div>
   );
 }
@@ -392,25 +381,26 @@ function SectionLabel({ children }: { children: ReactNode }) {
 function Row({
   label,
   action,
+  badge,
   onClick,
 }: {
   label: string;
+  badge?: ReactNode;
   action: ReactNode;
   onClick?: () => void;
 }) {
-  const className =
-    "flex w-full items-center justify-between gap-3 border-b border-[#f0f0f0] px-4 py-3 text-left text-sm text-ink last:border-0 hover:bg-black/[0.02]";
+  const className = rowClassName;
   if (onClick) {
     return (
       <button type="button" onClick={onClick} className={className}>
-        <span>{label}</span>
+        <span className="flex items-center gap-3">{label}{badge}</span>
         {action}
       </button>
     );
   }
   return (
     <div className={className}>
-      <span>{label}</span>
+      <span className="flex items-center gap-3">{label}{badge}</span>
       {action}
     </div>
   );
@@ -418,11 +408,11 @@ function Row({
 
 function Chevron() {
   return (
-    <Image src="/assets/catalogue/icon-chevron-right.svg" alt="" width={16} height={16} className="opacity-40" />
+    <Image src="/assets/catalogue/icon-chevron-right.svg" alt="" width={16} height={16} className="shrink-0" />
   );
 }
 
-function Toggle({ on, onChange, label }: { on: boolean; onChange: () => void; label: string }) {
+function Toggle({ on, onChange, label, disabled = false }: { on: boolean; onChange?: () => void; label: string; disabled?: boolean }) {
   return (
     <button
       type="button"
@@ -430,11 +420,13 @@ function Toggle({ on, onChange, label }: { on: boolean; onChange: () => void; la
       aria-checked={on}
       aria-label={label}
       onClick={onChange}
-      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${on ? "bg-ink" : "bg-[#d4d4d4]"}`}
+      disabled={disabled}
+      title={disabled ? "Dark mode is not available on web yet" : undefined}
+      className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${on ? "bg-ink" : "bg-[#d1d1d6]"}`}
     >
       <span
-        className={`absolute top-0.5 size-5 rounded-full bg-white shadow transition-transform ${
-          on ? "translate-x-[22px]" : "translate-x-0.5"
+        className={`absolute left-0 top-[3px] size-[22px] rounded-full bg-white shadow transition-transform ${
+          on || disabled ? "translate-x-[23px]" : "translate-x-[3px]"
         }`}
       />
     </button>

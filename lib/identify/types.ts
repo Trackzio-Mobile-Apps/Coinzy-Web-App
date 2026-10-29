@@ -13,8 +13,12 @@ export type IdentifyMatch = {
   estimatedPrice?: Record<string, string> | null;
 };
 
+import type { ScanUsage } from "@/lib/identify/scanUsage";
+
 export type IdentifySuccess = {
   error: false;
+  /** Server AI-scan counters after this scan (when the backend sends them). */
+  usage?: ScanUsage | null;
   data: {
     imageUrls: string[];
     matchesFoundCount: number;
@@ -27,6 +31,7 @@ export type IdentifyError = {
   reason?: string;
   aiErrorCode?: string;
   resetsAt?: number;
+  usage?: ScanUsage | null;
 };
 
 export type IdentifyResponse = IdentifySuccess | IdentifyError;

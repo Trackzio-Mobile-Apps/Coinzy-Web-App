@@ -1,64 +1,29 @@
-/** Free-tier AI identification cap (Figma `768:46630` / identify `1828:206842`). */
-export const FREE_AI_SCAN_LIMIT = 30;
+/** Server-owned AI scan counters (`successCount`/`errorCount` + thresholds on `ai/identify-v2` and `auth/me`). */
+export type ScanUsage = {
+  successCount: number;
+  errorCount: number;
+  successThreshold: number;
+  errorThreshold: number;
+};
 
-export const FREE_SCAN_USAGE_STORAGE_KEY = "coinzy:identify:free-scans-used";
-const STORAGE_KEY = FREE_SCAN_USAGE_STORAGE_KEY;
+/** Shown only until the first server value arrives (Figma `768:46630`). */
+export const DEFAULT_FREE_SCAN_LIMIT = 30;
 
-function readUsed(): number {
-  if (typeof window === "undefined") return 0;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const n = raw ? Number.parseInt(raw, 10) : 0;
-    if (!Number.isFinite(n) || n < 0) return 0;
-    return Math.min(n, FREE_AI_SCAN_LIMIT);
-  } catch {
-    return 0;
-  }
+const num = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) && v >= 0 ? v : null);
+
+/** Reads the four counters from a top-level API JSON body; null when the backend did not send them. */
+export function parseScanUsage(json: unknown): ScanUsage | null {
+  if (!json || typeof json !== "object") return null;
+  const j = json as Record<string, unknown>;
+  const successCount = num(j.successCount);
+  const errorCount = num(j.errorCount);
+  const successThreshold = num(j.successThreshold);
+  const errorThreshold = num(j.errorThreshold);
+  if (successCount === null || successThreshold === null) return null;
+  return { successCount, errorCount: errorCount ?? 0, successThreshold, errorThreshold: errorThreshold ?? successThreshold };
 }
 
-function writeUsed(n: number) {
-  try {
-    localStorage.setItem(STORAGE_KEY, String(Math.min(Math.max(0, n), FREE_AI_SCAN_LIMIT)));
-  } catch {
-    /* private mode */
-  }
-}
-
-/** Client-only counter until `auth/me` (or similar) exposes usage. */
-export function getFreeScansUsed(): number {
-  return readUsed();
-}
-
-export function recordFreeScanUsed(): number {
-  const next = Math.min(readUsed() + 1, FREE_AI_SCAN_LIMIT);
-  writeUsed(next);
-  return next;
-}
-
-/** Failed scans are free until this many have happened; later failures use the free-plan count. */
-export const FREE_FAILED_SCAN_ALLOWANCE = 5;
-const FAILED_KEY = "coinzy:identify:failed-scans";
-
-/** Records a failed scan; returns true when it should consume a free-plan scan (6th failure onward). */
-export function recordFailedScan(): boolean {
-  let n = 0;
-  try {
-    n = Number.parseInt(localStorage.getItem(FAILED_KEY) ?? "0", 10) || 0;
-    localStorage.setItem(FAILED_KEY, String(n + 1));
-  } catch {
-    /* private mode */
-  }
-  return n + 1 > FREE_FAILED_SCAN_ALLOWANCE;
-}
-
-export function notifyFreeScanUsageUpdated() {
-  if (typeof window === "undefined") return;
-  window.dispatchEvent(new Event("coinzy:identify:scans-updated"));
-}
-
-export function freeScanProgressPercent(used: number): number {
-  if (FREE_AI_SCAN_LIMIT <= 0) return 0;
-  const ratio = used / FREE_AI_SCAN_LIMIT;
-  if (used <= 0) return 0;
-  return Math.min(100, Math.max((8 / 236) * 100, ratio * 100));
+export function freeScanProgressPercent(used: number, limit: number): number {
+  if (limit <= 0 || used <= 0) return 0;
+  return Math.min(100, Math.max((8 / 236) * 100, (used / limit) * 100));
 }

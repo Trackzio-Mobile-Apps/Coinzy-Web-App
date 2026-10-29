@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { COINZY_FEEDBACK_URL } from "@/lib/constants";
 import { isAllowedAuthOrigin } from "@/lib/auth/origin";
+import { MAX_FEEDBACK_MESSAGE_LENGTH } from "@/lib/settings/feedback";
 
 const reply = (body: object, status = 200) =>
   NextResponse.json(body, { status, headers: { "Cache-Control": "no-store" } });
@@ -26,6 +27,9 @@ export async function POST(request: NextRequest) {
   if (name.length < 3) return reply({ error: true, reason: "Enter a valid name." }, 400);
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return reply({ error: true, reason: "Enter a valid email." }, 400);
   if (!message) return reply({ error: true, reason: "Please enter feedback." }, 400);
+  if (typeof body.message === "string" && body.message.length > MAX_FEEDBACK_MESSAGE_LENGTH) {
+    return reply({ error: true, reason: `Feedback must be ${MAX_FEEDBACK_MESSAGE_LENGTH} characters or fewer.` }, 400);
+  }
 
   try {
     const upstream = await fetch(COINZY_FEEDBACK_URL.replace(/\/?$/, "/"), {

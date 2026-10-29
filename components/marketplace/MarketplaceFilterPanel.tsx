@@ -71,6 +71,7 @@ function CheckboxList({
         return (
           <li key={name}>
             <Link
+              prefetch={false}
               href={toggleFilterHref(base, field, name, pathname)}
               onClick={clickHandler(toggle, field, name)}
               role="checkbox"
@@ -87,6 +88,34 @@ function CheckboxList({
   );
 }
 
+const OPTIONS_PER_PAGE = 40;
+const numericCompare = new Intl.Collator(undefined, { numeric: true }).compare;
+
+/** Keep large catalogue facets out of the DOM while retaining access to every option. */
+function useOptionWindow(options: string[], title: string, alwaysSearch = false) {
+  const [needle, setNeedle] = useState("");
+  const [page, setPage] = useState(0);
+  const filtered = useMemo(() => {
+    const term = needle.trim().toLowerCase();
+    return term ? options.filter((option) => option.toLowerCase().includes(term)) : options;
+  }, [options, needle]);
+  const pages = Math.max(1, Math.ceil(filtered.length / OPTIONS_PER_PAGE));
+  const current = Math.min(page, pages - 1);
+  return {
+    visible: filtered.slice(current * OPTIONS_PER_PAGE, (current + 1) * OPTIONS_PER_PAGE),
+    search: (alwaysSearch || options.length > OPTIONS_PER_PAGE) && (
+      <input type="search" value={needle} onChange={(event) => { setNeedle(event.target.value); setPage(0); }} placeholder={`Search ${title.toLowerCase()}`} aria-label={`Search ${title.toLowerCase()} filter options`} className="h-8 w-full min-w-0 rounded-[10px] border border-[#e5e5e5] bg-white px-2 text-sm text-ink outline-none focus:border-ink" />
+    ),
+    pager: filtered.length === 0 ? <p className="text-xs text-muted">No options match.</p> : pages > 1 && (
+      <div className="flex items-center justify-between gap-2 text-xs text-muted">
+        <button type="button" disabled={current === 0} onClick={() => setPage(current - 1)} className="py-1 disabled:opacity-40" aria-label={`Previous ${title.toLowerCase()} options`}>Previous</button>
+        <span>{current + 1} / {pages}</span>
+        <button type="button" disabled={current === pages - 1} onClick={() => setPage(current + 1)} className="py-1 disabled:opacity-40" aria-label={`Next ${title.toLowerCase()} options`}>Next</button>
+      </div>
+    ),
+  };
+}
+
 function CheckboxGroup({
   field,
   title,
@@ -96,6 +125,7 @@ function CheckboxGroup({
   pathname,
   toggle,
   maxHeight = "200px",
+  alwaysSearch = false,
 }: {
   field: ListingFilterField;
   title: string;
@@ -105,14 +135,18 @@ function CheckboxGroup({
   pathname: string;
   toggle: Toggle;
   maxHeight?: string;
+  alwaysSearch?: boolean;
 }) {
+  const window = useOptionWindow(options, title, alwaysSearch);
   if (!options.length) return null;
   return (
     <div className="flex flex-col gap-3">
       <SectionTitle>{title}</SectionTitle>
+      {window.search}
       <ul className="overflow-y-auto pr-1" style={{ maxHeight }}>
-        <CheckboxList field={field} names={options} selected={selected} base={base} pathname={pathname} toggle={toggle} />
+        <CheckboxList field={field} names={window.visible} selected={selected} base={base} pathname={pathname} toggle={toggle} />
       </ul>
+      {window.pager}
     </div>
   );
 }
@@ -134,15 +168,18 @@ function PillGroup({
   pathname: string;
   toggle: Toggle;
 }) {
+  const window = useOptionWindow(options, title);
   if (!options.length) return null;
   return (
     <div className="flex flex-col gap-3">
       <SectionTitle>{title}</SectionTitle>
+      {window.search}
       <div className="flex max-h-[140px] flex-wrap gap-2 overflow-y-auto">
-        {options.map((label) => {
+        {window.visible.map((label) => {
           const on = selected.has(label);
           return (
             <Link
+              prefetch={false}
               key={label}
               href={toggleFilterHref(base, field, label, pathname)}
               onClick={clickHandler(toggle, field, label)}
@@ -154,6 +191,7 @@ function PillGroup({
           );
         })}
       </div>
+      {window.pager}
     </div>
   );
 }
@@ -171,45 +209,16 @@ function IssuerSearchGroup({
   pathname: string;
   toggle: Toggle;
 }) {
-  const [needle, setNeedle] = useState("");
-  const filtered = useMemo(() => {
-    const n = needle.trim().toLowerCase();
-    if (!n) return options;
-    return options.filter((o) => o.toLowerCase().includes(n));
-  }, [needle, options]);
-
-  if (!options.length) return null;
-  return (
-    <div className="flex flex-col gap-3">
-      <label className="flex h-8 items-center gap-1.5 rounded-[10px] border border-[#e5e5e5] bg-white px-2 focus-within:border-[#1e1e1f]">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden className="shrink-0">
-          <circle cx="7.25" cy="7.25" r="5" stroke="#141B34" strokeWidth="1.5" />
-          <path d="M11 11l3 3" stroke="#737373" strokeWidth="1.5" strokeLinecap="round" />
-        </svg>
-        <input
-          type="search"
-          value={needle}
-          onChange={(e) => setNeedle(e.target.value)}
-          placeholder="Search issuer"
-          className="min-w-0 flex-1 bg-transparent text-sm leading-5 text-ink outline-none placeholder:text-[#737373]"
-          aria-label="Search issuer filter options"
-        />
-      </label>
-      <SectionTitle>Issuer</SectionTitle>
-      <ul className="max-h-[180px] overflow-y-auto pr-1">
-        <CheckboxList field="issuer" names={filtered} selected={selected} base={base} pathname={pathname} toggle={toggle} />
-        {!filtered.length && <li className="text-xs leading-4 text-muted">No issuers match.</li>}
-      </ul>
-    </div>
-  );
+  return <CheckboxGroup field="issuer" title="Issuer" options={options} selected={selected} base={base} pathname={pathname} toggle={toggle} maxHeight="180px" alwaysSearch />;
 }
 
 /** Right filter column — options from `GET /marketplace/listing/filterItems`; toggles update `?issuer=` etc. */
-export function MarketplaceFilterPanel({ options }: { options: ListingFilterValues }) {
+export function MarketplaceFilterPanel({ options, wrapperClassName = "min-h-0 shrink-0 overflow-y-auto py-6 pr-8", collapsible = false }: { options: ListingFilterValues; wrapperClassName?: string; collapsible?: boolean }) {
   const router = useRouter();
   const params = useSearchParams();
   const pathname = usePathname() || "/marketplace";
   const [pending, startTransition] = useTransition();
+  const [mobileOpen, setMobileOpen] = useState(false);
   // Optimistic copy of the query so the tapped option flips instantly while the results load.
   const [optimistic, setOptimistic] = useState<string | null>(null);
   const paramsString = params.toString();
@@ -237,17 +246,29 @@ export function MarketplaceFilterPanel({ options }: { options: ListingFilterValu
   };
   const toggle: Toggle = (field, value) => go(toggleFilterHref(base, field, value, pathname));
 
-  const issuers = [...options.issuer].sort((a, b) => a.localeCompare(b));
-  const rulers = [...options.ruler].sort((a, b) => a.localeCompare(b));
-  const years = [...options.yearOfMinting].sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
-  const mints = [...options.mintLocation].sort((a, b) => a.localeCompare(b));
-  const shapes = [...options.shape].sort((a, b) => a.localeCompare(b));
-  const materials = [...options.material].sort((a, b) => a.localeCompare(b));
+  const sorted = useMemo(() => {
+    const unique = (values: string[]) => [...new Set(values.map(String).filter((value) => value.trim()))];
+    const alphabetic = (values: string[]) => unique(values).sort((a, b) => a.localeCompare(b));
+    return {
+      issuers: alphabetic(options.issuer),
+      rulers: alphabetic(options.ruler),
+      years: unique(options.yearOfMinting).sort((a, b) => numericCompare(b, a)),
+      mints: alphabetic(options.mintLocation),
+      shapes: alphabetic(options.shape),
+      materials: alphabetic(options.material),
+    };
+  }, [options]);
+  const { issuers, rulers, years, mints, shapes, materials } = sorted;
 
   return (
-    <div className="min-h-0 shrink-0 overflow-y-auto py-6 pr-8">
+    <div className={wrapperClassName}>
+    {collapsible && (
+      <button type="button" aria-expanded={mobileOpen} onClick={() => setMobileOpen((open) => !open)} className="mb-3 w-full rounded-xl border border-border-neutral bg-white px-4 py-3 text-left text-sm font-medium lg:hidden">
+        {mobileOpen ? "Hide filters" : "Filter coins"}
+      </button>
+    )}
     <aside
-      className={`flex w-[268px] shrink-0 flex-col gap-4 rounded-2xl border-[0.5px] border-[#c2c2c4] bg-white px-4 py-3 transition-opacity ${pending ? "pointer-events-none opacity-70" : ""}`}
+      className={`${collapsible && !mobileOpen ? "hidden lg:flex" : "flex"} w-[268px] shrink-0 flex-col gap-4 rounded-2xl border-[0.5px] border-[#c2c2c4] bg-white px-4 py-3 transition-opacity ${pending ? "pointer-events-none opacity-70" : ""}`}
       aria-busy={pending}
     >
       <div className="flex h-6 items-center justify-between">
@@ -262,6 +283,7 @@ export function MarketplaceFilterPanel({ options }: { options: ListingFilterValu
           )}
         </h2>
         <Link
+          prefetch={false}
           href={clearFiltersHref(base, pathname)}
           onClick={(e) => {
             if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;

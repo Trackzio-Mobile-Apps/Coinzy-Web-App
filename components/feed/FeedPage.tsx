@@ -1,13 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CommentsPanel } from "@/components/feed/CommentsPanel";
 import { CreatePostDialog } from "@/components/feed/CreatePostDialog";
 import { FeedAside } from "@/components/feed/FeedAside";
 import { FeedPostCard } from "@/components/feed/FeedPostCard";
 import { ensureFirebaseSession } from "@/lib/firebase/authBridge";
-import { initials } from "@/lib/feed/format";
+import { FeedComposer } from "@/components/feed/FeedComposer";
 import { fetchNotifications, createNotification, markNotificationRead } from "@/lib/feed/notifications";
 import {
   createPost,
@@ -30,6 +29,7 @@ type MePayload = {
   name?: string;
   email?: string;
   isGuest?: boolean;
+  profilePictureUrl?: string | null;
 };
 
 export function FeedPage({
@@ -86,11 +86,13 @@ export function FeedPage({
       setMe({
         userId: user.id || "",
         name: user.name || initialName || "Collector",
+        profilePictureUrl: user.profilePictureUrl ?? null,
       });
-      await ensureFirebaseSession({
+      const firebaseUser = await ensureFirebaseSession({
         email: user.email || "",
         isGuest: user.isGuest === true || !user.email,
       });
+      setMe((current) => ({ ...current, profilePictureUrl: user.profilePictureUrl || firebaseUser?.photoURL || null }));
       if (user.id) {
         setNotifications(await fetchNotifications({ userId: user.id }).catch(() => []));
       }
@@ -153,26 +155,19 @@ export function FeedPage({
         : { title: "No posts yet", sub: "Share a coin find to get started." };
 
   return (
-    <div className="relative flex flex-1 gap-6 overflow-auto px-6 py-6 lg:px-8">
+    <div className="relative flex min-w-0 flex-1 flex-col gap-4 px-4 py-4 lg:px-8">
+      <h2 className="text-2xl font-semibold leading-8 text-ink">{heading}</h2>
+      <div className="flex items-start gap-4">
       <div className="flex min-w-0 flex-1 flex-col gap-4">
-        <h2 className="text-2xl font-semibold leading-8 text-ink">{heading}</h2>
 
         {tab === "all" ? (
-          <button
-            type="button"
-            onClick={() => {
+          <FeedComposer
+            me={communityUser}
+            onCompose={() => {
               setEditing(null);
               setCreateOpen(true);
             }}
-            className="flex items-center gap-3 rounded-2xl border border-[#efefef] bg-white px-4 py-3 text-left shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
-          >
-            <div className="flex size-10 items-center justify-center rounded-full bg-primary-50 text-sm font-medium text-primary-500">
-              {initials(me.name || "?")}
-            </div>
-            <span className="flex-1 text-sm text-muted">What’s on your mind?</span>
-            <Image src="/assets/feed/icon-image.svg" alt="" width={20} height={20} />
-            <Image src="/assets/feed/icon-camera.svg" alt="" width={20} height={20} />
-          </button>
+          />
         ) : null}
 
         {error ? (
@@ -326,6 +321,7 @@ export function FeedPage({
           }
         }}
       />
+      </div>
 
       <CreatePostDialog
         open={createOpen}

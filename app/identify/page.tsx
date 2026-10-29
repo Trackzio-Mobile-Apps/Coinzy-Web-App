@@ -4,7 +4,8 @@ import { ReloadOnRestore } from "@/components/auth/ReloadOnRestore";
 import { AppSidebar } from "@/components/home/AppSidebar";
 import { IdentifyApp } from "@/components/identify/IdentifyApp";
 import { MarketplaceAppHeader } from "@/components/marketplace/MarketplaceAppHeader";
-import { getPremiumStatus, getSessionUser } from "@/lib/auth/session";
+import { getPremiumStatus, getSessionToken, getSessionUser } from "@/lib/auth/session";
+import { resolveScanUsage } from "@/lib/auth/subscription";
 
 export const metadata: Metadata = {
   title: "Identify coin | Coinzy AI",
@@ -22,6 +23,8 @@ export default async function IdentifyPage({
   const sp = await searchParams;
   const premium =
     (await getPremiumStatus(user)) || (process.env.NODE_ENV !== "production" && sp.premium === "1");
+  const token = await getSessionToken();
+  const usage = !premium && token ? await resolveScanUsage(token) : null;
   const autoLoadDebug = process.env.NODE_ENV !== "production" && sp.debug === "1";
 
   return (
@@ -32,7 +35,7 @@ export default async function IdentifyPage({
         <MarketplaceAppHeader user={user} premium={premium} />
         <main className="min-w-0 flex-1 overflow-y-auto px-4 py-4 sm:px-8">
           <div className="mx-auto w-full max-w-[1122px]">
-            <IdentifyApp autoLoadDebug={autoLoadDebug} premium={premium} restoreMatches={sp.step === "matches"} />
+            <IdentifyApp autoLoadDebug={autoLoadDebug} premium={premium} restoreMatches={sp.step === "matches"} initialUsage={usage} />
           </div>
         </main>
       </div>

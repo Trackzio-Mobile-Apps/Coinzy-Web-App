@@ -10,8 +10,8 @@ export default function Loading() {
       signedIn={
         <>
           <div className="mb-6 flex flex-wrap gap-1.5">
-            {[40, 120, 100, 90, 90].map((w) => (
-              <div key={w} className="h-8 rounded-full border border-[#e5e5e5] bg-white" style={{ width: w }} />
+            {[40, 120, 100, 90, 90].map((w, index) => (
+              <div key={index} className="h-8 rounded-full border border-[#e5e5e5] bg-white" style={{ width: w }} />
             ))}
           </div>
           <CoinGridSkeleton count={20} />
@@ -20,8 +20,8 @@ export default function Loading() {
       loggedOut={
         <>
           <div className="mb-6 flex flex-wrap gap-1.5">
-            {[40, 120, 100, 90, 90].map((w) => (
-              <div key={w} className="h-8 rounded-full border border-[#e5e5e5] bg-white" style={{ width: w }} />
+            {[40, 120, 100, 90, 90].map((w, index) => (
+              <div key={index} className="h-8 rounded-full border border-[#e5e5e5] bg-white" style={{ width: w }} />
             ))}
           </div>
           <CoinGridSkeleton count={12} />

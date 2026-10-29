@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { AppQrCode } from "@/components/ui/AppQrCode";
 import Link from "next/link";
+import type { ScanUsage } from "@/lib/identify/scanUsage";
 import { IdentifyFreePlanCard } from "@/components/identify/IdentifyFreePlanCard";
 import { HOME_OTHER_APPS } from "@/lib/home";
 
@@ -9,13 +10,15 @@ const A = "/assets/home";
 export function IdentifySideRail({
   onScanApp,
   premium = false,
+  initialUsage = null,
 }: {
   onScanApp?: () => void;
   premium?: boolean;
+  initialUsage?: ScanUsage | null;
 }) {
   return (
     <aside className="flex w-full shrink-0 flex-col gap-4 lg:w-[268px]">
-      <IdentifyFreePlanCard hidden={premium} />
+      <IdentifyFreePlanCard hidden={premium} initialUsage={initialUsage} />
 
       <button
         type="button"

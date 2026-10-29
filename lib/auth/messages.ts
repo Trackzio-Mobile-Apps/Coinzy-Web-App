@@ -42,6 +42,11 @@ export function authErrorsFromReason(mode: AuthFormMode, reason: string): { fiel
     return { fields: { otp: AUTH_FIELD_COPY.otpInvalid } };
   }
 
+  // Any other rejection of the reset call that is not about the new password means the code was not accepted.
+  if (mode === "reset" && !/password/.test(r) && /invalid|incorrect|expired|not match|doesn't match|wrong|unauthori[sz]ed|not found|denied/.test(r)) {
+    return { fields: { otp: AUTH_FIELD_COPY.otpInvalid } };
+  }
+
   if (mode === "reset" && /password/.test(r) && /match|mismatch/.test(r)) {
     return { fields: { confirm: AUTH_FIELD_COPY.passwordMismatch } };
   }

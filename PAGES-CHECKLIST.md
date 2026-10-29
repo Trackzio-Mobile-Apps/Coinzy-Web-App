@@ -47,11 +47,12 @@ Figma auth modals (`908:39186`, `908:39439`, `908:39567`, `905:38594`, `905:3880
 - [x] Self Listing details — Copy `1363:178858` → `app/marketplace/my-listing/[id]/page.tsx` (`OwnerListingPanel`; Remove → `DELETE /api/marketplace/listing/[id]`; Mark as sold → `PATCH /api/marketplace/markSold/[id]`)
 
 ## Global Catalogue
-- [x] CataloguePage — `797:30404` → `app/catalogue/page.tsx` (+ name search `?q=`; Figma shows no search UI — built on the dashboard search pill, see INDEX.md). Session → `CatalogueSignedInPage` (AppSidebar shell; never marketing landing)
+- [x] CataloguePage — `797:30404` → `app/catalogue/page.tsx` (+ name search `?q=`; Figma shows no search UI — built on the dashboard search pill, see INDEX.md). Session → `CatalogueSignedInPage` (AppSidebar shell; `14yn59xpje8`: illustrated category band, live right-hand filters, 4-column/16-card grid; never marketing landing)
 - [x] CataloguePage/SelectedCategory — `797:33107` → `app/catalogue/[slug]/page.tsx` (live API filters; chip row `1386:252333`; `?q=` search composes with the category). Session → redirect `/catalogue?category=`
 - [x] CataloguePage/DetailsPage — `797:35810` → `app/catalogue/coin/[id]/page.tsx` (live `getDetails` API; breadcrumb round-trips `?fromQ=`)
-- [x] Catalogue coin details (signed-in, free) — `1348:137792` → blurred tabs + inline Premium overlay on Design & Material / History / Rarity
+- [x] Catalogue coin details (signed-in, free) — `1348:137792` → warm catalogue shell + heading/search, bordered details/value/download cards; blurred tabs + compact inline Premium overlay on Design & Material / History / Rarity
 - [x] Catalogue coin details (signed-in, Premium) — `1341:249499` → full tabs; dev preview `?premium=1` when signed in (same as `/home`)
+- [x] Manual catalogue search (`14yn59xpk7d`) — Enter/search-icon checks local names after a cancellable 300ms debounce; select a match or use the Not found bar to search the typed text directly. Typing/focus/clear do not start matching.
 - [x] Wishlist heart on catalogue grid + coin details — `PUT/DELETE /archetypes/wishlist/*` via `/api/catalogue/wishlist/[id]`; logged-out → `/auth?next=`
 
 ## Blogs
@@ -88,7 +89,7 @@ Figma auth modals (`908:39186`, `908:39439`, `908:39567`, `905:38594`, `905:3880
 - Superseded by `1831:219131` for signed-in webapp; keep for historical node refs only.
 
 ## Settings (signed-in) — Timeline task 19 · Figma canvas `796:17452`
-- [x] Settings hub — `1368:256937` → `app/settings/page.tsx` + `SettingsPanel` (Account / Support / Preferences / General + right rail)
+- [x] Settings hub — `1368:256937` → `app/settings/page.tsx` + `SettingsPanel` (Account / Support / Preferences / General + right rail); `14yn59xpj0q` aligned to supplied CSS/screenshot (Dark Mode displayed disabled; web theme unavailable)
 - [x] Edit Profile modal — `1370:216726` → `EditProfileDialog` → `PATCH /api/auth/me` `{ fullName, syncSellerEmail }`
 - [x] Set Seller Profile — reuses `SetSellerProfileDialog` (`1363:172631`)
 - [x] Logout confirm — `1370:256025` → `POST /api/auth/logout` (local cookie clear) → `/`

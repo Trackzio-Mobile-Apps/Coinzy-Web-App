@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { AppQrCode } from "@/components/ui/AppQrCode";
+import { AppStoreButtons } from "@/components/ui/AppStoreButtons";
+import { CatalogueSearch } from "@/components/catalogue/CatalogueSearch";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { AppSidebar } from "@/components/home/AppSidebar";
@@ -46,6 +48,7 @@ async function CoinDetailsContent({
   fromPage,
   fromQuery,
   premium,
+  signedIn,
 }: {
   id: string;
   from?: string;
@@ -53,6 +56,7 @@ async function CoinDetailsContent({
   /** Search term of the list the visitor came from. */
   fromQuery: string;
   premium: boolean;
+  signedIn: boolean;
 }) {
   const sessionToken = await getSessionToken();
   const coin =
@@ -83,15 +87,15 @@ async function CoinDetailsContent({
   return (
     <>
       {/* Breadcrumb (Figma 797:38514) */}
-      <DetailsBreadcrumb
+      {!signedIn && <DetailsBreadcrumb
         ancestors={ancestors}
         current={title}
-      />
+      />}
 
       {/* Details (Figma 862:29227) */}
-      <div className="mt-10 flex flex-col items-start gap-4 lg:flex-row">
+      <div className={`${signedIn ? "" : "mt-10"} flex flex-col items-start gap-4 lg:flex-row`}>
         <div className="flex w-full min-w-0 flex-1 flex-col gap-4">
-          <div className="flex w-full flex-col gap-6 rounded-2xl bg-white p-4">
+          <div className={`flex w-full flex-col gap-6 rounded-2xl bg-white p-4 ${signedIn ? "border-[0.5px] border-border-neutral" : ""}`}>
             <div className="flex min-h-8 items-center justify-between gap-4">
               <h1 className="text-2xl font-semibold leading-8 text-ink">{title}</h1>
               <WishlistHeart
@@ -111,7 +115,7 @@ async function CoinDetailsContent({
                   <h2 className="text-lg font-medium leading-7 text-ink">Overview</h2>
                   <div className="flex flex-col">
                     {overviewRows(coin).map((row) => (
-                      <TableRow key={row.label} {...row} gapClassName="gap-6 lg:gap-[210px]" />
+                      <TableRow key={row.label} {...row} gapClassName={signedIn ? "gap-4 [&>p:first-child]:w-auto [&>p:first-child]:flex-1 [&>p:last-child]:w-[34%] [&>p:last-child]:flex-none [&>p:last-child]:break-words" : "gap-6 lg:gap-[210px]"} />
                     ))}
                   </div>
                 </div>
@@ -119,12 +123,12 @@ async function CoinDetailsContent({
             </div>
           </div>
 
-          <CoinDetailTabs tabs={detailTabs(coin)} premium={premium} />
+          <CoinDetailTabs tabs={detailTabs(coin)} premium={premium} className={signedIn ? "border-[0.5px] border-border-neutral" : ""} />
         </div>
 
         <aside className="flex w-full shrink-0 flex-col gap-4 sm:flex-row lg:w-[268px] lg:flex-col">
           {grades.length > 0 && (
-            <div className="flex w-full flex-col gap-3 rounded-lg bg-white px-4 py-3">
+            <div className={`flex w-full flex-col gap-3 rounded-lg bg-white px-4 py-3 ${signedIn ? "border border-border-neutral" : ""}`}>
               <h2 className="flex h-7 items-center text-sm font-medium leading-5 text-ink">Estimated Value</h2>
               <dl className="flex flex-col">
                 {grades.map((g) => (
@@ -138,7 +142,7 @@ async function CoinDetailsContent({
           )}
 
           {/* Figma "OtherApps" card */}
-          <div className="flex w-full flex-col items-center gap-3 self-start rounded-2xl bg-white px-4 py-3 lg:w-[268px]">
+          <div className={`flex w-full flex-col items-center gap-3 self-start rounded-2xl bg-white px-4 py-3 lg:w-[268px] ${signedIn ? "border-[0.5px] border-border-neutral" : ""}`}>
             <p className="w-full text-sm font-medium leading-5 text-ink">Scan to download Coinzy AI</p>
             <p className="w-full text-xs leading-4 text-muted">
               Identify coins instantly and sync your collection across devices.
@@ -146,6 +150,10 @@ async function CoinDetailsContent({
             <div className="flex w-full justify-center px-5 py-[7px]">
               <AppQrCode size={142} />
             </div>
+            {signedIn && <div className="flex w-full flex-col gap-3 border-t border-border-neutral pt-3">
+              <p className="text-xs leading-4 text-muted">On mobile? Tap below</p>
+              <AppStoreButtons className="flex-col [&>a]:w-full [&>a]:justify-center [&>a]:rounded-md [&>a]:bg-[#242424] [&>a]:text-white [&>a:first-child>img]:invert" />
+            </div>}
           </div>
         </aside>
       </div>
@@ -166,13 +174,14 @@ export default async function CatalogueCoinPage({ params, searchParams }: Params
     ((await getPremiumStatus(user)) || (process.env.NODE_ENV !== "production" && sp.premium === "1"));
 
   const details = (
-    <Suspense key={id} fallback={<CoinDetailsSkeleton />}>
+    <Suspense key={id} fallback={<CoinDetailsSkeleton showBreadcrumb={!user} />}>
       <CoinDetailsContent
         id={id}
         from={from}
         fromPage={parsePageParam(fromPage)}
         fromQuery={parseQueryParam(fromQ)}
         premium={premium}
+        signedIn={Boolean(user)}
       />
     </Suspense>
   );
@@ -181,10 +190,16 @@ export default async function CatalogueCoinPage({ params, searchParams }: Params
     return (
       <div className="flex h-svh overflow-hidden bg-white">
         <AppSidebar user={user} active="catalogue" />
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-[#f7f7f8]">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-[#faf7f5]">
           <MarketplaceAppHeader user={user} premium={premium} />
-          <main className="min-w-0 flex-1 overflow-y-auto px-8 py-6">
-            <div className="mx-auto w-full max-w-[1122px]">{details}</div>
+          <main className="min-w-0 flex-1 overflow-y-auto px-4 py-4 lg:px-8">
+            <div className="mx-auto w-full max-w-[1122px]">
+              <div className="mb-4 flex min-h-10 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className="shrink-0 text-2xl font-semibold leading-8 text-ink">Global Catalogue</h2>
+                <CatalogueSearch action="/catalogue" query={parseQueryParam(fromQ)} placeholder="Search coins, empires, countries, years..." label="Search catalogue" variant="toolbar" />
+              </div>
+              {details}
+            </div>
           </main>
         </div>
       </div>

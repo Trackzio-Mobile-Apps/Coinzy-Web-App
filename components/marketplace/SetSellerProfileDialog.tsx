@@ -6,6 +6,7 @@ import { useModalDialog } from "@/components/ui/useModalDialog";
 import type { SellerDetails } from "@/lib/api/auth-session";
 import {
   formStateFromSellerDetails,
+  PHONE_ALLOWED_CHARS,
   sellerDetailsFromForm,
   validateSellerProfileForm,
   type SellerProfileFormErrors,
@@ -13,7 +14,7 @@ import {
 } from "@/lib/marketplace/sellerProfile";
 
 const input =
-  "h-8 w-full rounded-[10px] border border-[#e5e5e5] bg-white px-2.5 text-sm text-ink outline-none placeholder:font-light placeholder:text-[#a4a4a7] focus:border-primary-500 disabled:bg-neutral-50 disabled:text-[#606062]";
+  "h-8 w-full rounded-[10px] border border-[#e5e5e5] bg-white px-2.5 text-sm text-[#606062] outline-none placeholder:font-light placeholder:text-[#a4a4a7] focus:border-primary-500 disabled:bg-neutral-50 disabled:text-[#606062]";
 const labelCls = "text-xs font-medium leading-4 text-ink";
 const errorText = "text-xs text-[#dc2626]";
 
@@ -86,7 +87,7 @@ export function SetSellerProfileDialog({
 
   const set = <K extends keyof SellerProfileFormState>(key: K, val: SellerProfileFormState[K]) => {
     setValues((v) => ({ ...v, [key]: val }));
-    setErrors((e) => ({ ...e, name: key === "name" ? undefined : e.name, sellerEmail: key === "sellerEmail" || key === "usePersonalEmail" ? undefined : e.sellerEmail, form: undefined }));
+    setErrors((e) => ({ ...e, name: key === "name" ? undefined : e.name, sellerEmail: key === "sellerEmail" || key === "usePersonalEmail" ? undefined : e.sellerEmail, phoneNumber: key === "phoneNumber" ? undefined : e.phoneNumber, form: undefined }));
   };
 
   const submit = () => {
@@ -108,20 +109,12 @@ export function SetSellerProfileDialog({
     >
       <div className="relative flex flex-col gap-4 p-4">
         <div className="flex items-start gap-3 pr-6">
-          <div className="relative size-8 shrink-0">
-            <Image
-              src="/assets/marketplace/seller-profile-avatar.svg"
-              alt=""
-              width={32}
-              height={32}
-              className="rounded-[8px] border border-[#e5e5e5]"
-            />
-            <span className="absolute -right-0.5 bottom-0 flex size-2.5 items-center justify-center rounded-full bg-ink shadow-[0_0_0_2px_white]">
-              <Image src="/assets/marketplace/seller-profile-plus.svg" alt="" width={6} height={6} />
-            </span>
+          {/* User's profile picture (same avatar as the sidebar). Read-only for now — no edit affordance. */}
+          <div className="relative size-8 shrink-0 overflow-hidden rounded-[10px] border border-[#e5e5e5]">
+            <Image src="/assets/home/avatar.png" alt="Your profile picture" width={32} height={32} className="size-full object-cover" />
           </div>
           <div className="min-w-0 flex-1">
-            <h2 id={titleId} className="h-[22px] text-base font-medium leading-6 text-ink">
+            <h2 id={titleId} className="h-[22px] text-base font-medium leading-6 text-[#0a0a0a]">
               Set Seller Profile
             </h2>
             <p className="text-sm leading-5 text-[#737373]">Visible to buyers on the marketplace</p>
@@ -156,8 +149,10 @@ export function SetSellerProfileDialog({
               id={`${titleId}-personal`}
               type="email"
               readOnly
+              aria-readonly="true"
+              title="Your personal email can't be changed here"
               value={values.personalEmail || "—"}
-              className={input}
+              className={`${input} cursor-not-allowed bg-neutral-50 focus:border-[#e5e5e5]`}
             />
           </Field>
           <label className="flex items-start gap-2">
@@ -185,14 +180,16 @@ export function SetSellerProfileDialog({
           />
         </Field>
 
-        <Field id={`${titleId}-phone`} title="Contact number (optional)">
+        <Field id={`${titleId}-phone`} title="Contact number (optional)" error={errors.phoneNumber}>
           <input
             id={`${titleId}-phone`}
             type="tel"
+            inputMode="numeric"
             autoComplete="tel"
             placeholder="Enter contact number"
             value={values.phoneNumber}
-            onChange={(e) => set("phoneNumber", e.target.value)}
+            onChange={(e) => set("phoneNumber", e.target.value.replace(PHONE_ALLOWED_CHARS, "").slice(0, 15))}
+            maxLength={15}
             className={input}
           />
         </Field>
