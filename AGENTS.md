@@ -41,7 +41,7 @@ INDEX.md             living project map — update when pages/APIs change
 7. **Figma SVG exports are often wrong** (hearts, arcs, wrong layer hashes). Prefer hand-written Hugeicons under `public/assets/...` or `icons/shared/`. Eyeball every downloaded asset.
 8. **After replacing an image under the same filename**, delete `.next/cache/images` or the optimizer keeps serving the old bytes.
 9. **No new deps** unless required; prefer the existing stack. No Inter/Roboto defaults — use theme tokens from `@theme`.
-10. **Google auth** uses Firebase Google popup → Google ID token → same-origin `POST /api/auth/google` → upstream `auth/social-login/google` (never expose the Coinzy JWT). **Shared auth entry pop-ups** (Figma `908:*` / `905:*`) are **not built on web** — logged-out CTAs use `/auth?next=` instead.
+10. **Google auth** uses Firebase popup → Google ID token → same-origin `POST /api/auth/google` → upstream `auth/social-login/google` (never expose the Coinzy JWT). **Apple Sign-In will not ship on web** (ticket cancelled). **Shared auth entry pop-ups** (Figma `908:*` / `905:*`) are **not built on web** — logged-out CTAs use `/auth?next=` instead.
 
 ## Coding conventions
 

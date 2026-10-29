@@ -21,12 +21,13 @@ Figma file: `YV6ArWhD2eVlLPH6M090gc` (canvas `793:76525`). Node IDs below are fo
 - [x] Welcome/auth entry screen — `1758:121426` → `app/auth/page.tsx` (all web Try Coinzy AI CTAs → `/auth`; email/login/Google + guest APIs connected)
 - [x] Email sign-up UI — `1422:287605` → `/auth?mode=signup`
 - [x] Email login UI — `1422:293465` → `/auth?mode=login`
-- [x] Forgot password UI — `1422:305108` → `/auth?mode=forgot`
+- [x] Forgot password UI — `1422:305108` → `/auth?mode=forgot`; unregistered-email API errors use inline email error state (`14yn59xnedt`)
 - [x] Reset OTP UI — `1425:307885` → `/auth?mode=otp` (code passed to reset API; real resend with a 30-second UI cooldown)
 - [x] New password UI — `1425:310892` → `/auth?mode=reset` (backend reset + matching-password validation; OTP is verified on submission)
 - [x] Auth error UI — section `1758:124172` (unregistered email, incorrect password, invalid OTP, mismatched passwords)
 - [x] Connect email signup/login, guest, forgot/reset APIs and HTTP-only session cookies — contract in `docs/auth-api.md`
 - [x] Google sign-in — Firebase Google popup → `POST /api/auth/google` → `auth/social-login/google` (`GoogleSignInButton` on welcome + login/signup)
+- [x] ~~Apple sign-in~~ — **won’t do** on web ([14yn59xn68y](https://app.clickup.com/t/14yn59xn68y) cancelled per PO; web Apple auth code removed)
 - [x] **Logged-out auth entry** — product uses full-page `/auth` with `?next=` (not Figma `908:*` / `905:*` modals; those pop-ups are **out of scope** for web)
 - [x] Contact details modal (signed-in "Contact seller") — `1356:164759` → `ContactDetailsDialog` on `/marketplace/listing/[id]`
 
@@ -34,7 +35,8 @@ Figma auth modals (`908:39186`, `908:39439`, `908:39567`, `905:38594`, `905:3880
 
 ## Marketplace
 - [x] MarketplacePage (logged out) — `793:77834` → `app/marketplace/page.tsx` when no session (landing rows + browse)
-- [x] Signed-in marketplace browse — `1356:154252` → `MarketplaceSignedInPage` on `/marketplace` when session present; `filterItems` → `MarketplaceFilterPanel`; category slugs redirect here with `?category=`
+- [x] Signed-in marketplace browse — `1357:183164` / `1356:154252` → `MarketplaceSignedInPage` on `/marketplace` when session present; Your listings strip → `YourListingsPanel` + Manage → `/marketplace/my-listings`; `filterItems` → `MarketplaceFilterPanel`; category slugs redirect here with `?category=`
+- [x] Your listings manage page — `1357:189273` → `/marketplace/my-listings` (breadcrumb, list CTA, grid, filter column; `myListingsOnly` + URL filters)
 - [x] MarketplacePage/CoinListings (logged out) — `793:77612` → `app/marketplace/[slug]/page.tsx` (live prod API; slugs in `lib/marketplace/categories.ts`; title search `?q=` — search UI not in this Figma frame, built on the dashboard search pill; SellBar `1715:31687` → `/auth?next=` when logged out)
 - [x] CoinListings/DetailsPage — `843:15466` → `app/marketplace/listing/[id]/page.tsx` (live prod API; linked from listing grids + marketplace rows; breadcrumb round-trips `?fromQ=`)
 - [x] `/home` marketplace panel chips + search (`1898:205770`) — chips filter live rows; "British coins" → `british-coins` (empty today)
@@ -57,7 +59,7 @@ Figma auth modals (`908:39186`, `908:39439`, `908:39567`, `905:38594`, `905:3880
 - [x] BlogsPage/Read (article) — `828:40221` → `app/blogs/[slug]/page.tsx` (6 static posts in `lib/blogs.ts`)
 
 ## Our other apps
-- [x] Our other apps page — `876:23169` → `app/other-apps/page.tsx` ("Explore" → trackzio.com/apps/*, "Get the app" → Google Play; TCG/Vinyl/Birds "Coming soon")
+- [x] Our other apps page — `876:23169` → `app/other-apps/page.tsx` ("Explore" → trackzio.com/apps/*, "Get the app" → Google Play; TCG/Vinyl/Birds omitted until they ship)
 
 ## Collections (signed-in)
 - [x] Collections home — `1341:262557` → `app/collection/page.tsx`
@@ -72,7 +74,7 @@ Figma auth modals (`908:39186`, `908:39439`, `908:39567`, `905:38594`, `905:3880
 - [x] Remove coin from collection — coin details ⋯ menu → confirm (AlertDialog shell; Copy node `4003:20563` not resolvable via MCP) → `DELETE /api/coin/delete/[coinId]`
 
 ## Identification flow (section `1831:219131`)
-- [x] Signed-in upload + analyse + match list — `/identify` (Figma row: `1828:206837` … `1831:215037`)
+- [x] Signed-in upload + analyse + match list — `/identify` (Figma row: `1828:206837` … `1831:215037`); upload layout/rail aligned to supplied reference (`14yn59xnmmf`); gallery selection opens circular-guide crop before saving (`14yn59xnnhd`)
 - [x] Result coin details + collection prompt — `/identify/coin/[id]` (reuse catalogue details; `1498:259534`, `1492:255248`)
 - [x] API — `POST /api/ai/identify-v2` proxy → catalogue `POST /ai/identify-v2`
 - [x] Analyse progress `1828:206840`, top matches `1831:215037`, result details `1828:206836`, collection drawer/modals `1301:153660` / `1500:287598`, added toast `1498:257365`
