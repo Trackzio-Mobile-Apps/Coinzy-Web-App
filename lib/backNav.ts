@@ -12,6 +12,9 @@
 /** Origin used by the signed-in dashboard widgets. */
 export const FROM_HOME = "home";
 
+/** Origin used by the logged-out marketing landing (`/`). */
+export const FROM_LANDING = "landing";
+
 /** Positive integer page from a search param; `1` when missing/garbage. */
 export function parsePageParam(raw: string | undefined): number {
   return Math.max(1, Number.parseInt(raw ?? "", 10) || 1);

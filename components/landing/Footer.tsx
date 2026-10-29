@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
+  APP_STORE_URL,
   COINZY_PRIVACY_URL,
   COINZY_TERMS_URL,
   FOOTER_SOCIALS,
@@ -29,7 +30,7 @@ const INNER = "mx-auto w-full max-w-[1140px]";
 function StoreBadge({ store }: { store: "apple" | "google" }) {
   return (
     <Link
-      href={PLAY_STORE_URL}
+      href={store === "apple" ? APP_STORE_URL : PLAY_STORE_URL}
       target="_blank"
       rel="noopener noreferrer"
       className="flex w-[220px] items-center gap-8 rounded-[var(--radius-badge)] bg-white px-5 py-[7px] text-ink hover:opacity-90"

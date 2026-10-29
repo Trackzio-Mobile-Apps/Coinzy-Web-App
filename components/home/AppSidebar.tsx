@@ -54,7 +54,7 @@ export async function AppSidebar({
           const isActive = Boolean(item.active);
           const className = `flex h-9 items-center gap-2 rounded-[10px] px-3 text-sm font-medium leading-5 ${
             isActive
-              ? "bg-primary-50 text-primary-500"
+              ? "bg-primary-50 text-ink"
               : item.soon
                 ? "cursor-not-allowed text-ink opacity-50"
                 : "text-ink hover:bg-black/[0.03]"
@@ -67,7 +67,6 @@ export async function AppSidebar({
                 width={16}
                 height={16}
                 className={isActive ? "opacity-100" : "opacity-70"}
-                style={isActive ? { filter: "invert(27%) sepia(24%) saturate(1200%) hue-rotate(314deg)" } : undefined}
               />
               <span className="flex-1 truncate">{item.label}</span>
               {item.chevron && (
@@ -103,7 +102,7 @@ export async function AppSidebar({
                         key={link.href}
                         href={link.href}
                         className={`rounded-md py-1.5 text-sm leading-5 ${
-                          link.active ? "font-medium text-primary-500" : "text-ink hover:bg-black/[0.03]"
+                          link.active ? "font-medium text-ink" : "text-ink hover:bg-black/[0.03]"
                         }`}
                       >
                         {link.label}
@@ -120,7 +119,10 @@ export async function AppSidebar({
               <div key={item.label} className="flex flex-col">
                 {row}
                 <div className="flex flex-col py-1 pl-11 pr-2">
-                  <Link href="/marketplace" className="rounded-md py-1.5 text-sm font-medium leading-5 text-primary-500">
+                  <Link
+                    href="/marketplace/my-listings"
+                    className="rounded-md py-1.5 text-sm font-medium leading-5 text-ink"
+                  >
                     Your listing
                   </Link>
                 </div>

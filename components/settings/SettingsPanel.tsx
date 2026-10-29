@@ -163,7 +163,11 @@ export function SettingsPanel({
         setBusy(false);
         return;
       }
-      window.location.replace("/");
+      // Mirror Android `AppUserDataResetter`: drop local auth state so they cannot stay signed in.
+      const { signOutFirebase } = await import("@/lib/firebase/authBridge");
+      await signOutFirebase().catch(() => undefined);
+      await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" }).catch(() => undefined);
+      window.location.replace("/auth");
     } catch {
       setConfirmError("Could not delete account.");
       setBusy(false);

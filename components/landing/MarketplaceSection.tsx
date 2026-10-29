@@ -1,11 +1,25 @@
-import Image from "next/image";
+import Link from "next/link";
+import { ListingCard } from "@/components/marketplace/ListingGrid";
 import { SellBar } from "@/components/marketplace/SellBar";
 import { ParchmentBackground } from "@/components/ui/ParchmentBackground";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { SectionShell } from "@/components/ui/SectionShell";
-import { MARKETPLACE_COINS } from "@/lib/constants";
+import { FROM_LANDING } from "@/lib/backNav";
+import {
+  LANDING_MARKETPLACE_STRIP_SIZE,
+  loadRandomListings,
+} from "@/lib/marketplace/categories";
 
-export function MarketplaceSection() {
+export async function MarketplaceSection() {
+  let cards: Awaited<ReturnType<typeof loadRandomListings>> = [];
+  let unavailable = false;
+  try {
+    cards = await loadRandomListings(LANDING_MARKETPLACE_STRIP_SIZE);
+  } catch (err) {
+    console.error(err);
+    unavailable = true;
+  }
+
   return (
     <SectionShell
       id="marketplace"
@@ -23,32 +37,31 @@ export function MarketplaceSection() {
             actionHref="/marketplace"
           />
 
-          <div className="flex gap-4 overflow-x-auto pb-2 xl:overflow-visible xl:pb-0">
-            {MARKETPLACE_COINS.map((coin) => (
-              <article
-                key={coin.title}
-                className="flex w-[211px] min-w-[164px] shrink-0 flex-col gap-6 rounded-[var(--radius-inner)] border-[0.5px] border-border-neutral bg-white px-2 pb-4 pt-2"
-              >
-                <div className="flex items-center justify-center rounded-lg bg-coin-well py-5">
-                  <Image
-                    src={coin.image}
-                    alt={coin.title}
-                    width={136}
-                    height={136}
-                    className="size-[136px] rounded-full object-contain"
-                  />
+          {unavailable ? (
+            <p className="text-base leading-6 text-muted">
+              Marketplace listings are unavailable right now. Try again later, or{" "}
+              <Link href="/marketplace" className="font-medium text-primary-500 underline-offset-2 hover:underline">
+                browse the marketplace
+              </Link>
+              .
+            </p>
+          ) : cards.length === 0 ? (
+            <p className="text-base leading-6 text-muted">
+              No marketplace listings yet.{" "}
+              <Link href="/marketplace" className="font-medium text-primary-500 underline-offset-2 hover:underline">
+                Check back soon
+              </Link>
+              .
+            </p>
+          ) : (
+            <div className="flex gap-4 overflow-x-auto pb-2 xl:overflow-visible xl:pb-0">
+              {cards.map((card, i) => (
+                <div key={card.id} className="w-[211px] min-w-[164px] shrink-0">
+                  <ListingCard card={card} priority={i < 2} from={FROM_LANDING} />
                 </div>
-                <div className="space-y-2 px-1">
-                  <p className="line-clamp-2 h-[47px] text-base leading-6 text-ink">
-                    {coin.title}
-                  </p>
-                  <p className="text-base font-medium leading-6 text-primary-500">
-                    {coin.price}
-                  </p>
-                </div>
-              </article>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <SellBar />
