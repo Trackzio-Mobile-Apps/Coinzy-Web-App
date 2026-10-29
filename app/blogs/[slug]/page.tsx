@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { absoluteUrl, SITE_NAME } from "@/lib/site";
 import { TopNav } from "@/components/landing/TopNav";
 import { Footer } from "@/components/landing/Footer";
 import { DetailsBreadcrumb } from "@/components/catalogue/DetailsParts";
@@ -19,7 +21,15 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return {
     title: `${post.title} | Coinzy Blog`,
     description: post.excerpt,
-    openGraph: { title: post.title, description: post.excerpt, images: [post.heroImage ?? post.image], type: "article" },
+    alternates: { canonical: `/blogs/${post.slug}` },
+    openGraph: {
+      title: post.title,
+      description: post.excerpt,
+      images: [post.heroImage ?? post.image],
+      type: "article",
+      publishedTime: post.date,
+      authors: [post.author.name],
+    },
   };
 }
 
@@ -51,6 +61,21 @@ export default async function BlogArticlePage({ params, searchParams }: Params) 
 
   return (
     <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: post.title,
+          description: post.excerpt,
+          image: absoluteUrl(post.heroImage ?? post.image),
+          datePublished: post.date,
+          dateModified: post.date,
+          author: { "@type": "Person", name: post.author.name },
+          publisher: { "@type": "Organization", name: SITE_NAME, logo: { "@type": "ImageObject", url: absoluteUrl("/icon.png") } },
+          mainEntityOfPage: absoluteUrl(`/blogs/${post.slug}`),
+          articleSection: post.tags[0],
+        }}
+      />
       <TopNav />
       <main className="bg-cream">
         <article className="mx-auto w-full max-w-[1440px] px-6 pb-20 pt-20 lg:px-[160px]">
