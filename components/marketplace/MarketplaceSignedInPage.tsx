@@ -71,7 +71,11 @@ async function MarketplaceBrowse({
   }));
 
   return (
-    <section>
+    <section data-listing-results className="relative">
+      {/* Shown (via html[data-filtering]) while a filter change loads; see MarketplaceFilterPanel. */}
+      <div data-listing-loader className="absolute inset-x-0 top-24 z-10 justify-center" role="status" aria-label="Updating results">
+        <span className="size-8 animate-spin rounded-full border-[3px] border-[#e5e5e5] border-t-primary-500" />
+      </div>
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="text-lg font-medium leading-7 text-ink">Browse all coins</h3>
         <p className="text-sm leading-5 text-[#737373]">
@@ -215,7 +219,7 @@ export function MarketplaceSignedInPage({
             </Suspense>
           </main>
 
-          <Suspense fallback={<div className="w-[266px] shrink-0 border-l border-[#e5e7eb] bg-white" />}>
+          <Suspense fallback={<div className="w-[300px] shrink-0" />}>
             <MarketplaceFilters />
           </Suspense>
         </div>

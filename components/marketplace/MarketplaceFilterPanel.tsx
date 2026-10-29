@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState, useTransition, type MouseEvent } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   clearFiltersHref,
   toggleFilterHref,
@@ -10,10 +10,82 @@ import {
   type ListingFilterValues,
 } from "@/lib/marketplace/listingFilters";
 
+/** Figma filter colors (`14yn59xp2px`): checked #171717, unchecked #E5E5E5 border, label #606062. */
 const PILL =
-  "inline-flex rounded-md border px-2 py-1 text-xs font-medium leading-4 transition-colors hover:bg-neutral-50";
-const PILL_OFF = `${PILL} border-[#e5e7eb] bg-white text-ink`;
-const PILL_ON = `${PILL} border-primary-500 bg-primary-50 text-primary-500`;
+  "inline-flex items-center rounded-full border border-[#e5e5e5] px-1.5 py-0.5 text-xs font-medium leading-4 transition-colors";
+const PILL_OFF = `${PILL} bg-white text-[#606062] hover:bg-neutral-50`;
+const PILL_ON = `${PILL} bg-[#1e1e1f] text-white`;
+const DIVIDER = <hr className="border-t-[0.5px] border-[#dfdfe0]" />;
+
+type Toggle = (field: ListingFilterField, value: string) => void;
+
+/** Left-click toggles instantly (optimistic) and navigates in the background; modified clicks keep native link behaviour. */
+function clickHandler(toggle: Toggle, field: ListingFilterField, value: string) {
+  return (e: MouseEvent<HTMLAnchorElement>) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    toggle(field, value);
+  };
+}
+
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return <h3 className="text-xs font-medium leading-4 text-[#1e1e1f]">{children}</h3>;
+}
+
+function Checkbox({ on }: { on: boolean }) {
+  return (
+    <span
+      className={`flex size-4 shrink-0 items-center justify-center rounded border shadow-[0_1px_2px_rgba(0,0,0,0.05)] ${
+        on ? "border-[#171717] bg-[#171717]" : "border-[#e5e5e5] bg-white"
+      }`}
+      aria-hidden
+    >
+      {on && (
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="size-3">
+          <path d="M2.5 6.25L5 8.75L9.5 3.5" stroke="#FAFAFA" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      )}
+    </span>
+  );
+}
+
+function CheckboxList({
+  field,
+  names,
+  selected,
+  base,
+  pathname,
+  toggle,
+}: {
+  field: ListingFilterField;
+  names: string[];
+  selected: Set<string>;
+  base: URLSearchParams;
+  pathname: string;
+  toggle: Toggle;
+}) {
+  return (
+    <>
+      {names.map((name) => {
+        const on = selected.has(name);
+        return (
+          <li key={name}>
+            <Link
+              href={toggleFilterHref(base, field, name, pathname)}
+              onClick={clickHandler(toggle, field, name)}
+              role="checkbox"
+              aria-checked={on}
+              className="flex items-center gap-2 py-[7px] text-sm leading-5 text-[#606062]"
+            >
+              <Checkbox on={on} />
+              <span className="min-w-0 flex-1 truncate" title={name}>{name}</span>
+            </Link>
+          </li>
+        );
+      })}
+    </>
+  );
+}
 
 function CheckboxGroup({
   field,
@@ -22,6 +94,7 @@ function CheckboxGroup({
   selected,
   base,
   pathname,
+  toggle,
   maxHeight = "200px",
 }: {
   field: ListingFilterField;
@@ -30,30 +103,15 @@ function CheckboxGroup({
   selected: Set<string>;
   base: URLSearchParams;
   pathname: string;
+  toggle: Toggle;
   maxHeight?: string;
 }) {
   if (!options.length) return null;
   return (
-    <div className="flex flex-col gap-2">
-      <h3 className="text-sm font-medium leading-5 text-ink">{title}</h3>
-      <ul className="space-y-2 overflow-y-auto pr-1" style={{ maxHeight }}>
-        {options.map((name) => {
-          const on = selected.has(name);
-          return (
-            <li key={name}>
-              <Link
-                href={toggleFilterHref(base, field, name, pathname)}
-                className={`flex items-center gap-2 text-sm leading-5 ${on ? "font-medium text-primary-500" : "text-ink"}`}
-              >
-                <span
-                  className={`flex size-4 shrink-0 items-center justify-center rounded border ${on ? "border-primary-500 bg-primary-500" : "border-[#d4d4d4] bg-white"}`}
-                  aria-hidden
-                />
-                <span className="min-w-0 flex-1 truncate" title={name}>{name}</span>
-              </Link>
-            </li>
-          );
-        })}
+    <div className="flex flex-col gap-3">
+      <SectionTitle>{title}</SectionTitle>
+      <ul className="overflow-y-auto pr-1" style={{ maxHeight }}>
+        <CheckboxList field={field} names={options} selected={selected} base={base} pathname={pathname} toggle={toggle} />
       </ul>
     </div>
   );
@@ -66,6 +124,7 @@ function PillGroup({
   selected,
   base,
   pathname,
+  toggle,
 }: {
   field: ListingFilterField;
   title: string;
@@ -73,11 +132,12 @@ function PillGroup({
   selected: Set<string>;
   base: URLSearchParams;
   pathname: string;
+  toggle: Toggle;
 }) {
   if (!options.length) return null;
   return (
-    <div className="flex flex-col gap-2">
-      <h3 className="text-sm font-medium leading-5 text-ink">{title}</h3>
+    <div className="flex flex-col gap-3">
+      <SectionTitle>{title}</SectionTitle>
       <div className="flex max-h-[140px] flex-wrap gap-2 overflow-y-auto">
         {options.map((label) => {
           const on = selected.has(label);
@@ -85,6 +145,8 @@ function PillGroup({
             <Link
               key={label}
               href={toggleFilterHref(base, field, label, pathname)}
+              onClick={clickHandler(toggle, field, label)}
+              aria-pressed={on}
               className={on ? PILL_ON : PILL_OFF}
             >
               {label}
@@ -101,11 +163,13 @@ function IssuerSearchGroup({
   selected,
   base,
   pathname,
+  toggle,
 }: {
   options: string[];
   selected: Set<string>;
   base: URLSearchParams;
   pathname: string;
+  toggle: Toggle;
 }) {
   const [needle, setNeedle] = useState("");
   const filtered = useMemo(() => {
@@ -116,34 +180,24 @@ function IssuerSearchGroup({
 
   if (!options.length) return null;
   return (
-    <div className="flex flex-col gap-2">
-      <h3 className="text-sm font-medium leading-5 text-ink">Issuer</h3>
-      <input
-        type="search"
-        value={needle}
-        onChange={(e) => setNeedle(e.target.value)}
-        placeholder="Search issuer"
-        className="h-8 w-full rounded-lg border border-[#e5e7eb] bg-white px-3 text-sm leading-5 text-ink placeholder:text-[#a3a3a3] focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-primary-500"
-        aria-label="Search issuer filter options"
-      />
-      <ul className="max-h-[180px] space-y-2 overflow-y-auto pr-1">
-        {filtered.map((name) => {
-          const on = selected.has(name);
-          return (
-            <li key={name}>
-              <Link
-                href={toggleFilterHref(base, "issuer", name, pathname)}
-                className={`flex items-center gap-2 text-sm leading-5 ${on ? "font-medium text-primary-500" : "text-ink"}`}
-              >
-                <span
-                  className={`flex size-4 shrink-0 items-center justify-center rounded border ${on ? "border-primary-500 bg-primary-500" : "border-[#d4d4d4] bg-white"}`}
-                  aria-hidden
-                />
-                <span className="min-w-0 flex-1 truncate" title={name}>{name}</span>
-              </Link>
-            </li>
-          );
-        })}
+    <div className="flex flex-col gap-3">
+      <label className="flex h-8 items-center gap-1.5 rounded-[10px] border border-[#e5e5e5] bg-white px-2 focus-within:border-[#1e1e1f]">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden className="shrink-0">
+          <circle cx="7.25" cy="7.25" r="5" stroke="#141B34" strokeWidth="1.5" />
+          <path d="M11 11l3 3" stroke="#737373" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+        <input
+          type="search"
+          value={needle}
+          onChange={(e) => setNeedle(e.target.value)}
+          placeholder="Search issuer"
+          className="min-w-0 flex-1 bg-transparent text-sm leading-5 text-ink outline-none placeholder:text-[#737373]"
+          aria-label="Search issuer filter options"
+        />
+      </label>
+      <SectionTitle>Issuer</SectionTitle>
+      <ul className="max-h-[180px] overflow-y-auto pr-1">
+        <CheckboxList field="issuer" names={filtered} selected={selected} base={base} pathname={pathname} toggle={toggle} />
         {!filtered.length && <li className="text-xs leading-4 text-muted">No issuers match.</li>}
       </ul>
     </div>
@@ -152,11 +206,36 @@ function IssuerSearchGroup({
 
 /** Right filter column — options from `GET /marketplace/listing/filterItems`; toggles update `?issuer=` etc. */
 export function MarketplaceFilterPanel({ options }: { options: ListingFilterValues }) {
+  const router = useRouter();
   const params = useSearchParams();
   const pathname = usePathname() || "/marketplace";
-  const base = new URLSearchParams(params.toString());
+  const [pending, startTransition] = useTransition();
+  // Optimistic copy of the query so the tapped option flips instantly while the results load.
+  const [optimistic, setOptimistic] = useState<string | null>(null);
+  const paramsString = params.toString();
+  useEffect(() => {
+    if (!pending) setOptimistic(null);
+  }, [paramsString, pending]);
 
-  const selected = (field: ListingFilterField) => new Set(params.getAll(field));
+  // While a filter change loads, dim/lock the results (CSS keys off html[data-filtering]) so the grid can
+  // never show data for a different filter set than the panel (ClickUp 14yn59xp2re).
+  useEffect(() => {
+    const root = document.documentElement;
+    if (pending) root.setAttribute("data-filtering", "");
+    else root.removeAttribute("data-filtering");
+    return () => root.removeAttribute("data-filtering");
+  }, [pending]);
+
+  const effective = optimistic ?? paramsString;
+  const base = new URLSearchParams(effective);
+  const selected = (field: ListingFilterField) => new Set(base.getAll(field));
+
+  const go = (href: string) => {
+    if (pending) return; // updates are disabled until the in-flight request finishes
+    setOptimistic(new URL(href, "http://x").searchParams.toString());
+    startTransition(() => router.push(href, { scroll: false }));
+  };
+  const toggle: Toggle = (field, value) => go(toggleFilterHref(base, field, value, pathname));
 
   const issuers = [...options.issuer].sort((a, b) => a.localeCompare(b));
   const rulers = [...options.ruler].sort((a, b) => a.localeCompare(b));
@@ -166,18 +245,37 @@ export function MarketplaceFilterPanel({ options }: { options: ListingFilterValu
   const materials = [...options.material].sort((a, b) => a.localeCompare(b));
 
   return (
-    <aside className="flex w-[266px] shrink-0 flex-col gap-4 border-l border-[#e5e7eb] bg-white px-4 py-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-base font-medium leading-6 text-ink">Filter</h2>
+    <div className="min-h-0 shrink-0 overflow-y-auto py-6 pr-8">
+    <aside
+      className={`flex w-[268px] shrink-0 flex-col gap-4 rounded-2xl border-[0.5px] border-[#c2c2c4] bg-white px-4 py-3 transition-opacity ${pending ? "pointer-events-none opacity-70" : ""}`}
+      aria-busy={pending}
+    >
+      <div className="flex h-6 items-center justify-between">
+        <h2 className="flex items-center gap-2 font-jakarta text-sm font-bold leading-[120%] text-[#0a0a0a]">
+          Filter
+          {pending && (
+            <span
+              className="size-3.5 animate-spin rounded-full border-2 border-[#e5e5e5] border-t-[#1e1e1f]"
+              role="status"
+              aria-label="Updating results"
+            />
+          )}
+        </h2>
         <Link
           href={clearFiltersHref(base, pathname)}
-          className="text-xs font-medium leading-4 text-primary-500 hover:underline"
+          onClick={(e) => {
+            if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+            e.preventDefault();
+            go(clearFiltersHref(base, pathname));
+          }}
+          className="rounded-lg px-2 py-1 text-xs font-medium leading-4 text-[#1e1e1f] hover:bg-neutral-50"
         >
           Clear all
         </Link>
       </div>
 
-      <IssuerSearchGroup options={issuers} selected={selected("issuer")} base={base} pathname={pathname} />
+      <IssuerSearchGroup options={issuers} selected={selected("issuer")} base={base} pathname={pathname} toggle={toggle} />
+      {DIVIDER}
 
       <CheckboxGroup
         field="ruler"
@@ -186,8 +284,10 @@ export function MarketplaceFilterPanel({ options }: { options: ListingFilterValu
         selected={selected("ruler")}
         base={base}
         pathname={pathname}
+        toggle={toggle}
         maxHeight="120px"
       />
+      {DIVIDER}
 
       <PillGroup
         field="yearOfMinting"
@@ -196,7 +296,9 @@ export function MarketplaceFilterPanel({ options }: { options: ListingFilterValu
         selected={selected("yearOfMinting")}
         base={base}
         pathname={pathname}
+        toggle={toggle}
       />
+      {DIVIDER}
 
       <PillGroup
         field="mintLocation"
@@ -205,7 +307,9 @@ export function MarketplaceFilterPanel({ options }: { options: ListingFilterValu
         selected={selected("mintLocation")}
         base={base}
         pathname={pathname}
+        toggle={toggle}
       />
+      {DIVIDER}
 
       <PillGroup
         field="shape"
@@ -214,7 +318,9 @@ export function MarketplaceFilterPanel({ options }: { options: ListingFilterValu
         selected={selected("shape")}
         base={base}
         pathname={pathname}
+        toggle={toggle}
       />
+      {DIVIDER}
 
       <PillGroup
         field="material"
@@ -223,7 +329,9 @@ export function MarketplaceFilterPanel({ options }: { options: ListingFilterValu
         selected={selected("material")}
         base={base}
         pathname={pathname}
+        toggle={toggle}
       />
     </aside>
+    </div>
   );
 }
