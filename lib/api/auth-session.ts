@@ -101,7 +101,11 @@ export async function patchAboutMe(
   return { error: false, user: json.user };
 }
 
-/** `DELETE auth/me` — deletes the account (no stable response body). */
+/**
+ * `DELETE auth/me` — deletes the account.
+ * Android `requestWithoutBase` only accepts HTTP 200/201 and treats `error: true` in the
+ * body as failure (prod returns `201` + `{"error":false}`).
+ */
 export async function deleteAccount(
   token: string,
 ): Promise<{ error: false } | { error: true; reason?: string; _status: number }> {
@@ -110,9 +114,12 @@ export async function deleteAccount(
     headers: authHeaders(token),
     cache: "no-store",
   });
-  if (!res.ok) {
-    const json = (await res.json().catch(() => null)) as { reason?: string; error?: boolean } | null;
+  const json = (await res.json().catch(() => null)) as { reason?: string; error?: boolean } | null;
+  if (res.status !== 200 && res.status !== 201) {
     return { error: true, reason: json?.reason, _status: res.status };
+  }
+  if (json?.error === true) {
+    return { error: true, reason: json.reason, _status: res.status || 400 };
   }
   return { error: false };
 }

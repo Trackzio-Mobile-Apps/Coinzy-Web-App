@@ -19,9 +19,9 @@ const primaryError =
   "flex h-9 w-full items-center justify-center rounded-button bg-[#c4a5a7] px-4 text-sm font-medium leading-5 text-white disabled:cursor-not-allowed";
 const titles = { signup: "Continue with Email", login: "Log in", forgot: "Forgot password", otp: "Forgot password", reset: "Create a new password" };
 
-function Field({ label, name, value, onChange, error, invalid = false, password = false, hiddenIcon = "eye-off.svg", placeholder, autoComplete }: {
+function Field({ label, name, value, onChange, error, invalid = false, password = false, placeholder, autoComplete }: {
   label: string; name: string; value: string; onChange: (value: string) => void; error?: string;
-  invalid?: boolean; password?: boolean; hiddenIcon?: string; placeholder: string; autoComplete: string;
+  invalid?: boolean; password?: boolean; placeholder: string; autoComplete: string;
 }) {
   const [visible, setVisible] = useState(false);
   const id = `auth-${name}`;
@@ -30,7 +30,7 @@ function Field({ label, name, value, onChange, error, invalid = false, password 
       <label htmlFor={id} className={`block text-sm font-medium leading-5 ${error ? "text-[#db340b]" : "text-ink"}`}>{label}</label>
       <div className="relative">
         <input id={id} name={name} type={password && !visible ? "password" : name === "email" ? "email" : "text"} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} autoComplete={autoComplete} aria-invalid={!!error || invalid} aria-describedby={error ? `${id}-error` : undefined} className={`h-9 w-full rounded-lg border bg-white px-3 text-sm leading-5 text-ink placeholder:text-[#a4a4a7] focus:outline-2 focus:outline-offset-1 focus:outline-primary-500 ${password ? "pr-10" : ""} ${error || invalid ? "border-[#db340b]" : "border-[#e5e5e5]"}`} />
-        {password && <button type="button" aria-label={`${visible ? "Hide" : "Show"} ${label.toLowerCase()}`} aria-pressed={visible} onClick={() => setVisible(!visible)} className="absolute right-2 top-1/2 flex size-6 -translate-y-1/2 items-center justify-center rounded focus-visible:outline-2 focus-visible:outline-primary-500"><Image src={`/assets/auth/${visible ? (hiddenIcon === "eye.svg" ? "eye-off.svg" : "eye.svg") : hiddenIcon}`} alt="" width={16} height={16} /></button>}
+        {password && <button type="button" aria-label={`${visible ? "Hide" : "Show"} ${label.toLowerCase()}`} aria-pressed={visible} onClick={() => setVisible(!visible)} className="absolute right-2 top-1/2 flex size-6 -translate-y-1/2 items-center justify-center rounded focus-visible:outline-2 focus-visible:outline-primary-500"><Image src={`/assets/auth/${visible ? "eye.svg" : "eye-off.svg"}`} alt="" width={16} height={16} /></button>}
       </div>
       {error && <p id={`${id}-error`} role="alert" className="text-sm leading-5 text-[#db340b]">{error}</p>}
     </div>
@@ -56,6 +56,12 @@ export function AuthFlow({ mode, next: returnTo = null }: { mode: AuthMode; next
   const [countdown, setCountdown] = useState(0);
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
   useEffect(() => { setErrors({}); setNotice(""); setPassword(""); setConfirm(""); }, [mode]);
+  // bfcache / soft-back can restore pending=true after a successful sign-in (ClickUp `14yn59xndgp`).
+  useEffect(() => {
+    const clearPending = () => setPending(false);
+    window.addEventListener("pageshow", clearPending);
+    return () => window.removeEventListener("pageshow", clearPending);
+  }, []);
   useEffect(() => {
     if (mode !== "otp" || countdown <= 0) return;
     const timer = setTimeout(() => setCountdown((n) => n - 1), 1000);
@@ -110,7 +116,7 @@ export function AuthFlow({ mode, next: returnTo = null }: { mode: AuthMode; next
       else { setPassword(""); goHome(returnTo); }
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Unable to complete authentication.";
-      if (mode === "login" || mode === "signup" || mode === "reset") {
+      if (mode === "login" || mode === "signup" || mode === "forgot" || mode === "reset") {
         const { fields, notice: apiNotice } = authErrorsFromReason(mode, reason);
         if (Object.keys(fields).length) {
           setErrors(fields);
@@ -164,7 +170,7 @@ export function AuthFlow({ mode, next: returnTo = null }: { mode: AuthMode; next
             <div className="space-y-3">
               {mode === "signup" && <Field label="Name" name="name" value={name} onChange={(value) => { setName(value); clear("name"); }} error={errors.name} placeholder="Enter your name" autoComplete="name" />}
               {["signup", "login", "forgot"].includes(mode) && <Field label="Email address" name="email" value={email} onChange={(value) => { setEmail(value); clear("email"); }} error={errors.email} placeholder="Enter your email address" autoComplete="email" />}
-              {["signup", "login", "reset"].includes(mode) && <Field key={`${mode}-password`} label={mode === "signup" ? "Create password" : mode === "reset" ? "New password" : "Enter password"} name="password" value={password} onChange={(value) => { setPassword(value); clear("password"); clear("confirm"); }} error={errors.password} invalid={mode === "reset" && !!errors.confirm} password hiddenIcon={mode === "signup" ? "eye.svg" : "eye-off.svg"} placeholder={mode === "signup" ? "Create your password" : mode === "reset" ? "Enter your new password" : "Enter your password"} autoComplete={mode === "login" ? "current-password" : "new-password"} />}
+              {["signup", "login", "reset"].includes(mode) && <Field key={`${mode}-password`} label={mode === "signup" ? "Create password" : mode === "reset" ? "New password" : "Enter password"} name="password" value={password} onChange={(value) => { setPassword(value); clear("password"); clear("confirm"); }} error={errors.password} invalid={mode === "reset" && !!errors.confirm} password placeholder={mode === "signup" ? "Create your password" : mode === "reset" ? "Enter your new password" : "Enter your password"} autoComplete={mode === "login" ? "current-password" : "new-password"} />}
               {mode === "reset" && <Field label="Confirm new password" name="confirm" value={confirm} onChange={(value) => { setConfirm(value); clear("confirm"); }} error={errors.confirm} password placeholder="Confirm your new password" autoComplete="new-password" />}
             </div>)}
             <div className={mode === "login" ? "space-y-3" : "space-y-4"}>
@@ -182,7 +188,7 @@ export function AuthFlow({ mode, next: returnTo = null }: { mode: AuthMode; next
             {(mode === "signup" || mode === "login") && (
               <>
                 <Separator />
-                <div className="flex justify-center">
+                <div className="flex justify-center gap-4">
                   <GoogleSignInButton
                     variant="icon"
                     next={returnTo}

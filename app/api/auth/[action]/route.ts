@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { resolveCatalogueOrigin } from "@/lib/api/catalogue-origin";
 import { isAllowedAuthOrigin } from "@/lib/auth/origin";
+import { setAuthedHintCookie } from "@/lib/auth/session-cookie";
 
 const paths: Record<string, string> = {
   login: "login",
@@ -10,6 +11,8 @@ const paths: Record<string, string> = {
   reset: "reset-password",
   google: "social-login/google",
 };
+const SOCIAL_ACTIONS = new Set(["google"]);
+const SESSION_ACTIONS = new Set(["login", "signup", "guest", "google"]);
 const cookieOptions = { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax" as const, path: "/" };
 const reply = (body: object, status = 200) => NextResponse.json(body, { status, headers: { "Cache-Control": "no-store" } });
 
@@ -28,7 +31,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const guestId = request.cookies.get("coinzy_guest_id")?.value;
 
     let payload: Record<string, unknown>;
-    if (action === "google") {
+    if (SOCIAL_ACTIONS.has(action)) {
       const credential = typeof data.credential === "string" ? data.credential.trim() : "";
       if (!credential || credential.length < 20 || credential.length > 8192) {
         return reply({ error: true, reason: "Google sign-in failed. Please try again." }, 400);
@@ -97,13 +100,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         upstream.ok ? 400 : upstream.status >= 500 ? 502 : upstream.status,
       );
     }
-    const session = ["login", "signup", "guest", "google"].includes(action);
+    const session = SESSION_ACTIONS.has(action);
     if (session && (typeof result.token !== "string" || !result.token)) {
       return reply({ error: true, reason: "The server did not return a session. Please try again." }, 502);
     }
-    // Google: echo upstream email for Feed Firebase bridge (never the session JWT).
-    const googleEmail = action === "google" && typeof result.user?.email === "string" ? result.user.email : "";
-    const response = reply({ error: false, ...(googleEmail ? { email: googleEmail } : {}) });
+    // Social: echo upstream email for Feed Firebase bridge (never the session JWT).
+    const socialEmail =
+      SOCIAL_ACTIONS.has(action) && typeof result.user?.email === "string" ? result.user.email : "";
+    const response = reply({ error: false, ...(socialEmail ? { email: socialEmail } : {}) });
     if (session) {
       // JWT stays server-readable only. Persistent cookies never outlive its expiry.
       let maxAge = 86400;
@@ -113,8 +117,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       } catch {
         /* Opaque tokens use the conservative default. */
       }
-      const persist = data.remember === true || action === "guest" || action === "google";
+      const persist = data.remember === true || action === "guest" || SOCIAL_ACTIONS.has(action);
       response.cookies.set("coinzy_session", result.token, { ...cookieOptions, ...(persist ? { maxAge } : {}) });
+      setAuthedHintCookie(response, persist ? maxAge : undefined);
       if (action === "guest" && typeof result.guestId === "string" && result.guestId) {
         response.cookies.set("coinzy_guest_id", result.guestId, { ...cookieOptions, maxAge: 2592000 });
       }

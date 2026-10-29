@@ -1,24 +1,33 @@
 import { safeReturnPath } from "@/lib/auth/returnTo";
 import { googleAuthErrorMessage, obtainGoogleIdCredential } from "@/lib/auth/google";
 import { ensureFirebaseSession } from "@/lib/firebase/authBridge";
+import { isBrowserOffline, networkErrorMessage, OFFLINE_MESSAGE } from "@/lib/network/offline";
 
 type AuthAction = "login" | "signup" | "guest" | "forgot" | "reset" | "google";
 
+const SESSION_ACTIONS: AuthAction[] = ["login", "signup", "guest", "google"];
+
 export async function submitAuth(action: AuthAction, data: Record<string, unknown> = {}) {
-  const response = await fetch(`/api/auth/${action}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      ...data,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      language: navigator.language,
-    }),
-  });
-  const result = await response.json();
+  if (isBrowserOffline()) throw new Error(OFFLINE_MESSAGE);
+  let response: Response;
+  try {
+    response = await fetch(`/api/auth/${action}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...data,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        language: navigator.language,
+      }),
+    });
+  } catch (error) {
+    throw new Error(networkErrorMessage(error, "Authentication failed. Please try again."));
+  }
+  const result = await response.json().catch(() => ({}));
   if (!response.ok || result.error) throw new Error(result.reason || "Authentication failed. Please try again.");
 
   // Mirror Android: link Firebase Auth after Coinzy session is set (feed / Firestore rules).
-  if (action === "login" || action === "signup" || action === "guest" || action === "google") {
+  if (SESSION_ACTIONS.includes(action)) {
     try {
       const email =
         (typeof result.email === "string" && result.email) ||

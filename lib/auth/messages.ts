@@ -24,9 +24,14 @@ export function authErrorsFromReason(mode: AuthFormMode, reason: string): { fiel
     if (/incorrect password|wrong password|invalid password|password.*incorrect/.test(r)) {
       return { fields: { password: AUTH_FIELD_COPY.loginPasswordIncorrect } };
     }
-    if (/not registered|isn't registered|unregistered|no user|user not found|account not found|email not found/.test(r)) {
-      return { fields: { email: AUTH_FIELD_COPY.loginEmailUnregistered } };
-    }
+  }
+
+  if ((mode === "login" || mode === "forgot") && /not registered|isn't registered|unregistered|no user|user not found|account not found|email not found/.test(r)) {
+    return { fields: { email: AUTH_FIELD_COPY.loginEmailUnregistered } };
+  }
+
+  if (mode === "forgot") {
+    return { fields: { email: reason } };
   }
 
   if (mode === "signup" && /already|exist|registered|in use/.test(r)) {

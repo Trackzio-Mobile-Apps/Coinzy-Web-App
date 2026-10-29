@@ -9,7 +9,7 @@ import {
 } from "@/lib/api/auth-session";
 import { isAllowedAuthOrigin } from "@/lib/auth/origin";
 import { isUserSubscribed } from "@/lib/auth/subscription";
-import { sessionCookieMaxAge } from "@/lib/auth/session-cookie";
+import { clearAuthedHintCookie, sessionCookieMaxAge, setAuthedHintCookie } from "@/lib/auth/session-cookie";
 import { isSellerProfileComplete } from "@/lib/marketplace/sellerProfile";
 
 const reply = (body: object, status = 200) =>
@@ -117,15 +117,18 @@ export async function GET(request: NextRequest) {
     );
     if (result._status === 401 || result._status === 404) {
       response.cookies.set("coinzy_session", "", { ...cookieOptions, maxAge: 0 });
+      clearAuthedHintCookie(response);
     }
     return response;
   }
   const response = reply({ error: false, user: publicProfile(result.user, token) });
   if (result.sessionToken) {
+    const maxAge = sessionCookieMaxAge(result.sessionToken);
     response.cookies.set("coinzy_session", result.sessionToken, {
       ...cookieOptions,
-      maxAge: sessionCookieMaxAge(result.sessionToken),
+      maxAge,
     });
+    setAuthedHintCookie(response, maxAge);
   }
   return response;
 }
@@ -219,7 +222,11 @@ export async function DELETE(request: NextRequest) {
     return reply({ error: true, reason: result.reason ?? "Could not delete account." }, status);
   }
 
+  // Upstream hard-deletes the user (subsequent login → "User not found"). Clear the HTTP-only
+  // session so the browser cannot keep acting as that account.
   const response = reply({ error: false, message: "Delete Success" });
   response.cookies.set("coinzy_session", "", { ...cookieOptions, maxAge: 0 });
+  response.cookies.delete("coinzy_session");
+  clearAuthedHintCookie(response);
   return response;
 }

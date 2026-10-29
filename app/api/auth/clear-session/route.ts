@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { clearAuthedHintCookie } from "@/lib/auth/session-cookie";
 
 const cookieOptions = {
   httpOnly: true,
@@ -13,5 +14,6 @@ export async function GET(request: NextRequest) {
   const nextPath = raw.startsWith("/") && !raw.startsWith("//") ? raw : "/";
   const response = NextResponse.redirect(new URL(nextPath, request.url));
   response.cookies.set("coinzy_session", "", { ...cookieOptions, maxAge: 0 });
+  clearAuthedHintCookie(response);
   return response;
 }

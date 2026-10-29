@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isAllowedAuthOrigin } from "@/lib/auth/origin";
+import { clearAuthedHintCookie } from "@/lib/auth/session-cookie";
 
 const cookieOptions = { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax" as const, path: "/" };
 
@@ -13,5 +14,6 @@ export async function POST(request: NextRequest) {
   }
   const response = NextResponse.json({ error: false }, { headers: { "Cache-Control": "no-store" } });
   response.cookies.set("coinzy_session", "", { ...cookieOptions, maxAge: 0 });
+  clearAuthedHintCookie(response);
   return response;
 }

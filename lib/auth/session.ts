@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { decodeJwtPayload, sessionJwtIsGuest } from "@/lib/auth/jwt-payload";
 import { resolveIsSubscribed } from "@/lib/auth/subscription";
 
 export type SessionUser = {
@@ -6,16 +7,6 @@ export type SessionUser = {
   email: string;
   isGuest: boolean;
 };
-
-function decodeJwtPayload(token: string): Record<string, unknown> | null {
-  try {
-    const part = token.split(".")[1];
-    if (!part) return null;
-    return JSON.parse(Buffer.from(part, "base64url").toString()) as Record<string, unknown>;
-  } catch {
-    return null;
-  }
-}
 
 /**
  * Premium entitlement for the signed-in user (`auth/me` `user.isSubscribed`, same as Android).
@@ -50,11 +41,6 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     (typeof payload.name === "string" && payload.name) ||
     (typeof payload.userName === "string" && payload.userName) ||
     (email ? email.split("@")[0] : "Guest");
-  const isGuest =
-    payload.isGuest === true ||
-    payload.guest === true ||
-    (typeof payload.userType === "string" && payload.userType.toLowerCase() === "guest") ||
-    name === "Guest";
 
-  return { name, email, isGuest };
+  return { name, email, isGuest: sessionJwtIsGuest(token) };
 }
