@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { IdentifyAnalysing } from "@/components/identify/IdentifyAnalysing";
 import { IdentifyFailure } from "@/components/identify/IdentifyFailure";
 import { IdentifyMatchList } from "@/components/identify/IdentifyMatchList";
@@ -20,7 +20,7 @@ import { identifyCoinsV2 } from "@/lib/identify/client";
 import { loadIdentifyDebugSample } from "@/lib/identify/debugSamples";
 import { identifyErrorMessage, isInlineIdentifyFailure } from "@/lib/identify/messages";
 import { notifyFreeScanUsageUpdated, recordFailedScan, recordFreeScanUsed } from "@/lib/identify/scanUsage";
-import { saveIdentifySession } from "@/lib/identify/storage";
+import { readIdentifySession, saveIdentifySession } from "@/lib/identify/storage";
 import type { IdentifyMatch } from "@/lib/identify/types";
 
 type Step = "upload" | "analysing" | "matches" | "failure";
@@ -39,12 +39,16 @@ function fileToDataUrl(file: Blob): Promise<string> {
 export function IdentifyApp({
   autoLoadDebug = false,
   premium = false,
+  restoreMatches = false,
 }: {
   autoLoadDebug?: boolean;
   premium?: boolean;
+  /** `?step=matches` — coming back from a result page: re-show the saved Top 5 matches. */
+  restoreMatches?: boolean;
 }) {
   const router = useRouter();
-  const [step, setStep] = useState<Step>("upload");
+  const [step, setStep] = useState<Step>(restoreMatches ? "matches" : "upload");
+  const [restoredPreviews, setRestoredPreviews] = useState<[string, string] | null>(null);
   const [obverse, setObverse] = useState<Slot | null>(null);
   const [reverse, setReverse] = useState<Slot | null>(null);
   const [busy, setBusy] = useState(false);
@@ -214,12 +218,26 @@ export function IdentifyApp({
     }
   };
 
+  // Layout effect: runs before paint on client navigation, so Back shows the list with no upload-form flash.
+  useLayoutEffect(() => {
+    if (!restoreMatches) return;
+    const saved = readIdentifySession();
+    if (saved?.matches?.length) {
+      setMatches(saved.matches);
+      setRestoredPreviews(saved.previewUrls ?? null);
+    } else {
+      setStep("upload");
+    }
+  }, [restoreMatches]);
+
   const pickMatch = (m: IdentifyMatch) => {
+    // Mark this history entry as the matches view so browser Back (and the result page's back arrow) return here.
+    window.history.replaceState(window.history.state, "", "/identify?step=matches");
     router.push(`/identify/coin/${m.archetypeId}`);
   };
 
   const previewPair: [string, string] | null =
-    obverse && reverse ? [obverse.preview, reverse.preview] : null;
+    obverse && reverse ? [obverse.preview, reverse.preview] : restoredPreviews;
 
   return (
     <>
@@ -248,7 +266,7 @@ export function IdentifyApp({
           {step === "analysing" && previewPair && (
             <IdentifyAnalysing frontPreview={previewPair[0]} backPreview={previewPair[1]} />
           )}
-          {step === "matches" && previewPair && (
+          {step === "matches" && matches.length > 0 && (
             <IdentifyMatchList
               matches={matches}
               onPick={pickMatch}

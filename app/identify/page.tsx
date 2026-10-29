@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default async function IdentifyPage({
   searchParams,
 }: {
-  searchParams: Promise<{ premium?: string; debug?: string }>;
+  searchParams: Promise<{ premium?: string; debug?: string; step?: string }>;
 }) {
   const user = await getSessionUser();
   if (!user) redirect("/auth?next=/identify");
@@ -32,7 +32,7 @@ export default async function IdentifyPage({
         <MarketplaceAppHeader user={user} premium={premium} />
         <main className="min-w-0 flex-1 overflow-y-auto px-4 py-4 sm:px-8">
           <div className="mx-auto w-full max-w-[1122px]">
-            <IdentifyApp autoLoadDebug={autoLoadDebug} premium={premium} />
+            <IdentifyApp autoLoadDebug={autoLoadDebug} premium={premium} restoreMatches={sp.step === "matches"} />
           </div>
         </main>
       </div>
