@@ -28,10 +28,10 @@ export function IdentifyFailure({
         <div className="mt-3 flex flex-col items-center gap-8 px-4 py-10 sm:flex-row sm:items-center sm:justify-between sm:gap-10 sm:px-[94px] sm:py-16">
           <div className="flex shrink-0 flex-col gap-3">
             <div className="relative size-[120px] overflow-hidden rounded-lg bg-[#f5f5f5]">
-              <Image src={frontPreview} alt="Obverse" fill className="object-cover" unoptimized />
+              <Image src={frontPreview} alt="Obverse" fill className="object-contain" unoptimized />
             </div>
             <div className="relative size-[120px] overflow-hidden rounded-lg bg-[#f5f5f5]">
-              <Image src={backPreview} alt="Reverse" fill className="object-cover" unoptimized />
+              <Image src={backPreview} alt="Reverse" fill className="object-contain" unoptimized />
             </div>
           </div>
 

@@ -20,29 +20,32 @@ export function IdentifySideRail({
       <button
         type="button"
         onClick={onScanApp}
-        className="rounded-2xl border border-[#e5e7eb] bg-white p-4 text-left"
+        className="flex flex-col gap-3 rounded-2xl border-[0.5px] border-[#dfdfe0] bg-white px-4 py-3 text-left"
       >
         <p className="text-sm font-medium leading-5 text-ink">Scan to download Coinzy AI</p>
-        <p className="mt-1 text-xs leading-4 text-muted">Identify coins in real-time with your phone camera</p>
-        <div className="mt-3 flex justify-center">
-          <Image src={QR} alt="" width={120} height={110} className="opacity-90" />
+        <p className="text-xs leading-4 text-[#606062]">Identify coins instantly and sync your collection.</p>
+        <div className="flex h-[156px] w-full items-center justify-center">
+          <Image src={QR} alt="" width={154} height={142} className="object-contain" />
         </div>
       </button>
 
-      <div className="rounded-2xl border border-[#e5e7eb] bg-white p-4">
+      <div className="rounded-2xl border-[0.5px] border-[#dfdfe0] bg-white px-4 py-3">
         <p className="text-sm font-medium leading-5 text-ink">Our other apps</p>
-        <ul className="mt-3 space-y-3">
-          {HOME_OTHER_APPS.slice(0, 2).map((app) => (
-            <li key={app.name} className="flex items-center gap-3">
-              <Image src={app.icon} alt="" width={36} height={36} className="rounded-lg" />
+        <ul className="mt-4 divide-y divide-[#ededed]">
+          {HOME_OTHER_APPS.map((app, index) => (
+            <li key={app.name} className="flex items-center gap-2 py-3 first:pt-0">
+              <Image src={app.icon} alt="" width={38} height={38} className="shrink-0 rounded-lg" />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-medium text-ink">{app.name}</p>
-                <p className="truncate text-[11px] text-muted">{app.description}</p>
+                <p className="truncate text-sm font-medium leading-5 text-ink">{app.name}</p>
+                <p className="mt-1 truncate text-xs leading-4 text-[#87878a]">{["Identify banknotes", "Habits & Tasks", "Identify antiques"][index]}</p>
               </div>
+              <a href={app.href} target="_blank" rel="noopener noreferrer" aria-label={`Try ${app.name} free`} className="shrink-0 rounded-lg border border-[#dfdfe0] bg-white px-2 py-1 text-xs font-medium leading-4 text-ink">
+                Try free
+              </a>
             </li>
           ))}
         </ul>
-        <Link href="/other-apps" className="mt-3 flex items-center justify-center gap-1 text-xs font-medium text-ink">
+        <Link href="/other-apps" className="mt-1 flex items-center justify-center gap-1 border-t border-[#ededed] pt-4 text-xs font-medium leading-4 text-ink">
           +7 more apps
           <Image src={`${A}/icon-chevron.svg`} alt="" width={16} height={16} />
         </Link>

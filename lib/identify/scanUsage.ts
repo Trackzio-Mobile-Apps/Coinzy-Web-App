@@ -35,6 +35,22 @@ export function recordFreeScanUsed(): number {
   return next;
 }
 
+/** Failed scans are free until this many have happened; later failures use the free-plan count. */
+export const FREE_FAILED_SCAN_ALLOWANCE = 5;
+const FAILED_KEY = "coinzy:identify:failed-scans";
+
+/** Records a failed scan; returns true when it should consume a free-plan scan (6th failure onward). */
+export function recordFailedScan(): boolean {
+  let n = 0;
+  try {
+    n = Number.parseInt(localStorage.getItem(FAILED_KEY) ?? "0", 10) || 0;
+    localStorage.setItem(FAILED_KEY, String(n + 1));
+  } catch {
+    /* private mode */
+  }
+  return n + 1 > FREE_FAILED_SCAN_ALLOWANCE;
+}
+
 export function notifyFreeScanUsageUpdated() {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new Event("coinzy:identify:scans-updated"));

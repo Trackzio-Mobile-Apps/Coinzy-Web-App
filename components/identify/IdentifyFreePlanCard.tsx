@@ -29,7 +29,7 @@ export function IdentifyFreePlanCard({ hidden }: { hidden?: boolean }) {
   const pct = freeScanProgressPercent(used);
 
   return (
-    <div className="flex w-full flex-col gap-4 rounded-xl border border-[#dfdfe0] bg-white px-[17px] py-[13px]">
+    <div className="flex w-full flex-col gap-4 rounded-xl border border-[#dfdfe0] bg-white px-4 py-3">
       <div className="flex w-full flex-col gap-1">
         <p className="text-sm font-medium leading-5 text-[#1e1e1f]">Free plan</p>
         <p className="text-xs leading-4 text-[#87878a]">
@@ -49,7 +49,7 @@ export function IdentifyFreePlanCard({ hidden }: { hidden?: boolean }) {
           style={{ width: used > 0 ? `${pct}%` : "8px" }}
         />
       </div>
-      <PremiumUpgradeButton className="flex h-8 w-full items-center justify-center rounded-[10px] border border-[#e5e5e5] bg-white text-sm font-medium text-[#1e1e1f]">
+      <PremiumUpgradeButton className="flex h-9 w-full items-center justify-center rounded-[10px] border border-[#e5e5e5] bg-white text-sm font-medium text-[#1e1e1f]">
         Upgrade
       </PremiumUpgradeButton>
     </div>
