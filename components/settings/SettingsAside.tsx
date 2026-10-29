@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { AppQrCode } from "@/components/ui/AppQrCode";
 import Link from "next/link";
 import { PremiumUpgradeButton } from "@/components/premium/PremiumUpgradeButton";
 import { HOME_OTHER_APPS } from "@/lib/home";
@@ -60,13 +61,7 @@ export function SettingsAside({ premium }: { premium: boolean }) {
           Identify coins instantly and sync your collection across devices.
         </p>
         <div className="mt-3 flex justify-center">
-          <Image
-            src="/assets/settings/qr-download.png"
-            alt="QR code to download Coinzy AI"
-            width={160}
-            height={160}
-            className="size-40 rounded-lg"
-          />
+          <AppQrCode size={160} className="size-40 rounded-lg" />
         </div>
       </div>
     </aside>

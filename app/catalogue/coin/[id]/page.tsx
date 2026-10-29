@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Image from "next/image";
+import { AppQrCode } from "@/components/ui/AppQrCode";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { AppSidebar } from "@/components/home/AppSidebar";
@@ -23,7 +23,6 @@ import { getCategory } from "@/lib/catalogue/categories";
 import { coinTitle, detailTabs, gradePrices, overviewRows } from "@/lib/catalogue/coinDetails";
 import { COIN_DETAILS_CATEGORIES } from "@/lib/constants";
 
-const DETAIL_ICONS = "/assets/coin-details";
 
 type Params = {
   params: Promise<{ id: string }>;
@@ -145,12 +144,7 @@ async function CoinDetailsContent({
               Identify coins instantly and sync your collection across devices.
             </p>
             <div className="flex w-full justify-center px-5 py-[7px]">
-              <Image
-                src={`${DETAIL_ICONS}/qr-coinzy.png`}
-                alt="QR code to download the Coinzy AI app"
-                width={154}
-                height={142}
-              />
+              <AppQrCode size={142} />
             </div>
           </div>
         </aside>

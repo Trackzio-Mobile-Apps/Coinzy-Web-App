@@ -1,10 +1,10 @@
 import Image from "next/image";
+import { AppQrCode } from "@/components/ui/AppQrCode";
 import Link from "next/link";
 import { IdentifyFreePlanCard } from "@/components/identify/IdentifyFreePlanCard";
 import { HOME_OTHER_APPS } from "@/lib/home";
 
 const A = "/assets/home";
-const QR = "/assets/coin-details/qr-coinzy.png";
 
 export function IdentifySideRail({
   onScanApp,
@@ -25,7 +25,7 @@ export function IdentifySideRail({
         <p className="text-sm font-medium leading-5 text-ink">Scan to download Coinzy AI</p>
         <p className="text-xs leading-4 text-[#606062]">Identify coins instantly and sync your collection.</p>
         <div className="flex h-[156px] w-full items-center justify-center">
-          <Image src={QR} alt="" width={154} height={142} className="object-contain" />
+          <AppQrCode size={142} className="object-contain" />
         </div>
       </button>
 
