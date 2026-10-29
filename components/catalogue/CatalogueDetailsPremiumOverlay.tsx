@@ -12,20 +12,22 @@ const A = "/assets/home";
 export function CatalogueDetailsPremiumOverlay() {
   return (
     <div
-      className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-white/40 p-4 backdrop-blur-[2px]"
+      className="absolute inset-0 z-10 flex items-center justify-center rounded-b-2xl bg-[linear-gradient(180deg,rgba(255,255,255,0.7)_0.82%,rgba(222,222,222,0.7)_37.58%)] p-4 backdrop-blur-[4px]"
       role="region"
       aria-label="Premium subscription"
     >
       <div
-        className="flex w-full max-w-[382px] flex-col items-center gap-4 rounded-[14px] px-6 py-8 text-center text-white shadow-[0_4px_24px_rgba(42,42,42,0.12)]"
-        style={{ backgroundImage: "linear-gradient(-64.92deg, #6a65ed 10.107%, #e54a9f 98.516%)" }}
+        className="flex w-full max-w-[380px] flex-col gap-4 rounded-[14px] p-4 text-white shadow-[0_0_0_1px_rgba(10,10,10,0.1)]"
+        style={{ backgroundImage: "linear-gradient(282.5deg, #6a65ed 10.11%, #e54a9f 98.52%)" }}
       >
-        <Image src={`${A}/premium-crown.svg`} alt="" width={64} height={64} className="size-16" />
-        <div className="space-y-2">
-          <p className="text-xl font-medium leading-7">Subscribe to Premium</p>
-          <p className="text-sm leading-5">Unlock more coin details with Premium.</p>
+        <div className="flex items-start gap-6">
+          <Image src={`${A}/premium-crown.svg`} alt="" width={44} height={44} className="size-11 shrink-0" />
+          <div className="min-w-0 space-y-2">
+            <p className="text-lg font-medium leading-7">Subscribe to Premium</p>
+            <p className="text-sm leading-5">Unlock more coin details with Premium.</p>
+          </div>
         </div>
-        <PremiumUpgradeButton className="inline-flex h-10 items-center justify-center rounded-[14px] border border-white bg-white px-6 text-base font-medium leading-6 text-primary-500 shadow-[0_0_0_2px_#b155bf] hover:opacity-95">
+        <PremiumUpgradeButton className="inline-flex h-8 w-full items-center justify-center rounded-[10px] bg-white px-3 text-sm font-medium leading-5 text-ink hover:opacity-95">
           Go Premium
         </PremiumUpgradeButton>
       </div>

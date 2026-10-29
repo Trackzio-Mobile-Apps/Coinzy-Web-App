@@ -25,16 +25,16 @@ function Rows({ count, gap }: { count: number; gap: string }) {
 }
 
 /** `sidebar="seller"` = marketplace listing page (Seller Details panel instead of value + QR cards). */
-export function CoinDetailsSkeleton({ sidebar = "coin" }: { sidebar?: "coin" | "seller" }) {
+export function CoinDetailsSkeleton({ sidebar = "coin", showBreadcrumb = true }: { sidebar?: "coin" | "seller"; showBreadcrumb?: boolean }) {
   return (
     <div className="animate-pulse" role="status" aria-label="Loading coin details">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-5">
+      {showBreadcrumb && <div className="flex items-center gap-5">
         <div className="size-8 shrink-0 rounded border-[0.5px] border-[#c2c2c4] bg-white" />
         <Bar className="h-6 w-64 max-w-[60vw]" />
-      </div>
+      </div>}
 
-      <div className="mt-10 flex flex-col items-start gap-4 lg:flex-row">
+      <div className={`${showBreadcrumb ? "mt-10" : ""} flex flex-col items-start gap-4 lg:flex-row`}>
         <div className="flex w-full min-w-0 flex-1 flex-col gap-4">
           {/* Title, photos, estimated value, overview */}
           <div className="flex w-full flex-col gap-6 rounded-2xl bg-white p-4">

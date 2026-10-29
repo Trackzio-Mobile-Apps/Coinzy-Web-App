@@ -8,6 +8,10 @@ const PICE = `${MC}coin-british-india-pice.png`;
 export const PLAY_STORE_URL =
   "https://play.google.com/store/apps/details?id=com.coinzy.trackzio";
 
+/** Coinzy on the Apple App Store (iOS). */
+export const APP_STORE_URL =
+  "https://apps.apple.com/us/app/coinzy-coin-ai-identification/id6752857760";
+
 export const COINZY_PRIVACY_URL = "https://trackzio.com/privacy-policy-coinzy";
 export const COINZY_TERMS_URL = "https://trackzio.com/coinzy%3A-terms";
 export const TRACKZIO_ABOUT_URL = "https://trackzio.com/about";
@@ -168,6 +172,10 @@ export const MARKETPLACE_PAGE_CATEGORIES = [
   },
 ] as const;
 
+/**
+ * Design-asset reference for Figma `1526:304316` (5-up strip). Runtime landing strip uses
+ * `loadRandomListings` — do not wire these as pretend-live cards.
+ */
 export const MARKETPLACE_COINS = [
   {
     title: "Spain 320 Reales 1812",

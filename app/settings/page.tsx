@@ -39,7 +39,6 @@ function toPanelProfile(user: AboutMeUser, fallbackName: string, fallbackEmail: 
 function SettingsPanelSkeleton() {
   return (
     <div className="min-w-0 flex-1 animate-pulse space-y-4" aria-busy="true" aria-label="Loading settings">
-      <div className="h-7 w-28 rounded bg-black/[0.06]" />
       {Array.from({ length: 5 }, (_, i) => (
         <div key={i} className="h-16 rounded-[12px] border border-[#e5e7eb] bg-white" />
       ))}
@@ -96,22 +95,25 @@ export default async function SettingsPage({
   if (!token) redirect("/auth?next=/settings");
 
   return (
-    <div className="flex min-h-dvh bg-[#f7f7f7]">
+    <div className="flex min-h-dvh bg-[#faf7f5]">
       <AppSidebar user={user} active="settings" />
       <div className="flex min-w-0 flex-1 flex-col">
         <MarketplaceAppHeader user={user} premium={premium} />
-        <div className="flex flex-1 gap-6 overflow-auto px-6 py-6 lg:px-8">
-          <Suspense fallback={<SettingsPanelSkeleton />}>
-            <SettingsPanelLoader
-              token={token}
-              fallbackName={user.name}
-              fallbackEmail={user.email}
-              isGuest={user.isGuest}
-              premium={premium}
-            />
-          </Suspense>
-          <SettingsAside premium={premium} />
-        </div>
+        <main className="flex flex-1 flex-col gap-4 px-4 py-4 lg:px-8">
+          <h1 className="text-2xl font-semibold leading-8 text-ink">Settings</h1>
+          <div className="flex items-start gap-4">
+            <Suspense fallback={<SettingsPanelSkeleton />}>
+              <SettingsPanelLoader
+                token={token}
+                fallbackName={user.name}
+                fallbackEmail={user.email}
+                isGuest={user.isGuest}
+                premium={premium}
+              />
+            </Suspense>
+            <SettingsAside premium={premium} />
+          </div>
+        </main>
       </div>
     </div>
   );

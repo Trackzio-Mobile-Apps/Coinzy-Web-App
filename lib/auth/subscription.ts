@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { fetchAboutMe, type AboutMeUser } from "@/lib/api/auth-session";
+import type { ScanUsage } from "@/lib/identify/scanUsage";
 
 function decodeJwtPayload(token: string): Record<string, unknown> | null {
   try {
@@ -25,10 +26,19 @@ export function isUserSubscribed(user: AboutMeUser | null | undefined): boolean 
  * Premium entitlement from catalogue `GET auth/me` (`user.isSubscribed`), matching Android.
  * Falls back to the session JWT when the profile request fails.
  */
+/** One `auth/me` call per request, shared by display fields, premium and scan usage. */
+export const resolveAboutMe = cache((token: string) => fetchAboutMe(token));
+
 export const resolveIsSubscribed = cache(async (token: string): Promise<boolean> => {
-  const result = await fetchAboutMe(token);
+  const result = await resolveAboutMe(token);
   if (!result.error) {
     return isUserSubscribed(result.user);
   }
   return isSubscribedInJwt(token);
 });
+
+/** Server-side AI scan counters from `auth/me` (null when the backend does not send them). */
+export async function resolveScanUsage(token: string): Promise<ScanUsage | null> {
+  const result = await resolveAboutMe(token);
+  return result.error ? null : result.usage;
+}

@@ -1,9 +1,8 @@
-import Image from "next/image";
+import { AppQrCode } from "@/components/ui/AppQrCode";
 import { CoinPlaceholder } from "@/components/ui/CoinPlaceholder";
 import { FallbackImage } from "@/components/ui/FallbackImage";
 import type { ReactNode } from "react";
 
-const DETAIL_ICONS = "/assets/coin-details";
 
 /** Right rail on collection coin details (Figma `1348:175552`). */
 export function CollectionCoinRail({
@@ -53,12 +52,7 @@ export function CollectionCoinRail({
           Identify coins instantly and sync your collection across devices.
         </p>
         <div className="flex w-full justify-center px-5 py-[7px]">
-          <Image
-            src={`${DETAIL_ICONS}/qr-coinzy.png`}
-            alt="QR code to download the Coinzy AI app"
-            width={154}
-            height={142}
-          />
+          <AppQrCode size={142} />
         </div>
       </div>
     </aside>

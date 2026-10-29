@@ -11,7 +11,15 @@ export type SellerProfileFormState = {
   location: string;
 };
 
-export type SellerProfileFormErrors = Partial<Record<"name" | "sellerEmail" | "form", string>>;
+export type SellerProfileFormErrors = Partial<Record<"name" | "sellerEmail" | "phoneNumber" | "form", string>>;
+
+/** Optional contact number: 7–15 digits, without formatting characters. */
+export const PHONE_ALLOWED_CHARS = /[^0-9]/g;
+export function isValidPhoneNumber(raw: string): boolean {
+  const v = raw.trim();
+  if (!v) return true;
+  return /^[0-9]{7,15}$/.test(v);
+}
 
 /** Seller profile is ready to list when name + contact email are present. */
 export function isSellerProfileComplete(details: SellerDetails | null | undefined): boolean {
@@ -35,6 +43,7 @@ export function sellerDetailsFromForm(values: SellerProfileFormState): SellerDet
 export function validateSellerProfileForm(values: SellerProfileFormState): SellerProfileFormErrors {
   const errors: SellerProfileFormErrors = {};
   if (!values.name.trim()) errors.name = "Enter your name";
+  if (!isValidPhoneNumber(values.phoneNumber)) errors.phoneNumber = "Enter a valid contact number (7–15 digits)";
   const email = (values.usePersonalEmail ? values.personalEmail : values.sellerEmail).trim();
   if (!email) errors.sellerEmail = "Enter seller email";
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.sellerEmail = "Enter a valid email";

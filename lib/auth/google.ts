@@ -5,11 +5,19 @@
  *
  * 1. Firebase Google popup → Google ID token (`credential.idToken`)
  * 2. Caller POSTs that token to `/api/auth/google` → Coinzy `auth/social-login/google`
- * 3. After Coinzy session cookie is set, `ensureFirebaseSession` re-links Feed Auth
- *    with email/password (password === email), same as Android `AuthViewModel.googleLogin`.
+ * 3. Keep that Firebase user signed in for Feed. Also link email/password
+ *    (password === email) when the account does not already have one, so a later
+ *    visit can use the Android email bridge. Signing out here created a Google-only
+ *    Firebase user, and Feed then failed with `auth/invalid-credential`.
  */
 
-import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
+import {
+  EmailAuthProvider,
+  GoogleAuthProvider,
+  linkWithCredential,
+  signInWithPopup,
+  signOut,
+} from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase/client";
 
 export type GoogleIdCredential = {
@@ -35,8 +43,23 @@ export async function obtainGoogleIdCredential(): Promise<GoogleIdCredential> {
   const fullName = (result.user.displayName || "").trim();
   const email = (result.user.email || "").trim();
 
-  // Coinzy session + Feed bridge own Firebase Auth next (email/password), matching Android.
-  await signOut(auth).catch(() => undefined);
+  if (email) {
+    try {
+      await linkWithCredential(result.user, EmailAuthProvider.credential(email, email));
+    } catch (err: unknown) {
+      const code =
+        typeof err === "object" && err && "code" in err ? String((err as { code: string }).code) : "";
+      // Already linked, or this email/password lives on the Android-created account.
+      // The Google user stays signed in either way so Feed can read Firestore.
+      if (
+        code !== "auth/provider-already-linked" &&
+        code !== "auth/email-already-in-use" &&
+        code !== "auth/credential-already-in-use"
+      ) {
+        console.warn("Could not link email/password onto the Google Firebase user.", code || err);
+      }
+    }
+  }
 
   return { credential: idToken, fullName, email };
 }

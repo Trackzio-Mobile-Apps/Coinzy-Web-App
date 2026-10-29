@@ -106,7 +106,7 @@ export const HOME_OTHER_APPS = [
     href: "https://play.google.com/store/apps/details?id=com.progresspal",
   },
   {
-    name: "Antique Lens",
+    name: "Antiqzy AI",
     description: "Identify antiques using Antiqzy AI",
     icon: "/assets/other-apps/antiqzy-icon.png",
     href: "https://play.google.com/store/apps/details?id=com.trackzio.antiquevintage",

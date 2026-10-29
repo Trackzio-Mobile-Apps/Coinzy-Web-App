@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { AppQrCode } from "@/components/ui/AppQrCode";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { IdentifyCameraGuide } from "@/components/identify/IdentifyCameraGuide";
 import {
@@ -11,7 +12,6 @@ import {
 import { IdentifyZoomSlider, zoomScaleFromSlider } from "@/components/identify/IdentifyZoomSlider";
 import { useModalDialog } from "@/components/ui/useModalDialog";
 
-const QR = "/assets/coin-details/qr-coinzy.png";
 const FLIP_ILLUSTRATION = "/assets/identify/flip-coin-illustration.png";
 
 /** Figma `1828:206843` — shown after the first side is uploaded. */
@@ -85,7 +85,7 @@ export function IdentifyQrModal({ open, onClose }: { open: boolean; onClose: () 
         <p className="text-lg font-medium text-ink">Scan to download Coinzy AI</p>
         <p className="mt-2 text-sm text-muted">Identify coins in real-time with your phone camera</p>
         <div className="mt-6 flex justify-center">
-          <Image src={QR} alt="QR code" width={200} height={184} />
+          <AppQrCode size={184} />
         </div>
       </div>
     </dialog>

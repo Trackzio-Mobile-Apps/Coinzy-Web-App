@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useId, useState, type ReactNode } from "react";
 import { useModalDialog } from "@/components/ui/useModalDialog";
+import { MAX_FEEDBACK_MESSAGE_LENGTH } from "@/lib/settings/feedback";
 
 /** Feedback sheet — fire-and-forget `POST /api/feedback` (no success/error UI). */
 export function FeedbackDialog({
@@ -29,7 +30,7 @@ export function FeedbackDialog({
     setMessage("");
   }, [open, defaultName, defaultEmail]);
 
-  const valid = name.trim().length >= 3 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) && message.trim().length > 0;
+  const valid = name.trim().length >= 3 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) && message.trim().length > 0 && message.length <= MAX_FEEDBACK_MESSAGE_LENGTH;
 
   const submit = () => {
     if (!valid) return;
@@ -89,6 +90,7 @@ export function FeedbackDialog({
           <textarea
             id={`${titleId}-message`}
             value={message}
+            maxLength={MAX_FEEDBACK_MESSAGE_LENGTH}
             onChange={(e) => setMessage(e.target.value)}
             rows={4}
             placeholder="Please enter feedback"

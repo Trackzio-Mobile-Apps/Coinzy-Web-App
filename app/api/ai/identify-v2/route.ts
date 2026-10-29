@@ -37,9 +37,9 @@ export async function POST(request: NextRequest) {
   if (json.error) {
     const status = json._status >= 500 ? 502 : json._status;
     return reply(
-      { error: true, reason: json.reason, aiErrorCode: json.aiErrorCode, resetsAt: json.resetsAt },
+      { error: true, reason: json.reason, aiErrorCode: json.aiErrorCode, resetsAt: json.resetsAt, usage: json.usage },
       status,
     );
   }
-  return reply({ error: false, data: json.data });
+  return reply({ error: false, data: json.data, usage: json.usage });
 }

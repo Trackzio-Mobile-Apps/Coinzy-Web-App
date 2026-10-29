@@ -5,10 +5,10 @@ import { AppSidebar } from "@/components/home/AppSidebar";
 import { CatalogueSearch } from "@/components/catalogue/CatalogueSearch";
 import { CoinGridSkeleton } from "@/components/catalogue/CoinGridSkeleton";
 import { Pagination } from "@/components/catalogue/CoinGrid";
-import { ListCoinButton } from "@/components/marketplace/ListCoinButton";
 import { ListingGrid } from "@/components/marketplace/ListingGrid";
 import { MarketplaceAppHeader } from "@/components/marketplace/MarketplaceAppHeader";
 import { MarketplaceFilterPanel } from "@/components/marketplace/MarketplaceFilterPanel";
+import { YourListingsPanel } from "@/components/marketplace/YourListingsPanel";
 import { fetchListingFilterValues } from "@/lib/api/coinzy";
 import type { SessionUser } from "@/lib/auth/session";
 import { parsePageParam, parseQueryParam } from "@/lib/backNav";
@@ -21,7 +21,6 @@ import {
 } from "@/lib/marketplace/listingFilters";
 
 const PAGE_SIZE = 16;
-const A = "/assets/marketplace";
 
 const EXPLORE_SLUGS = ["american-coins", "roman-coins", "gold-coins"] as const;
 
@@ -72,7 +71,11 @@ async function MarketplaceBrowse({
   }));
 
   return (
-    <section>
+    <section data-listing-results className="relative">
+      {/* Shown (via html[data-filtering]) while a filter change loads; see MarketplaceFilterPanel. */}
+      <div data-listing-loader className="absolute inset-x-0 top-24 z-10 justify-center" role="status" aria-label="Updating results">
+        <span className="size-8 animate-spin rounded-full border-[3px] border-[#e5e5e5] border-t-primary-500" />
+      </div>
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="text-lg font-medium leading-7 text-ink">Browse all coins</h3>
         <p className="text-sm leading-5 text-[#737373]">
@@ -113,7 +116,13 @@ async function MarketplaceFilters() {
   return <MarketplaceFilterPanel options={filterOptions} />;
 }
 
-/** Signed-in marketplace — Figma `1356:154252`. Shell paints first; listings/filters stream. */
+function YourListingsFallback() {
+  return (
+    <section className="mb-8 h-[140px] animate-pulse rounded-[16px] border-[0.5px] border-[#dfdfe0] bg-white" />
+  );
+}
+
+/** Signed-in marketplace — Figma `1357:183164` (Your listings strip) / browse `1356:154252`. */
 export function MarketplaceSignedInPage({
   user,
   premium,
@@ -159,22 +168,9 @@ export function MarketplaceSignedInPage({
               />
             </div>
 
-            <section className="mb-8 rounded-[12px] border border-[#e5e7eb] bg-white p-4">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex gap-3">
-                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#f5f5f5]">
-                    <Image src={`${A}/icon-listings.svg`} alt="" width={20} height={20} />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium leading-5 text-ink">Your listings</h3>
-                    <p className="mt-1 max-w-md text-sm leading-5 text-[#737373]">
-                      You haven&apos;t listed anything yet. Turn your collection into cash — list a coin in under 2 minutes.
-                    </p>
-                  </div>
-                </div>
-                <ListCoinButton />
-              </div>
-            </section>
+            <Suspense fallback={<YourListingsFallback />}>
+              <YourListingsPanel />
+            </Suspense>
 
             <section className="mb-8">
               <div className="mb-4 flex items-center justify-between">
@@ -223,7 +219,7 @@ export function MarketplaceSignedInPage({
             </Suspense>
           </main>
 
-          <Suspense fallback={<div className="w-[266px] shrink-0 border-l border-[#e5e7eb] bg-white" />}>
+          <Suspense fallback={<div className="w-[300px] shrink-0" />}>
             <MarketplaceFilters />
           </Suspense>
         </div>

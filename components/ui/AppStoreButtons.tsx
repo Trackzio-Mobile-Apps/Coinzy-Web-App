@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { PLAY_STORE_URL } from "@/lib/constants";
+import { APP_STORE_URL, PLAY_STORE_URL } from "@/lib/constants";
 
 interface AppStoreButtonsProps {
   variant?: "light" | "dark";
@@ -19,7 +19,7 @@ export function AppStoreButtons({
   return (
     <div className={`flex flex-wrap gap-3 ${className}`}>
       <Link
-        href={PLAY_STORE_URL}
+        href={APP_STORE_URL}
         target="_blank"
         rel="noopener noreferrer"
         className={`inline-flex items-center gap-6 rounded-[var(--radius-badge)] px-5 py-[7px] transition-opacity hover:opacity-90 ${buttonClass}`}

@@ -1,15 +1,28 @@
 import Image from "next/image";
+import Link from "next/link";
 import { SectionShell } from "@/components/ui/SectionShell";
+import { authHref } from "@/lib/auth/returnTo";
 import { IDENTIFY_RESULT, RECENT_SCANS } from "@/lib/constants";
 
-function OutlineAction({ children }: { children: React.ReactNode }) {
+const IDENTIFY_AUTH_HREF = authHref(undefined, "/identify");
+const EXPERTS_AUTH_HREF = authHref(undefined, "/experts");
+
+function OutlineAction({
+  href,
+  children,
+  borderClassName = "border-primary-500",
+}: {
+  href: string;
+  children: React.ReactNode;
+  borderClassName?: string;
+}) {
   return (
-    <button
-      type="button"
-      className="rounded-[var(--radius-button)] border border-primary-500 bg-white px-4 py-2 text-sm font-medium leading-5 text-primary-500 transition-colors hover:bg-primary-50"
+    <Link
+      href={href}
+      className={`rounded-[var(--radius-button)] border bg-white px-4 py-2 text-sm font-medium leading-5 text-primary-500 transition-colors hover:bg-primary-50 ${borderClassName}`}
     >
       {children}
-    </button>
+    </Link>
   );
 }
 
@@ -52,8 +65,10 @@ export function IdentifyDemoSection() {
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <OutlineAction>AI Evaluation</OutlineAction>
-            <OutlineAction>Human Expert Evaluation</OutlineAction>
+            <OutlineAction href={IDENTIFY_AUTH_HREF}>AI Evaluation</OutlineAction>
+            <OutlineAction href={EXPERTS_AUTH_HREF} borderClassName="border-gold">
+              Human Expert Evaluation
+            </OutlineAction>
           </div>
         </div>
 

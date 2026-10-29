@@ -129,7 +129,7 @@ function emit(lines: string[]) {
 
 /** Start a timed request card; call `.done()` / `.fail()` when finished. */
 export function httpLogStart(req: HttpLogRequest) {
-  if (!ENABLED) {
+  if (!ENABLED || process.env.API_LOG === "0" || Reflect.get(globalThis, Symbol.for("coinzy.apiLogger"))) {
     return {
       id: 0,
       done: (_res: HttpLogResponse) => {},

@@ -1,4 +1,4 @@
-/** Max-Age for `coinzy_session` from JWT `exp` (capped like auth login). */
+/** Max-Age for `coinzy_session` from JWT `exp` (capped like auth login). Node-only. */
 export function sessionCookieMaxAge(token: string): number {
   let maxAge = 86400;
   try {
@@ -9,3 +9,10 @@ export function sessionCookieMaxAge(token: string): number {
   }
   return maxAge;
 }
+
+/** Re-exports for route handlers that already import hint helpers from this path. */
+export {
+  AUTHED_HINT_COOKIE,
+  clearAuthedHintCookie,
+  setAuthedHintCookie,
+} from "@/lib/auth/authed-hint";

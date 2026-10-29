@@ -24,9 +24,14 @@ export function authErrorsFromReason(mode: AuthFormMode, reason: string): { fiel
     if (/incorrect password|wrong password|invalid password|password.*incorrect/.test(r)) {
       return { fields: { password: AUTH_FIELD_COPY.loginPasswordIncorrect } };
     }
-    if (/not registered|isn't registered|unregistered|no user|user not found|account not found|email not found/.test(r)) {
-      return { fields: { email: AUTH_FIELD_COPY.loginEmailUnregistered } };
-    }
+  }
+
+  if ((mode === "login" || mode === "forgot") && /not registered|isn't registered|unregistered|no user|user not found|account not found|email not found/.test(r)) {
+    return { fields: { email: AUTH_FIELD_COPY.loginEmailUnregistered } };
+  }
+
+  if (mode === "forgot") {
+    return { fields: { email: reason } };
   }
 
   if (mode === "signup" && /already|exist|registered|in use/.test(r)) {
@@ -34,6 +39,11 @@ export function authErrorsFromReason(mode: AuthFormMode, reason: string): { fiel
   }
 
   if ((mode === "reset" || mode === "otp") && /otp|token|code|verification/.test(r) && /invalid|incorrect|mismatch|expired|wrong/.test(r)) {
+    return { fields: { otp: AUTH_FIELD_COPY.otpInvalid } };
+  }
+
+  // Any other rejection of the reset call that is not about the new password means the code was not accepted.
+  if (mode === "reset" && !/password/.test(r) && /invalid|incorrect|expired|not match|doesn't match|wrong|unauthori[sz]ed|not found|denied/.test(r)) {
     return { fields: { otp: AUTH_FIELD_COPY.otpInvalid } };
   }
 

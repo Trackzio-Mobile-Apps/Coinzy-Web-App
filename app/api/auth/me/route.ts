@@ -9,8 +9,10 @@ import {
 } from "@/lib/api/auth-session";
 import { isAllowedAuthOrigin } from "@/lib/auth/origin";
 import { isUserSubscribed } from "@/lib/auth/subscription";
-import { sessionCookieMaxAge } from "@/lib/auth/session-cookie";
-import { isSellerProfileComplete } from "@/lib/marketplace/sellerProfile";
+import { clearAuthedHintCookie, sessionCookieMaxAge, setAuthedHintCookie } from "@/lib/auth/session-cookie";
+import { isSellerProfileComplete, isValidPhoneNumber } from "@/lib/marketplace/sellerProfile";
+import type { ScanUsage } from "@/lib/identify/scanUsage";
+import { MAX_PROFILE_NAME_LENGTH } from "@/lib/settings/profile";
 
 const reply = (body: object, status = 200) =>
   NextResponse.json(body, { status, headers: { "Cache-Control": "no-store" } });
@@ -52,7 +54,7 @@ function jwtUserId(token: string): string | undefined {
   }
 }
 
-function publicProfile(user: AboutMeUser, token: string) {
+function publicProfile(user: AboutMeUser, token: string, usage: ScanUsage | null = null) {
   const sellerDetails = user.sellerDetails ?? null;
   const claims = jwtClaims(token);
   const name = aboutMeDisplayName(user) || claims.name || "";
@@ -80,6 +82,7 @@ function publicProfile(user: AboutMeUser, token: string) {
     subscriptionProvider:
       typeof user.subscriptionProvider === "string" ? user.subscriptionProvider : null,
     subscriptionDate: typeof user.subscriptionDate === "string" ? user.subscriptionDate : null,
+    scanUsage: usage,
   };
 }
 
@@ -89,6 +92,9 @@ function normalizeSellerDetails(raw: SellerDetails): SellerDetails | { error: st
   if (!name) return { error: "Enter your name." };
   if (!contactEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
     return { error: "Enter a valid seller email." };
+  }
+  if (raw.phoneNumber != null && (typeof raw.phoneNumber !== "string" || !isValidPhoneNumber(raw.phoneNumber))) {
+    return { error: "Enter a valid contact number (7–15 digits)." };
   }
   return {
     name,
@@ -115,17 +121,22 @@ export async function GET(request: NextRequest) {
       { error: true, reason: result.reason ?? "Could not load profile." },
       status,
     );
-    if (result._status === 401 || result._status === 404) {
+    // `?soft=1` (scan-count refresh) must never end the session: only the profile/settings flows may clear it.
+    const soft = request.nextUrl.searchParams.get("soft") === "1";
+    if (!soft && (result._status === 401 || result._status === 404)) {
       response.cookies.set("coinzy_session", "", { ...cookieOptions, maxAge: 0 });
+      clearAuthedHintCookie(response);
     }
     return response;
   }
-  const response = reply({ error: false, user: publicProfile(result.user, token) });
+  const response = reply({ error: false, user: publicProfile(result.user, token, result.usage) });
   if (result.sessionToken) {
+    const maxAge = sessionCookieMaxAge(result.sessionToken);
     response.cookies.set("coinzy_session", result.sessionToken, {
       ...cookieOptions,
-      maxAge: sessionCookieMaxAge(result.sessionToken),
+      maxAge,
     });
+    setAuthedHintCookie(response, maxAge);
   }
   return response;
 }
@@ -151,6 +162,9 @@ export async function PATCH(request: NextRequest) {
   }
 
   const fullName = typeof body.fullName === "string" ? body.fullName.trim() : "";
+  if (fullName.length > MAX_PROFILE_NAME_LENGTH) {
+    return reply({ error: true, reason: `Name must be ${MAX_PROFILE_NAME_LENGTH} characters or fewer.` }, 400);
+  }
   const hasSeller = body.sellerDetails && typeof body.sellerDetails === "object";
   if (!fullName && !hasSeller) {
     return reply({ error: true, reason: "Nothing to update." }, 400);
@@ -219,7 +233,11 @@ export async function DELETE(request: NextRequest) {
     return reply({ error: true, reason: result.reason ?? "Could not delete account." }, status);
   }
 
+  // Upstream hard-deletes the user (subsequent login → "User not found"). Clear the HTTP-only
+  // session so the browser cannot keep acting as that account.
   const response = reply({ error: false, message: "Delete Success" });
   response.cookies.set("coinzy_session", "", { ...cookieOptions, maxAge: 0 });
+  response.cookies.delete("coinzy_session");
+  clearAuthedHintCookie(response);
   return response;
 }

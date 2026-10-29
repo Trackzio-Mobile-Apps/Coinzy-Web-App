@@ -5,6 +5,7 @@
  */
 
 import { resolveCatalogueOrigin } from "@/lib/api/catalogue-origin";
+import { parseScanUsage, type ScanUsage } from "@/lib/identify/scanUsage";
 
 export type SellerDetails = {
   name?: string | null;
@@ -51,7 +52,7 @@ function displayName(user: AboutMeUser | null | undefined): string {
 export async function fetchAboutMe(
   token: string,
 ): Promise<
-  | { error: false; user: AboutMeUser; sessionToken?: string }
+  | { error: false; user: AboutMeUser; sessionToken?: string; usage: ScanUsage | null }
   | { error: true; reason?: string; _status: number }
 > {
   const res = await fetch(`${resolveCatalogueOrigin()}/auth/me`, {
@@ -66,10 +67,13 @@ export async function fetchAboutMe(
     token?: string;
   };
   if (!res.ok || json.error || !json.user) {
+    // Surfaces why auth/me failed (it silently drops premium to the JWT claim and hides scan counts).
+    console.warn(`[auth/me] upstream ${res.status}: ${json.reason ?? (json.user ? "error flag" : "no user in body")}`);
     return { error: true, reason: json.reason, _status: res.status };
   }
   const sessionToken = typeof json.token === "string" && json.token.trim() ? json.token.trim() : undefined;
-  return { error: false, user: json.user, sessionToken };
+  // AI scan counters live at the top level of the response (successCount / errorCount / thresholds).
+  return { error: false, user: json.user, sessionToken, usage: parseScanUsage(json) };
 }
 
 /** `PATCH auth/me` with `{ sellerDetails }` — replaces the nested seller object (send full fields). */
@@ -101,7 +105,11 @@ export async function patchAboutMe(
   return { error: false, user: json.user };
 }
 
-/** `DELETE auth/me` — deletes the account (no stable response body). */
+/**
+ * `DELETE auth/me` — deletes the account.
+ * Android `requestWithoutBase` only accepts HTTP 200/201 and treats `error: true` in the
+ * body as failure (prod returns `201` + `{"error":false}`).
+ */
 export async function deleteAccount(
   token: string,
 ): Promise<{ error: false } | { error: true; reason?: string; _status: number }> {
@@ -110,9 +118,12 @@ export async function deleteAccount(
     headers: authHeaders(token),
     cache: "no-store",
   });
-  if (!res.ok) {
-    const json = (await res.json().catch(() => null)) as { reason?: string; error?: boolean } | null;
+  const json = (await res.json().catch(() => null)) as { reason?: string; error?: boolean } | null;
+  if (res.status !== 200 && res.status !== 201) {
     return { error: true, reason: json?.reason, _status: res.status };
+  }
+  if (json?.error === true) {
+    return { error: true, reason: json.reason, _status: res.status || 400 };
   }
   return { error: false };
 }

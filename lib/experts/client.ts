@@ -82,7 +82,10 @@ export function submitExpertFeedback(body: {
   });
 }
 
-/** Multipart upload → public HTTPS URLs (docs `POST /users/uploads`). */
+/**
+ * Docs `POST /users/uploads` (S3). Unused on web — submit uses Firebase Storage
+ * (`lib/experts/uploadMedia.ts`) to match Android until Experts S3 is configured.
+ */
 export async function uploadExpertFiles(files: File[]): Promise<ExpertsEnvelope<{ urls: string[] }>> {
   const form = new FormData();
   for (const file of files) form.append("files", file);

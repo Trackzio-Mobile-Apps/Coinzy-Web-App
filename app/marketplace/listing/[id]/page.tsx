@@ -21,7 +21,7 @@ import {
   overviewRows,
   type CoinSpec,
 } from "@/lib/catalogue/coinDetails";
-import { FROM_HOME, pagedHref, parsePageParam, parseQueryParam } from "@/lib/backNav";
+import { FROM_HOME, FROM_LANDING, pagedHref, parsePageParam, parseQueryParam } from "@/lib/backNav";
 import { MARKETPLACE_BROWSE_CATEGORIES } from "@/lib/constants";
 import { getMarketplaceCategory } from "@/lib/marketplace/categories";
 import { getSessionUser } from "@/lib/auth/session";
@@ -97,14 +97,16 @@ async function ListingDetailsContent({
   const ancestors =
     from === FROM_HOME
       ? [{ href: "/home", label: "Home" }]
-      : from === "marketplace"
-        ? [{ href: "/marketplace", label: "Marketplace" }]
-        : [
-            { href: "/marketplace", label: "Marketplace" },
-            category
-              ? { href: pagedHref(`/marketplace/${category.slug}`, fromPage, fromQuery), label: category.crumb }
-              : { href: "/marketplace/all", label: "All listings" },
-          ];
+      : from === FROM_LANDING
+        ? [{ href: "/#marketplace", label: "Home" }]
+        : from === "marketplace"
+          ? [{ href: "/marketplace", label: "Marketplace" }]
+          : [
+              { href: "/marketplace", label: "Marketplace" },
+              category
+                ? { href: pagedHref(`/marketplace/${category.slug}`, fromPage, fromQuery), label: category.crumb }
+                : { href: "/marketplace/all", label: "All listings" },
+            ];
 
   return (
     <>

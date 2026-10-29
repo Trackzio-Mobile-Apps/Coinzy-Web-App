@@ -87,6 +87,9 @@ export function privateCollectionOption(row: ApiPrivateCollection): UserCollecti
   };
 }
 
+/** Max characters for a new collection name (ClickUp 14yn59xnvu1). */
+export const MAX_COLLECTION_NAME_LENGTH = 30;
+
 export function defaultNewCollectionName(privateCount: number): string {
   return `Private collection #${privateCount + 1}`;
 }
@@ -108,7 +111,8 @@ export function applyCollectionToAddBody(
     body.isOwned = false;
     body.isWishlisted = false;
   } else {
-    body.isOwned = userOwnsCoin;
+    // Android parity: custom collections are saved not-owned (Owned is its own entry), so owning is not duplicated.
+    body.isOwned = false;
     body.isWishlisted = false;
     if (option.collectionId) body._collection = option.collectionId;
   }
