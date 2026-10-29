@@ -108,7 +108,8 @@ export function applyCollectionToAddBody(
     body.isOwned = false;
     body.isWishlisted = false;
   } else {
-    body.isOwned = userOwnsCoin;
+    // Android parity: custom collections are saved not-owned (Owned is its own entry), so owning is not duplicated.
+    body.isOwned = false;
     body.isWishlisted = false;
     if (option.collectionId) body._collection = option.collectionId;
   }

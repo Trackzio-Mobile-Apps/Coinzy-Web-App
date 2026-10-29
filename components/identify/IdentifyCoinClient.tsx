@@ -21,6 +21,19 @@ import { addCoinViaApi, createCollectionViaApi, fetchCollectionsViaApi } from "@
 import { readIdentifySession } from "@/lib/identify/storage";
 
 /** Figma `1254:103144` faces — Stroke default, Solid primary when selected (`1252:102854`). */
+const RATE_MESSAGE_MAX_WORDS = 100;
+
+/** Keeps at most `max` words, preserving the user's spacing (and a trailing space while typing). */
+function limitWords(text: string, max: number): string {
+  const re = /\S+/g;
+  let count = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text))) {
+    if (++count === max) return text.slice(0, m.index + m[0].length) + (/\s$/.test(text) && re.lastIndex < text.length ? " " : "");
+  }
+  return text;
+}
+
 const RATE_FACES = [
   {
     src: "/assets/identify/rate/sad-02.png",
@@ -69,9 +82,10 @@ export function IdentifyResultRail({
   const [uploads, setUploads] = useState<[string, string] | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectOpen, setSelectOpen] = useState(false);
-  const [collections, setCollections] = useState<UserCollectionOption[]>([]);
-  const [collectionsLoading, setCollectionsLoading] = useState(false);
-  const [collectionId, setCollectionId] = useState(IDENTIFIED_COLLECTION_ID);
+  // Identified + Owned are local, so they render instantly; only private collections come from the API.
+  const [collections, setCollections] = useState<UserCollectionOption[]>(() => buildCollectionOptions({ data: [] }));
+  const [collectionsLoading, setCollectionsLoading] = useState(true);
+  const [selectedIds, setSelectedIds] = useState<string[]>([IDENTIFIED_COLLECTION_ID]);
   const [userOwnsCoin, setUserOwnsCoin] = useState(true);
   const [rating, setRating] = useState<number | null>(null);
   const [message, setMessage] = useState("");
@@ -85,10 +99,9 @@ export function IdentifyResultRail({
     setUploads(userUploadUrls());
   }, []);
 
+  // Prefetch on mount so private collections are usually ready before the popup opens.
   useEffect(() => {
-    if (!selectOpen) return;
     let cancelled = false;
-    setCollectionsLoading(true);
     fetchCollectionsViaApi()
       .then((res) => {
         if (cancelled) return;
@@ -105,17 +118,16 @@ export function IdentifyResultRail({
     return () => {
       cancelled = true;
     };
-  }, [selectOpen]);
+  }, []);
 
   useEffect(() => {
     if (!selectOpen) return;
-    if (userOwnsCoin) setCollectionId(OWNED_COLLECTION_ID);
-    else setCollectionId(IDENTIFIED_COLLECTION_ID);
+    setSelectedIds(userOwnsCoin ? [OWNED_COLLECTION_ID] : [IDENTIFIED_COLLECTION_ID]);
   }, [selectOpen, userOwnsCoin]);
 
   const imagePair = useMemo((): [string, string] | null => {
-    // Prefer remote identify uploads; never persist blob: object URLs to the API.
-    if (uploads && !uploads[0].startsWith("blob:") && !uploads[1].startsWith("blob:")) {
+    // Prefer remote identify uploads; never persist local blob:/data: previews to the API.
+    if (uploads && uploads.every((u) => /^https?:\/\//i.test(u))) {
       return uploads;
     }
     const urls = coin.imageUrls;
@@ -133,31 +145,40 @@ export function IdentifyResultRail({
       setError("Upload photos are missing — identify this coin again.");
       return;
     }
-    const opt = collections.find((o) => o.id === collectionId);
-    if (!opt) {
+    // Android parity: add to each selected collection one by one (Owned first), then one success message.
+    const picked = collections
+      .filter((o) => selectedIds.includes(o.id))
+      .sort((x, y) => Number(y.kind === "owned") - Number(x.kind === "owned"));
+    if (!picked.length) {
       setError("Select a collection.");
       return;
     }
     const base = buildAddCoinPayload(coin, archetypeId, imagePair, {
       isOwned: userOwnsCoin,
     });
-    const payload = applyCollectionToAddBody(base, opt, userOwnsCoin);
 
     setSaving(true);
     setError(null);
-    const res = await addCoinViaApi(payload);
-    setSaving(false);
-    if (res.error) {
-      setError(res.reason ?? "Could not add coin.");
-      return;
+    for (const opt of picked) {
+      const res = await addCoinViaApi(applyCollectionToAddBody(base, opt, userOwnsCoin));
+      if (res.error) {
+        setSaving(false);
+        setError(res.reason ?? `Could not add coin to ${opt.label}.`);
+        return;
+      }
     }
+    setSaving(false);
     setSelectOpen(false);
     setDrawerOpen(false);
+    const named = picked.filter((o) => o.kind !== "identified");
+    const only = named.length === 1 ? named[0] : picked.length === 1 ? picked[0] : null;
     setSuccess({
       title: "Your coin added to collection!",
-      body: "The coin has been successfully added to collection",
+      body: only
+        ? `The coin has been successfully added to your ${only.label.replace(/ collection$/i, "")} collection`
+        : "The coin has been successfully added to your collections",
     });
-  }, [archetypeId, coin, collectionId, collections, imagePair, userOwnsCoin]);
+  }, [archetypeId, coin, selectedIds, collections, imagePair, userOwnsCoin]);
 
   const handleCreateCollection = useCallback(
     async (name: string) => {
@@ -165,7 +186,7 @@ export function IdentifyResultRail({
       if (res.error) return res;
       const option = privateCollectionOption({ collectionId: res.collectionId, name: res.name });
       setCollections((prev) => [...prev, option]);
-      setCollectionId(option.id);
+      setSelectedIds((prev) => [...prev, option.id]);
       return { error: false as const };
     },
     [],
@@ -218,17 +239,29 @@ export function IdentifyResultRail({
                     key={face.src}
                     type="button"
                     onClick={() => setRating(i + 1)}
-                    className="flex size-6 items-center justify-center"
+                    className="group relative flex size-8 items-center justify-center rounded-full transition-transform duration-100 hover:scale-110 hover:bg-black/5 active:scale-95"
                     aria-label={face.label}
                     aria-pressed={selected}
+                    title={face.label}
                   >
+                    {/* Both states stay mounted so the tap swaps instantly (no image load on click). */}
                     <Image
-                      src={selected ? face.selectedSrc : face.src}
+                      src={face.src}
                       alt=""
                       width={24}
                       height={24}
                       aria-hidden
-                      className="size-6"
+                      priority
+                      className={`absolute size-6 ${selected ? "opacity-0" : "opacity-100"}`}
+                    />
+                    <Image
+                      src={face.selectedSrc}
+                      alt=""
+                      width={24}
+                      height={24}
+                      aria-hidden
+                      priority
+                      className={`absolute size-6 ${selected ? "opacity-100" : "opacity-0"}`}
                     />
                   </button>
                 );
@@ -241,11 +274,14 @@ export function IdentifyResultRail({
               <textarea
                 id="identify-rate-message"
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                onChange={(e) => setMessage(limitWords(e.target.value, RATE_MESSAGE_MAX_WORDS))}
                 placeholder="Type here"
                 rows={2}
                 className="h-16 w-full resize-none rounded-lg border border-[#e5e5e5] bg-white px-2.5 py-2 text-sm text-ink placeholder:text-[#737373]"
               />
+              <p className="text-right text-xs text-[#87878a]">
+                {message.trim() ? message.trim().split(/\s+/).length : 0}/{RATE_MESSAGE_MAX_WORDS} words
+              </p>
             </div>
             <button
               type="button"
@@ -280,8 +316,10 @@ export function IdentifyResultRail({
         collections={collections}
         loading={collectionsLoading}
         userOwnsCoin={userOwnsCoin}
-        selectedId={collectionId}
-        onSelect={setCollectionId}
+        selectedIds={selectedIds}
+        onToggle={(id) =>
+          setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+        }
         onClose={() => setSelectOpen(false)}
         onDone={() => {
           if (!saving && !collectionsLoading) finishAdd();

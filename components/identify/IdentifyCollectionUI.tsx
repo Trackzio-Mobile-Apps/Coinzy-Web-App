@@ -36,18 +36,63 @@ function CollectionCheckbox({
   );
 }
 
+const OWNERSHIP_TAB = "Ownership details";
 const DRAWER_TABS = ["Overview", "Design & Material", "Rarity", "History"] as const;
 
-function ReadOnlyField({ label, value }: { label: string; value: string }) {
+function sectionId(label: string) {
+  return `add-collection-${label.toLowerCase().replace(/[^a-z]+/g, "-")}`;
+}
+
+function TableRow({ label, value, last }: { label: string; value: string; last?: boolean }) {
   return (
-    <label className="flex flex-col gap-1.5">
-      <span className="text-xs font-medium text-[#606062]">{label}</span>
-      <span className="rounded-lg border border-[#e5e5e5] bg-[#fafafa] px-3 py-2 text-sm text-ink">{value}</span>
-    </label>
+    <div
+      className={`grid grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] items-center gap-6 px-5 py-2 ${
+        last ? "" : "border-b-[0.5px] border-[#dfdfe0]"
+      }`}
+    >
+      <span className="text-xs font-medium leading-4 text-ink">{label}</span>
+      <span className="text-xs leading-4 text-[#606062]">{value}</span>
+    </div>
   );
 }
 
-/** Figma `1301:153660` — add-to-collection side panel. */
+function RowTable({ rows }: { rows: { label: string; value: string }[] }) {
+  return (
+    <div className="flex flex-col">
+      {rows.map((row, i) => (
+        <TableRow key={row.label} label={row.label} value={row.value} last={i === rows.length - 1} />
+      ))}
+    </div>
+  );
+}
+
+const inputCls =
+  "h-8 w-full rounded-[10px] border border-[#e5e5e5] bg-white px-2.5 text-sm font-light text-ink placeholder:text-xs placeholder:font-normal placeholder:text-[#a4a4a7]";
+
+function OwnChoice({
+  label,
+  selected,
+  onClick,
+}: {
+  label: string;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={selected}
+      className={`flex h-6 w-12 items-center justify-center rounded-lg text-xs font-medium leading-4 transition ${
+        selected ? "bg-primary-500 text-white" : "bg-[#e8e8e8] text-[#0a0a0a] hover:bg-[#dcdcdc]"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+/** Figma side panel (`14yn59xnvhy`, `14yn59xnvjx`): 585px, one scrolling page; Yes reveals ownership fields + tab. */
 export function IdentifyAddToCollectionDrawer({
   open,
   coin,
@@ -59,52 +104,81 @@ export function IdentifyAddToCollectionDrawer({
   coin: ArchetypeDetails;
   userImageUrls: [string, string] | null;
   onClose: () => void;
-  onConfirmAdd: (opts: { isOwned: boolean }) => void;
+  onConfirmAdd: (opts: {
+    isOwned: boolean;
+    dateAcquired?: string;
+    purchasePrice?: string;
+    notes?: string;
+  }) => void;
 }) {
-  const [tab, setTab] = useState<(typeof DRAWER_TABS)[number]>("Overview");
   const [ownsCoin, setOwnsCoin] = useState(true);
+  const [dateAcquired, setDateAcquired] = useState("");
+  const [purchasePrice, setPurchasePrice] = useState("");
+  const [notes, setNotes] = useState("");
+  const [activeTab, setActiveTab] = useState<string>(OWNERSHIP_TAB);
   const title = coinTitle(coin);
-  const tabs = detailTabs(coin);
+  const detail = detailTabs(coin);
 
   if (!open) return null;
 
   const overview = overviewRows(coin);
-  const activeDetail = tabs.find((t) => t.label === tab) ?? tabs[0];
+  const tabLabels = ownsCoin ? [OWNERSHIP_TAB, ...DRAWER_TABS] : [...DRAWER_TABS];
+  const current = tabLabels.includes(activeTab) ? activeTab : tabLabels[0];
+
+  const goTo = (label: string) => {
+    setActiveTab(label);
+    document.getElementById(sectionId(label))?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <>
       <button type="button" aria-label="Close panel" className="fixed inset-0 z-40 bg-black/40" onClick={onClose} />
       <aside
-        className="fixed inset-y-0 right-0 z-50 flex w-full max-w-[min(100%,420px)] flex-col border-l border-[#efefef] bg-white shadow-xl"
+        className="fixed inset-y-0 right-0 z-50 flex w-full max-w-[585px] flex-col rounded-l-xl border-l border-[#e5e5e5] bg-white shadow-xl"
         role="dialog"
         aria-modal="true"
         aria-labelledby="add-collection-title"
       >
-        <header className="flex items-center gap-3 border-b border-[#efefef] px-4 py-3">
-          <button type="button" onClick={onClose} aria-label="Close" className="flex size-8 items-center justify-center">
-            <Image src="/assets/auth/close.svg" alt="" width={16} height={16} />
+        <header className="flex h-12 shrink-0 items-center gap-2.5 rounded-tl-xl bg-[#f2f2f3] px-8">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="flex size-6 items-center justify-center rounded-lg bg-white hover:bg-neutral-50"
+          >
+            <Image src="/assets/auth/close.svg" alt="" width={12} height={12} />
           </button>
-          <h2 id="add-collection-title" className="text-base font-medium text-ink">Add to collection</h2>
+          <span className="text-sm font-medium leading-5 text-ink">Add to collection</span>
         </header>
 
-        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-4">
-          <div className="flex gap-3">
-            {(userImageUrls ?? coin.imageUrls).slice(0, 2).map((src, i) => (
-              <div key={`${src}-${i}`} className="relative size-14 overflow-hidden rounded-lg border border-[#efefef]">
-                <Image src={src} alt="" fill className="object-cover" unoptimized={src.startsWith("blob:")} />
-              </div>
-            ))}
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+          <div className="flex flex-col gap-2 px-8 pb-8 pt-4">
+            <div className="flex items-center justify-center gap-5 px-4">
+              {(userImageUrls ?? coin.imageUrls).slice(0, 2).map((src, i) => (
+                <div key={`${src}-${i}`} className="relative size-[90px] shrink-0 overflow-hidden rounded-lg">
+                  <Image
+                    src={src}
+                    alt=""
+                    fill
+                    className="object-cover"
+                    unoptimized={src.startsWith("blob:") || src.startsWith("data:")}
+                  />
+                </div>
+              ))}
+            </div>
+            <h2 id="add-collection-title" className="text-center text-base font-medium leading-6 text-[#0a0a0a]">
+              {title}
+            </h2>
           </div>
-          <p className="mt-3 text-sm font-semibold leading-5 text-ink">{title}</p>
 
-          <div className="mt-4 flex gap-4 border-b border-[#efefef] text-sm">
-            {DRAWER_TABS.map((t) => (
+          <div className="sticky top-0 z-10 flex shrink-0 gap-1 border-b border-[#dfdfe0] bg-white px-8">
+            {tabLabels.map((t) => (
               <button
                 key={t}
                 type="button"
-                onClick={() => setTab(t)}
-                className={`border-b-2 pb-2 ${
-                  tab === t ? "border-primary-500 font-medium text-ink" : "border-transparent text-[#87878a]"
+                onClick={() => goTo(t)}
+                className={`flex h-[26px] items-center justify-center border-b-2 px-1.5 pb-1 pt-0.5 text-sm font-medium leading-5 ${
+                  current === t ? "border-primary-500 text-primary-500" : "border-transparent text-ink opacity-60"
                 }`}
               >
                 {t}
@@ -112,48 +186,112 @@ export function IdentifyAddToCollectionDrawer({
             ))}
           </div>
 
-          <div className="mt-4 rounded-lg border border-[#edd2d3] border-l-4 border-l-primary-500 bg-[#f7e7e8]/40 px-3 py-3">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-medium text-ink">Do you own this coin?</p>
-              <div className="flex rounded-lg border border-[#e5e5e5] bg-white p-0.5">
-                <button
-                  type="button"
-                  onClick={() => setOwnsCoin(true)}
-                  className={`rounded-md px-3 py-1 text-xs font-medium ${ownsCoin ? "bg-[#f5f5f5] text-ink" : "text-muted"}`}
-                >
-                  Yes
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setOwnsCoin(false)}
-                  className={`rounded-md px-3 py-1 text-xs font-medium ${!ownsCoin ? "bg-[#f5f5f5] text-ink" : "text-muted"}`}
-                >
-                  No
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4 flex flex-col gap-3">
-            {tab === "Overview" &&
-              overview.map((row) => <ReadOnlyField key={row.label} label={row.label} value={row.value} />)}
-            {tab !== "Overview" &&
-              activeDetail?.groups.map((g) => (
-                <div key={g.heading} className="flex flex-col gap-3">
-                  <h3 className="text-sm font-medium text-ink">{g.heading}</h3>
-                  {g.rows.map((row) => (
-                    <ReadOnlyField key={row.label} label={row.label} value={row.value} />
-                  ))}
+          <div className="flex flex-col gap-6 px-8 py-3">
+            <section id={sectionId(OWNERSHIP_TAB)} className="flex scroll-mt-10 flex-col gap-3">
+              <h3 className="text-lg font-medium leading-7 text-ink">{OWNERSHIP_TAB}</h3>
+              <div className="flex flex-col justify-center gap-5 rounded-xl border-l-4 border-l-primary-500 bg-[linear-gradient(0deg,rgba(247,231,232,0.3),rgba(247,231,232,0.3)),#fff] p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex size-[34px] shrink-0 items-center justify-center rounded-full border border-[#edd2d3]">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+                      <path
+                        d="M13.5 5.5V4a1.5 1.5 0 0 0-1.5-1.5H3.5A1.5 1.5 0 0 0 2 4v8a1.5 1.5 0 0 0 1.5 1.5H12a1.5 1.5 0 0 0 1.5-1.5v-1.5M2 4.5h10.5A1.5 1.5 0 0 1 14 6v3a1.5 1.5 0 0 1-1.5 1.5H10A1.5 1.5 0 0 1 8.5 9V7A1.5 1.5 0 0 1 10 5.5h4"
+                        stroke="#7C3C3F"
+                        strokeWidth="1.2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <circle cx="10.7" cy="8" r="0.7" fill="#7C3C3F" />
+                    </svg>
+                  </div>
+                  <p className="flex-1 text-xs font-medium leading-4 text-ink">Do you own this coin?</p>
+                  <div className="flex gap-2">
+                    <OwnChoice label="Yes" selected={ownsCoin} onClick={() => setOwnsCoin(true)} />
+                    <OwnChoice label="No" selected={!ownsCoin} onClick={() => setOwnsCoin(false)} />
+                  </div>
                 </div>
-              ))}
+
+                {ownsCoin && (
+                  <>
+                    <hr className="border-t-[0.5px] border-[#dfdfe0]" />
+                    <div className="flex flex-col gap-3">
+                      <div className="flex gap-3">
+                        <label className="flex min-w-0 flex-1 flex-col gap-2">
+                          <span className="text-xs font-medium leading-4 text-ink">Date acquired</span>
+                          <input
+                            type="text"
+                            value={dateAcquired}
+                            placeholder="Enter the date of acquirement"
+                            onFocus={(e) => (e.currentTarget.type = "date")}
+                            onBlur={(e) => {
+                              if (!e.currentTarget.value) e.currentTarget.type = "text";
+                            }}
+                            onChange={(e) => setDateAcquired(e.target.value)}
+                            className={inputCls}
+                          />
+                        </label>
+                        <div className="flex min-w-0 flex-1 flex-col gap-2">
+                          <span className="text-xs font-medium leading-4 text-ink">Purchase Price</span>
+                          <div className="flex gap-2">
+                            <span className="flex h-8 w-11 shrink-0 items-center justify-center rounded-[10px] border border-[#e5e5e5] bg-white text-sm font-light text-ink">
+                              $
+                            </span>
+                            <input
+                              type="number"
+                              inputMode="decimal"
+                              min={0}
+                              value={purchasePrice}
+                              onChange={(e) => setPurchasePrice(e.target.value)}
+                              aria-label="Purchase price"
+                              className={`${inputCls} min-w-0 flex-1 text-[#606062]`}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <label className="flex flex-col gap-2">
+                        <span className="text-xs font-medium leading-4 text-ink">Notes</span>
+                        <textarea
+                          value={notes}
+                          onChange={(e) => setNotes(e.target.value)}
+                          placeholder="Add notes"
+                          className="h-16 w-full resize-y rounded-lg border border-[#e5e5e5] bg-white px-2.5 py-2 text-xs leading-4 text-ink placeholder:text-[#a4a4a7]"
+                        />
+                      </label>
+                    </div>
+                  </>
+                )}
+              </div>
+            </section>
+
+            <section id={sectionId("Overview")} className="flex scroll-mt-10 flex-col gap-3">
+              <h3 className="text-lg font-medium leading-7 text-ink">Overview</h3>
+              <RowTable rows={overview} />
+            </section>
+
+            {detail.map((t) => (
+              <section key={t.label} id={sectionId(t.label)} className="flex scroll-mt-10 flex-col gap-3">
+                <h3 className="text-lg font-medium leading-7 text-ink">{t.label}</h3>
+                {t.groups.map((g) => (
+                  <div key={g.heading} className="flex flex-col">
+                    <p className="px-5 py-2 text-sm font-medium leading-5 text-ink">{g.heading}</p>
+                    <RowTable rows={g.rows} />
+                  </div>
+                ))}
+              </section>
+            ))}
           </div>
         </div>
 
-        <footer className="border-t border-[#efefef] p-4">
+        <footer className="shrink-0 border-t border-[#e5e5e5] px-14 py-4">
           <button
             type="button"
-            onClick={() => onConfirmAdd({ isOwned: ownsCoin })}
-            className="flex h-10 w-full items-center justify-center rounded-[10px] bg-primary-500 text-sm font-medium text-white"
+            onClick={() =>
+              onConfirmAdd(
+                ownsCoin
+                  ? { isOwned: true, dateAcquired, purchasePrice, notes: notes.trim() }
+                  : { isOwned: false },
+              )
+            }
+            className="flex h-9 w-full items-center justify-center rounded-[10px] bg-primary-500 text-sm font-medium text-white"
           >
             Add to collection
           </button>
@@ -169,8 +307,8 @@ export function IdentifySelectCollectionModal({
   collections,
   loading,
   userOwnsCoin,
-  selectedId,
-  onSelect,
+  selectedIds,
+  onToggle,
   onClose,
   onDone,
   onCreateCollection,
@@ -179,10 +317,10 @@ export function IdentifySelectCollectionModal({
   open: boolean;
   collections: UserCollectionOption[];
   loading: boolean;
-  /** When false, only Owned is disabled; Identified + private stay selectable. */
+  /** Multi-select. false: Owned disabled. true: Owned locked checked (cannot be unchecked). */
   userOwnsCoin: boolean;
-  selectedId: string;
-  onSelect: (id: string) => void;
+  selectedIds: string[];
+  onToggle: (id: string) => void;
   onClose: () => void;
   onDone: () => void;
   onCreateCollection: (name: string) => Promise<{ error: true; reason?: string } | { error: false }>;
@@ -259,22 +397,26 @@ export function IdentifySelectCollectionModal({
       </div>
 
       <div className="flex max-h-[min(60vh,420px)] flex-col gap-4 overflow-y-auto px-4 pb-4">
-        {loading ? (
-          <p className="py-6 text-center text-sm text-muted">Loading collections…</p>
-        ) : (
-          <ul className="flex flex-col">
+        <ul className="flex flex-col">
             {collections.map((opt) => {
-              const checked = opt.id === selectedId;
-              // Only Owned is gated: disabled when the user said they do not own the coin.
+              const ownedLocked = userOwnsCoin && opt.kind === "owned";
+              const checked = selectedIds.includes(opt.id) || ownedLocked;
               const rowDisabled = !userOwnsCoin && opt.kind === "owned";
+              const toggle = () => {
+                if (rowDisabled || ownedLocked) return;
+                onToggle(opt.id);
+              };
               return (
                 <li key={opt.id}>
                   <button
                     type="button"
                     disabled={rowDisabled}
-                    onClick={() => !rowDisabled && onSelect(opt.id)}
+                    aria-disabled={rowDisabled || ownedLocked}
+                    aria-checked={checked}
+                    role="checkbox"
+                    onClick={toggle}
                     className={`flex w-full items-start gap-2 p-3 text-left text-sm font-medium text-[#606062] ${
-                      rowDisabled ? "cursor-not-allowed opacity-50" : "hover:bg-[#fafafa]"
+                      rowDisabled ? "cursor-not-allowed opacity-50" : ownedLocked ? "cursor-default" : "hover:bg-[#fafafa]"
                     }`}
                   >
                     <CollectionCheckbox checked={checked} disabled={rowDisabled} />
@@ -283,8 +425,8 @@ export function IdentifySelectCollectionModal({
                 </li>
               );
             })}
-          </ul>
-        )}
+        </ul>
+        {loading && <p className="-mt-2 px-3 text-xs text-muted">Loading your collections…</p>}
 
         <div
           className={`rounded-xl border border-[#edd2d3] bg-[rgba(247,231,232,0.3)] py-3 ${
@@ -358,7 +500,7 @@ export function IdentifySelectCollectionModal({
         <button
           type="button"
           onClick={() => void handleDone()}
-          disabled={loading || saving || creating}
+          disabled={loading || saving || creating || (createOpen && !newName.trim())}
           className="inline-flex h-9 items-center rounded-[10px] bg-primary-500 px-3 text-sm font-medium text-white disabled:opacity-50"
         >
           {saving || creating ? "Saving…" : "Done"}
