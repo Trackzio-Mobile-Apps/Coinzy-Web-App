@@ -283,7 +283,7 @@ Runtime under `public/assets/<area>/` (landing numbered folders `01-top-nav`…`
 Data for landing copy/lists: `lib/constants.ts` (marketplace strip coins are live API, not `MARKETPLACE_COINS`). Favicon: `app/icon.png` + `app/apple-icon.png`. Identify demo pills: AI → `/auth?next=/identify`, Human Expert → `/auth?next=/experts` (`authHref`; `/` is logged-out only). Collection CTA “Start your collection” → `/auth?next=/collection` (`authHref`). Listing details `?from=landing` breadcrumb → `/#marketplace` (`FROM_LANDING` in `lib/backNav.ts`). Store badges: `APP_STORE_URL` / `PLAY_STORE_URL` in `lib/constants.ts` — `AppStoreButtons` (MobileAppSection) + Footer `StoreBadge` use the matching store (ClickUp `14yn59xn598`).
 
 ## Bug tracker
-- `docs/bug-tracker.html` — ClickUp web-bug tracker (77 issues; 14 fixed / 62 open as of 2026-10-28; grouped by priority/screen/area/Figma; statuses persist in localStorage; ETA from inclusive-day fix velocity). Baked headline: **34 pts/day → overall ETA 2026-11-02**. Edit BASE or Export after in-page edits.
+- `docs/bug-tracker.html` — 77 web issues: 72 locally fixed, 1 local testing, 1 open, 3 not a bug. Separate read-only ClickUp status column uses `CLICKUP_STATUSES` + `CLICKUP_SYNCED_AT` (verified 2026-10-30: 73 `testiing`, 1 Open, 3 not a bug). All 72 locally fixed tasks moved to ClickUp `testiing` per user request; local progress/notes stay in localStorage. Export includes the verified ClickUp snapshot; imports/local edits cannot override it. Refresh the snapshot through connected ClickUp tools after remote changes.
 
 ## SEO / LLM SEO
 - `lib/site.ts`: `SITE_URL` (`NEXT_PUBLIC_SITE_URL` → Netlify `URL` → localhost), `PUBLIC_PATHS`, `PRIVATE_PATHS`, `absoluteUrl()`.
