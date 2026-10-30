@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { CoinPlaceholder } from "@/components/ui/CoinPlaceholder";
 import { FallbackImage } from "@/components/ui/FallbackImage";
+import { CoinCardImage } from "@/components/catalogue/CoinCardImage";
 import { fetchArchetypesCached } from "@/lib/api/coinzy";
 import { fetchArchetypesForSession } from "@/lib/api/coinzy-session";
 import { getSessionToken } from "@/lib/auth/session";
@@ -18,6 +19,7 @@ export type GridCoin = {
   image: string;
   title: string;
   remote: boolean;
+  alternativeImages?: string[];
   href?: string;
   isWishlisted?: boolean;
 };
@@ -50,20 +52,29 @@ export async function loadCoins({
     };
     let res;
     if (search) {
-      const results = await Promise.all(searchVariants(search).map((term) => loadPage(term)));
-      res = results.find((r) => r.totalCount > 0) ?? results[0];
+      // Try fallbacks only after a miss; a successful lookup must not wait on
+      // unrelated spelling requests (or fail because one of those requests fails).
+      for (const term of searchVariants(search)) {
+        res = await loadPage(term);
+        if (res.totalCount > 0) break;
+      }
     } else {
       res = await loadPage();
     }
+    if (!res) throw new Error("No catalogue search term");
     return {
-      coins: res.items.map((a) => ({
-        id: a.archetypeId,
-        image: a.imageUrls[0] ?? CATALOGUE_COINS[0].image,
-        title: a.name,
-        remote: Boolean(a.imageUrls[0]),
-        href: `/catalogue/coin/${a.archetypeId}`,
-        isWishlisted: Boolean(a.isWishlisted),
-      })),
+      coins: res.items.map((a) => {
+        const images = [...new Set((a.imageUrls ?? []).filter((url) => typeof url === "string" && url.trim()).map((url) => url.trim()))];
+        return {
+          id: a.archetypeId,
+          image: images[0] ?? "",
+          alternativeImages: images.slice(1),
+          title: a.name,
+          remote: images.length > 0,
+          href: `/catalogue/coin/${a.archetypeId}`,
+          isWishlisted: Boolean(a.isWishlisted),
+        };
+      }),
       totalPages: Math.max(1, Math.ceil(res.totalCount / pageSize)),
       totalCount: res.totalCount,
       live: true,
@@ -86,28 +97,30 @@ export function CoinCard({
   image,
   title,
   remote,
+  alternativeImages,
   href,
   isWishlisted = false,
   priority = false,
-}: GridCoin & { priority?: boolean }) {
+  compact = false,
+}: GridCoin & { priority?: boolean; compact?: boolean }) {
   return (
-    <article className="relative flex h-[262.5px] transition-shadow has-[a]:hover:shadow-md w-full min-w-[164px] flex-col items-center gap-2 rounded-[var(--radius-inner)] border-[0.5px] border-border-neutral bg-white p-4 xl:w-[211px]">
-      {/* Neutral disc behind API photos while loading; broken links (a few S3 files 404) swap to the placeholder coin. */}
-      <div className={`size-[136px] shrink-0 overflow-hidden rounded-full ${remote ? "bg-coin-well" : ""}`}>
-        <FallbackImage
-          fallback={<CoinPlaceholder size="xl" />}
-          src={image}
-          alt={remote ? "" : title}
-          width={136}
-          height={136}
-          // API photos go through the Next optimizer: resized to 136/272px and cached on our server
-          // (next.config `minimumCacheTTL`), so repeat views skip the slow us-east-1 S3 round trip.
-          // First row is above the fold: load eagerly with high fetch priority.
-          priority={priority}
-          className={`size-[136px] ${remote ? "object-cover" : "object-contain"}`}
-        />
-      </div>
-      <p className="line-clamp-2 h-[47px] w-full text-base leading-6 text-ink">
+    <article className={`relative flex w-full min-w-0 flex-col items-center gap-2 rounded-[var(--radius-inner)] border-[0.5px] border-border-neutral bg-white transition-shadow has-[a]:hover:shadow-md ${compact ? "min-h-[223px] p-4 max-[480px]:p-2" : "h-[262.5px] min-w-[164px] p-4 xl:w-[211px]"}`}>
+      {href ? (
+        <CoinCardImage key={[image, ...(alternativeImages ?? [])].join("|")} image={image} alternativeImages={alternativeImages} priority={priority} />
+      ) : (
+        <div className={`size-[136px] max-w-full shrink-0 overflow-hidden rounded-full ${compact ? "aspect-square !h-auto" : ""} ${remote ? "bg-coin-well" : ""}`}>
+          <FallbackImage
+            fallback={<CoinPlaceholder size="xl" />}
+            src={image}
+            alt={remote ? "" : title}
+            width={136}
+            height={136}
+            priority={priority}
+            className={`size-[136px] ${compact ? "!h-auto max-w-full" : ""} ${remote ? "object-cover" : "object-contain"}`}
+          />
+        </div>
+      )}
+      <p className={`line-clamp-2 w-full text-base leading-6 text-ink ${compact ? "min-h-12" : "h-[47px]"}`}>
         {href ? (
           // Stretched link: the whole card opens the details page; the heart button sits above it.
           <Link href={href} className="after:absolute after:inset-0 after:rounded-[var(--radius-inner)]">
@@ -133,21 +146,24 @@ export function CoinGrid({
   from,
   fromPage,
   fromQuery,
+  compact = false,
 }: {
   coins: GridCoin[];
   from?: string;
   fromPage?: number;
   /** Search term of the list the visitor came from (round-trips as `?fromQ=`). */
   fromQuery?: string;
+  compact?: boolean;
 }) {
   return (
-    <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-[repeat(5,211px)]">
+    <div className={compact ? "grid grid-cols-2 gap-4 min-[900px]:grid-cols-3 xl:grid-cols-4" : "grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-[repeat(5,211px)]"}>
       {coins.map((coin, i) => (
         <CoinCard
           key={coin.id}
           {...coin}
           href={coin.href ? withFrom(coin.href, from, fromPage, fromQuery) : undefined}
           priority={i < 5}
+          compact={compact}
         />
       ))}
     </div>

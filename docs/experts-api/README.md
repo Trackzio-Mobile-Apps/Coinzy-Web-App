@@ -57,7 +57,7 @@ Screens (`presentation/screens/experts` + `Screen.kt`):
 8. **Report** (`ExpertEvaluationReportScreen`) — structured `contentFields` + attachments; PDF optional
 9. **Feedback** — `POST /users/feedback` with `reportId`, `rating`, `sentiment`
 
-**Media note:** Docs prescribe `POST /users/uploads` (S3). Current Android still uploads to **Firebase Storage** then passes download URLs into `payload.media`. Web should prefer **`POST /users/uploads`** unless product wants Firebase parity.
+**Media note:** Docs prescribe `POST /users/uploads` (S3). Android and web both upload to **Firebase Storage** (`expert-evaluations/…`) then pass download URLs into `payload.media`. Use `/users/uploads` only once Experts S3 is configured.
 
 ## Figma (Copy file)
 
@@ -77,7 +77,7 @@ File key: `5hhBNjumI3EaALlyW6ySXa` (Coinzy-webapp--Copy-)
 | Route | Purpose |
 | --- | --- |
 | `/experts` | Hub — empty state or request list |
-| `/experts/new` | Upload obverse/reverse/edge (+ optional video) → `POST /users/uploads` → `POST /users/requests` |
+| `/experts/new` | Upload obverse/reverse/edge (+ optional video) → Firebase Storage → `POST /users/requests` |
 | `/experts/request/[id]` | Status + poll; retry on `deadline_missed` |
 | `/experts/request/[id]/report` | Report + feedback |
 | `/api/experts/*` | Same-origin proxy with `coinzy_session` Bearer |

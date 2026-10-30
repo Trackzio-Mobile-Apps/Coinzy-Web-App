@@ -30,10 +30,10 @@ export function IdentifyAnalysing({
       <div className="mt-6 flex flex-col gap-8 sm:flex-row sm:items-start">
         <div className="flex shrink-0 flex-col gap-3">
           <div className="relative size-[120px] overflow-hidden rounded-lg border border-[#efefef] bg-[#f5f5f5] shadow-sm">
-            <Image src={frontPreview} alt="Obverse" fill className="object-cover" unoptimized />
+            <Image src={frontPreview} alt="Obverse" fill className="object-contain" unoptimized />
           </div>
           <div className="relative size-[120px] overflow-hidden rounded-lg border border-[#efefef] bg-[#f5f5f5] shadow-sm">
-            <Image src={backPreview} alt="Reverse" fill className="object-cover" unoptimized />
+            <Image src={backPreview} alt="Reverse" fill className="object-contain" unoptimized />
           </div>
         </div>
         <ol className="relative flex flex-1 flex-col gap-0 py-1">

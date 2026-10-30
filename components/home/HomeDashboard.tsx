@@ -103,17 +103,17 @@ export function HomeDashboard({
             </Link>
           </div>
         ) : (
-          <div className="flex items-center gap-3">
-            <PremiumUpgradeButton className="inline-flex h-9 items-center gap-2 rounded-[10px] bg-[linear-gradient(90deg,#6a65ed_0%,#e54a9f_100%)] px-4 text-sm font-medium leading-5 text-white shadow-[0_0_0_2px_rgba(177,85,191,0.35)]">
-              <Image src={`${A}/icon-crown.svg`} alt="" width={12} height={12} />
-              Go Premium
+          <div className="flex items-center gap-4">
+            <PremiumUpgradeButton className="inline-flex h-[22px] w-[101px] shrink-0 items-center justify-center gap-1 rounded-full bg-[linear-gradient(89.84deg,#6366f1_9.34%,#ec4899_90.16%)] px-2 py-0.5 font-sans text-xs font-medium leading-4 text-[#fafafa]">
+              <Image src={`${A}/icon-crown.svg`} alt="" width={12} height={12} className="shrink-0" />
+              <span className="w-[69px] whitespace-nowrap text-center">Go Premium</span>
             </PremiumUpgradeButton>
             <Link
               href="/settings"
               aria-label="Settings"
-              className="flex size-9 items-center justify-center rounded-[10px] border border-[#e5e5e5] bg-white"
+              className="flex size-6 items-center justify-center"
             >
-              <Image src={`${A}/icon-settings.svg`} alt="" width={16} height={16} />
+              <Image src={`${A}/icon-settings.svg`} alt="" width={24} height={24} />
             </Link>
           </div>
         )}
@@ -123,10 +123,10 @@ export function HomeDashboard({
         <div className="mx-auto flex w-full max-w-[1122px] gap-4">
           <div className="flex min-w-0 flex-1 flex-col gap-4">
             <section className="grid gap-4 sm:grid-cols-2">
-              <article className="relative overflow-hidden rounded-2xl border-[0.5px] border-primary-200 bg-[rgba(246,233,231,0.5)] px-[16.5px] py-[12.5px]">
-                <div className="relative z-10 flex max-w-[280px] flex-col gap-4">
+              <article className="relative overflow-hidden rounded-2xl border-[0.5px] border-primary-200 bg-[rgba(246,233,231,0.5)] px-4 py-3">
+                <div className="relative z-10 flex h-full min-h-[210px] w-full flex-col gap-4">
                   <Image src={`${A}/icon-focus.svg`} alt="" width={50} height={50} />
-                  <div className="space-y-3">
+                  <div className="flex-1 space-y-3">
                     <h2 className="text-2xl font-medium leading-8 text-ink">AI analysis</h2>
                     <p className="text-sm leading-5 text-[#49494b]">Identify your coin and get an estimated value.</p>
                     <p className="flex items-center gap-1 text-xs leading-4 text-muted">
@@ -136,7 +136,7 @@ export function HomeDashboard({
                   </div>
                   <Link
                     href="/identify"
-                    className="inline-flex h-9 w-fit items-center justify-center rounded-button bg-primary-500 px-4 text-sm font-medium leading-5 text-[#fafafa] hover:bg-primary-700"
+                    className="inline-flex h-9 w-fit shrink-0 items-center justify-center rounded-button bg-primary-500 px-4 text-sm font-medium leading-5 text-[#fafafa] hover:bg-primary-700"
                   >
                     Analyse coin
                   </Link>
@@ -145,11 +145,11 @@ export function HomeDashboard({
 
               <article
                 id="expert"
-                className="relative overflow-hidden rounded-2xl border-[0.5px] border-primary-200 bg-[rgba(246,233,231,0.5)] px-[16.5px] py-[12.5px]"
+                className="relative overflow-hidden rounded-2xl border-[0.5px] border-primary-200 bg-[rgba(246,233,231,0.5)] px-4 py-3"
               >
-                <div className="relative z-10 flex max-w-[300px] flex-col gap-4">
+                <div className="relative z-10 flex h-full min-h-[210px] w-full flex-col gap-4">
                   <Image src={`${A}/icon-diploma.svg`} alt="" width={50} height={50} />
-                  <div className="space-y-3">
+                  <div className="flex-1 space-y-3">
                     <h2 className="text-2xl font-medium leading-8 text-ink">Human expert evaluation</h2>
                     <p className="text-sm leading-5 text-[#49494b]">Get your coin reviewed by a certified expert.</p>
                     <p className="flex items-center gap-1 text-xs leading-4 text-muted">
@@ -159,7 +159,7 @@ export function HomeDashboard({
                   </div>
                   <Link
                     href="/experts"
-                    className="inline-flex h-9 w-fit items-center justify-center gap-1.5 rounded-button border border-primary-500 bg-white px-4 text-sm font-medium leading-5 text-primary-500"
+                    className="inline-flex h-9 w-fit shrink-0 items-center justify-center gap-1.5 rounded-button border border-primary-500 bg-white px-4 text-sm font-medium leading-5 text-primary-500"
                   >
                     <Image src={`${A}/icon-user-star.svg`} alt="" width={16} height={16} />
                     Human Expert Evaluation

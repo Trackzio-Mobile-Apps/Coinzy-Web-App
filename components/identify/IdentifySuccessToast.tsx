@@ -1,6 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import { useEffect, useRef } from "react";
+
+const AUTO_DISMISS_MS = 4000;
 
 /** Figma `1498:257365` — coin added to collection. */
 export function IdentifySuccessToast({
@@ -12,6 +15,13 @@ export function IdentifySuccessToast({
   body: string;
   onClose: () => void;
 }) {
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+  useEffect(() => {
+    const t = window.setTimeout(() => onCloseRef.current(), AUTO_DISMISS_MS);
+    return () => window.clearTimeout(t);
+  }, []);
+
   return (
     <div
       role="status"

@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "node node_modules/next/dist/bin/next dev --turbopack",
+    "dev:qa": "env COINZY_API_ORIGIN=https://coins-api.trackzio.com COINZY_AUTH_API_ORIGIN=https://coins-api.trackzio.com COINZY_MARKETPLACE_API_ORIGIN=https://coins-api.trackzio.com COINZY_EXPERTS_API_ORIGIN=https://api.coinzy-experts-qa.trackzio.com node node_modules/next/dist/bin/next dev --turbopack",
     "build": "node node_modules/next/dist/bin/next build",
     "start": "node node_modules/next/dist/bin/next start",
     "lint": "node node_modules/next/dist/bin/next lint"

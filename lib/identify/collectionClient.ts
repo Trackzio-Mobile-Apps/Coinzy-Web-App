@@ -24,6 +24,9 @@ export async function fetchCollectionsViaApi(): Promise<
 export async function createCollectionViaApi(
   name: string,
 ): Promise<{ error: false; collectionId: string; name: string } | { error: true; reason?: string }> {
+  // Whitespace-only names are rejected before any request (ClickUp 14yn59xnxup).
+  name = name.trim();
+  if (!name) return { error: true, reason: "Enter a collection name." };
   const res = await fetch("/api/collections/add", {
     method: "POST",
     credentials: "same-origin",

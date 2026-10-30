@@ -1,3 +1,4 @@
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { sellPrivateCoin, type SellPrivateListingBody } from "@/lib/api/marketplace-session";
 import { isAllowedAuthOrigin } from "@/lib/auth/origin";
@@ -32,5 +33,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const status = result._status >= 500 ? 502 : result._status;
     return reply({ error: true, reason: result.reason ?? "Could not create listing." }, status);
   }
+  // Guest browse cache (`fetchAllListings`) — surface the new listing without waiting for TTL.
+  revalidateTag("marketplace-listings");
+  revalidatePath("/marketplace");
+  revalidatePath("/marketplace/my-listings");
+  revalidatePath("/marketplace/all");
   return reply({ error: false, data: result.data });
 }

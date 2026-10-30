@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useId, useState } from "react";
 import { useModalDialog } from "@/components/ui/useModalDialog";
 import { createCollectionViaApi } from "@/lib/identify/collectionClient";
-import { defaultNewCollectionName } from "@/lib/identify/collections";
+import { defaultNewCollectionName, MAX_COLLECTION_NAME_LENGTH } from "@/lib/identify/collections";
 
 /** Create private collection from `/collection` — same API as identify modal `1500:287599`. */
 export function CollectionCreateCollectionCard({ privateCount }: { privateCount: number }) {
@@ -29,7 +29,11 @@ export function CollectionCreateCollectionCard({ privateCount }: { privateCount:
 
   const save = async () => {
     const trimmed = name.trim();
-    if (!trimmed || saving) return;
+    if (saving) return;
+    if (!trimmed) {
+      setError("Enter a collection name.");
+      return;
+    }
     setSaving(true);
     setError(null);
     const res = await createCollectionViaApi(trimmed);
@@ -81,7 +85,8 @@ export function CollectionCreateCollectionCard({ privateCount }: { privateCount:
               id={inputId}
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              maxLength={MAX_COLLECTION_NAME_LENGTH}
+              onChange={(e) => setName(e.target.value.slice(0, MAX_COLLECTION_NAME_LENGTH))}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();

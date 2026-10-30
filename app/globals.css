@@ -52,3 +52,16 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Marketplace filters: while a filter change loads, dim + lock the results and show the spinner (14yn59xp2re). */
+[data-listing-loader] {
+  display: none;
+}
+html[data-filtering] [data-listing-loader] {
+  display: flex;
+}
+html[data-filtering] [data-listing-results] > :not([data-listing-loader]) {
+  opacity: 0.45;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}

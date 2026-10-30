@@ -1,3 +1,4 @@
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { deleteListing } from "@/lib/api/marketplace-session";
 import { isAllowedAuthOrigin } from "@/lib/auth/origin";
@@ -22,5 +23,9 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     const status = result._status >= 500 ? 502 : result._status;
     return reply({ error: true, reason: result.reason ?? "Could not remove listing." }, status);
   }
+  revalidateTag("marketplace-listings");
+  revalidatePath("/marketplace");
+  revalidatePath("/marketplace/my-listings");
+  revalidatePath("/marketplace/all");
   return reply({ error: false });
 }

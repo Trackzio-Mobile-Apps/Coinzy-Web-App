@@ -39,6 +39,7 @@ assert.equal(output.tasks.find(t=>t.id===15).days,0);
 // Sync 17: ≥90% parents closed; leftovers track hours.
 assert.equal(output.tasks.find(t=>t.id===2).progress,100);
 assert.equal(output.tasks.find(t=>t.id===5).progress,95);
+assert.equal(output.tasks.find(t=>t.id===5).screens,null); // JWT remainder unscheduled
 assert.equal(output.tasks.find(t=>t.id===7).progress,100);
 assert.equal(output.tasks.find(t=>t.id===8).progress,100);
 assert.equal(output.tasks.find(t=>t.id===9).progress,100);
@@ -47,6 +48,10 @@ assert.equal(output.tasks.find(t=>t.id===19).progress,100);
 assert.equal(output.tasks.find(t=>t.id===20).screens,null);
 assert.equal(output.tasks.find(t=>t.id===21).screens,null);
 assert.equal(output.tasks.find(t=>t.id===22).progress,0);
+assert.equal(output.tasks.find(t=>t.id===22).hours,40); // bug backlog @ 32 pts/day
+assert.equal(output.tasks.find(t=>t.id===22).screens,null);
+assert.equal(output.tasks.find(t=>t.id===22).blocked,false); // Payments deferred must not block QA
+assert.equal(output.summary.hoursLeft,40);
 assert.equal(output.tasks.find(t=>t.id===17).progress,100);
 assert.equal(output.tasks.find(t=>t.id===18).progress,100);
 assert.equal(output.tasks.find(t=>t.id===23).days,0);
@@ -69,7 +74,7 @@ assert.equal(manage.hours,null);
 assert.equal(billing.hours,1);
 assert.equal(billing.progress,100);
 assert.equal(context.isHour(landingCta),true);
-assert.equal(output.summary.hoursLeft,0); // 24–28 done-or-cancelled
+assert.equal(output.summary.hoursLeft,40); // leftover 24–28 closed; task 22 bug backlog 40h
 assert.equal(socket.days,0);
 output=context.run([task(1,{screens:null,hours:4,progress:50,agent:'A'})]);
 assert.equal(output.tasks[0].hoursLeft,2);

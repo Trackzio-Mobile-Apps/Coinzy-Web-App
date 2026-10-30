@@ -34,14 +34,14 @@ INDEX.md             living project map — update when pages/APIs change
 
 1. **Match Figma, don't freestyle.** Use node IDs from `PAGES-CHECKLIST.md`. Pixel-sensitive padding/sizes may need `!` overrides against `SectionShell` defaults.
 2. **Server secrets stay on the server.** Never import `lib/api/coinzy.ts` or `lib/api/marketplace-session.ts` into client components. Guest JWTs for catalogue/marketplace stay in module memory on the server. Browser sessions use HTTP-only cookies via same-origin `/api/*` route handlers (auth, coin add, marketplace sell, etc.) — never expose session JWTs in client code or JSON.
-3. **Two API backends.** Catalogue → `COINZY_API_ORIGIN` (default `https://coins-api.trackzio.com`). Marketplace listings → `COINZY_MARKETPLACE_API_ORIGIN` (default `https://coins-api-prod.trackzio.com`). Auth paths are root `/auth/*`; data paths are `/api/*`. Always **https**.
+3. **Two API backends.** Catalogue → `COINZY_API_ORIGIN` (default `https://coins-api-prod.trackzio.com`). Marketplace listings → `COINZY_MARKETPLACE_API_ORIGIN` (default `https://coins-api-prod.trackzio.com`). Auth paths are root `/auth/*`; data paths are `/api/*`. Always **https**.
 4. **Reuse shared UI.** `SectionShell`, `SectionHeader`, `PageHero`, `HeroBanner`, `FallbackImage`, `CoinPlaceholder`, `DetailsBreadcrumb`, `CoinPhotos`, grids/pagers — extend props; don't fork.
 5. **Full-bleed backgrounds** go in `SectionShell`'s `background` prop, not as children (children live in the 1440px column).
 6. **API field types vary.** Newer archetypes send numbers; older ones send strings. Normalize in view-models (`lib/catalogue/coinDetails.ts` pattern) — never assume string methods on raw API fields.
 7. **Figma SVG exports are often wrong** (hearts, arcs, wrong layer hashes). Prefer hand-written Hugeicons under `public/assets/...` or `icons/shared/`. Eyeball every downloaded asset.
 8. **After replacing an image under the same filename**, delete `.next/cache/images` or the optimizer keeps serving the old bytes.
 9. **No new deps** unless required; prefer the existing stack. No Inter/Roboto defaults — use theme tokens from `@theme`.
-10. **Google auth** uses Firebase Google popup → Google ID token → same-origin `POST /api/auth/google` → upstream `auth/social-login/google` (never expose the Coinzy JWT). **Shared auth entry pop-ups** (Figma `908:*` / `905:*`) are **not built on web** — logged-out CTAs use `/auth?next=` instead.
+10. **Google auth** uses Firebase popup → Google ID token → same-origin `POST /api/auth/google` → upstream `auth/social-login/google` (never expose the Coinzy JWT). **Apple Sign-In will not ship on web** (ticket cancelled). **Shared auth entry pop-ups** (Figma `908:*` / `905:*`) are **not built on web** — logged-out CTAs use `/auth?next=` instead.
 
 ## Coding conventions
 

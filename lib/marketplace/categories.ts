@@ -1,5 +1,7 @@
+import { connection } from "next/server";
 import { fetchAllListings, fetchListingFilterValues, type ListingSummary } from "@/lib/api/coinzy";
 import { formatPrice } from "@/lib/catalogue/coinDetails";
+import { selfListingPath } from "@/lib/marketplace/selfListing";
 
 /**
  * Marketplace listing pages (`/marketplace/[slug]`, Figma 793:77612 "CoinListings").
@@ -70,14 +72,32 @@ export type ListingCard = {
   archetypeId: string | null;
 };
 
-const toCard = (l: ListingSummary): ListingCard => ({
+const toCard = (l: ListingSummary, opts?: { self?: boolean }): ListingCard => ({
   id: l.id,
-  href: `/marketplace/listing/${l.id}`,
+  href: opts?.self ? selfListingPath(l.id) : `/marketplace/listing/${l.id}`,
   title: l.title,
   price: formatPrice(l.price),
   images: l.imageUrls.filter(Boolean),
   archetypeId: l.archetypeId ?? null,
 });
+
+/** Map session/guest listing rows into grid cards (`self` → owner `/marketplace/my-listing/[id]`). */
+export function listingToCard(
+  l: Pick<ListingSummary, "id" | "title" | "price" | "imageUrls" | "archetypeId">,
+  opts?: { self?: boolean },
+): ListingCard {
+  return toCard(
+    {
+      id: l.id,
+      title: l.title,
+      price: l.price,
+      createdAt: "",
+      imageUrls: l.imageUrls,
+      archetypeId: l.archetypeId,
+    },
+    opts,
+  );
+}
 
 /** Resolve a category into the `fetchAll` body; `null` = a filter matched no values (empty category). */
 async function buildListingFilters(def: MarketplaceCategoryDef): Promise<Record<string, string[]> | null> {
@@ -121,7 +141,7 @@ export async function loadListingPage(
   const totalPages = Math.max(1, Math.ceil(all.length / pageSize));
   const current = Math.min(Math.max(1, page), totalPages);
   return {
-    cards: all.slice((current - 1) * pageSize, current * pageSize).map(toCard),
+    cards: all.slice((current - 1) * pageSize, current * pageSize).map((l) => toCard(l)),
     totalCount: all.length,
     totalPages,
     page: current,
@@ -182,7 +202,7 @@ export async function loadSignedInBrowse({
   const totalPages = Math.max(1, Math.ceil(all.length / pageSize));
   const current = Math.min(Math.max(1, page), totalPages);
   return {
-    cards: all.slice((current - 1) * pageSize, current * pageSize).map(toCard),
+    cards: all.slice((current - 1) * pageSize, current * pageSize).map((l) => toCard(l)),
     totalCount: all.length,
     totalPages,
     page: current,
@@ -198,4 +218,33 @@ export async function loadListingRow(slug: MarketplaceSlug, n: number): Promise<
     console.error(err);
     return [];
   }
+}
+
+/** Fisher–Yates shuffle (per-request; not crypto). */
+function shuffleInPlace<T>(items: T[]): T[] {
+  for (let i = items.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [items[i], items[j]] = [items[j]!, items[i]!];
+  }
+  return items;
+}
+
+/** Figma `1526:304316` landing strip slot count. */
+export const LANDING_MARKETPLACE_STRIP_SIZE = 5;
+
+/**
+ * Landing marketplace strip (`MarketplaceSection`): up to `limit` live listings in random order.
+ *
+ * Pool data may come from `fetchAllListings`'s 5‑min `unstable_cache`, but the shuffle must run
+ * **outside** that cache on every request. `connection()` opts out of prerender so a single
+ * shuffled order is never baked into a static RSC payload. Throws if the API is down so the
+ * section can show an honest unavailable state (no static pretend-live).
+ */
+export async function loadRandomListings(limit = LANDING_MARKETPLACE_STRIP_SIZE): Promise<ListingCard[]> {
+  await connection();
+  // Cached newest-first pool is fine; we copy + shuffle after the cache boundary.
+  const all = await fetchAllListings({});
+  const withPhotos = all.filter((l) => l.imageUrls.some(Boolean)).map((l) => toCard(l));
+  const pool = withPhotos.length > 0 ? withPhotos : all.map((l) => toCard(l));
+  return shuffleInPlace([...pool]).slice(0, Math.max(0, limit));
 }

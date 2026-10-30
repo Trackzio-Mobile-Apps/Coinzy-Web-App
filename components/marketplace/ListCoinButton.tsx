@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
+import { useSellerProfileGate } from "@/components/marketplace/useSellerProfileGate";
 import {
   SelectOwnedCoinDialog,
   type OwnedCoinPick,
@@ -16,7 +17,8 @@ const defaultTriggerClass =
 /**
  * Signed-in "List a coin" entry — Figma Copy `1362:168657` (menu) + `1362:171575` (From Owned).
  *
- * - **Select from owned collection** → owned picker → default navigates to
+ * - **Select from owned collection** → owned picker → Set Seller Profile popup on THIS page if the profile is
+ *   incomplete (ClickUp 14yn59xp2yf) → only after it is saved does it navigate to
  *   `/collection/coin/[id]?from=marketplace&list=1` (opens sell drawer). Override with `onSelectOwned`.
  * - **Add new coin** → `onAddNewCoin` if provided; else `/identify` interim until Self-listing ships.
  */
@@ -43,6 +45,8 @@ export function ListCoinButton({
   const wrapRef = useRef<HTMLDivElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [ownedOpen, setOwnedOpen] = useState(false);
+  // Email/name defaults come from /api/auth/me inside the gate.
+  const gate = useSellerProfileGate({ personalEmail: "" });
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -75,8 +79,11 @@ export function ListCoinButton({
     router.push("/identify");
   };
 
-  const confirmOwned = (coin: OwnedCoinPick) => {
+  const confirmOwned = async (coin: OwnedCoinPick) => {
     setOwnedOpen(false);
+    // Stay on this page: complete (and validate) the seller profile first; cancelling aborts the flow.
+    const gated = await gate.ensureSellerProfile();
+    if (!gated.ok) return;
     if (onSelectOwned) {
       onSelectOwned(coin);
       return;
@@ -134,6 +141,7 @@ export function ListCoinButton({
       ) : null}
 
       <SelectOwnedCoinDialog open={ownedOpen} onClose={() => setOwnedOpen(false)} onConfirm={confirmOwned} />
+      {gate.profileDialog}
     </div>
   );
 }

@@ -2,8 +2,8 @@
  * "Our other apps" page (Figma `Landing page/Our other apps`, 876:23169).
  * Card art + icons are 3x renders of the Figma cards (`public/assets/other-apps/`).
  * Links: "Explore" → the app's page on trackzio.com, "Get the app" → Google Play
- * (developer: https://play.google.com/store/apps/developer?id=Trackzio). TCG, Vinyl and Birds
- * have neither yet (checked 5 Oct 2026), so their buttons render as "Coming soon".
+ * (developer: https://play.google.com/store/apps/developer?id=Trackzio).
+ * TCG / Vinyl / Birds omitted (ClickUp 14yn59xn56c) until they ship links.
  */
 
 export const TRACKZIO_PLAY_URL = "https://play.google.com/store/apps/developer?id=Trackzio";
@@ -32,7 +32,7 @@ export const OTHER_APP_SECTIONS: {
     label: "Trade apps",
     title: "Know what your collectibles are worth",
     description:
-      "AI identification, value estimates, and marketplaces for coins, banknotes, antiques, trading cards, and vinyl records.",
+      "AI identification, value estimates, and marketplaces for coins, banknotes, antiques, and minerals.",
     className: "bg-cream",
     apps: [
       {
@@ -63,15 +63,13 @@ export const OTHER_APP_SECTIONS: {
         exploreHref: site("rockzy"),
         playHref: play("com.trackzio.minerals"),
       },
-      { slug: "tcg", name: "TCG AI", description: "Identify trading cards using TCG AI" },
-      { slug: "vinyl", name: "Vinyl AI", description: "Identify vinyl records using Vinyl AI" },
     ],
   },
   {
     label: "Nature apps",
     title: "Identify anything living or growing",
     description:
-      "Instant AI identification for insects, plants, mushrooms, birds, and minerals — with safety, care, and habitat details.",
+      "Instant AI identification for insects, plants, and mushrooms — with safety, care, and habitat details.",
     className: "bg-[#faf5ee]",
     apps: [
       {
@@ -88,7 +86,6 @@ export const OTHER_APP_SECTIONS: {
         exploreHref: site("insecto"),
         playHref: play("com.insect.trackzio"),
       },
-      { slug: "birds", name: "Birds AI", description: "Identify birds using Birds AI" },
       {
         slug: "plantzy",
         name: "Plantzy AI",

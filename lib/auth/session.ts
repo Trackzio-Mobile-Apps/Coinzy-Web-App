@@ -1,21 +1,13 @@
 import { cookies } from "next/headers";
-import { resolveIsSubscribed } from "@/lib/auth/subscription";
+import { aboutMeDisplayName } from "@/lib/api/auth-session";
+import { decodeJwtPayload, sessionJwtIsGuest } from "@/lib/auth/jwt-payload";
+import { resolveAboutMe, resolveIsSubscribed } from "@/lib/auth/subscription";
 
 export type SessionUser = {
   name: string;
   email: string;
   isGuest: boolean;
 };
-
-function decodeJwtPayload(token: string): Record<string, unknown> | null {
-  try {
-    const part = token.split(".")[1];
-    if (!part) return null;
-    return JSON.parse(Buffer.from(part, "base64url").toString()) as Record<string, unknown>;
-  } catch {
-    return null;
-  }
-}
 
 /**
  * Premium entitlement for the signed-in user (`auth/me` `user.isSubscribed`, same as Android).
@@ -34,7 +26,7 @@ export async function getSessionToken(): Promise<string | null> {
   return (await cookies()).get("coinzy_session")?.value ?? null;
 }
 
-/** Read the HTTP-only session cookie and surface display fields from the JWT payload. */
+/** Current profile display fields, falling back to JWT claims if the backend is unavailable. */
 export async function getSessionUser(): Promise<SessionUser | null> {
   const token = await getSessionToken();
   if (!token) return null;
@@ -50,11 +42,21 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     (typeof payload.name === "string" && payload.name) ||
     (typeof payload.userName === "string" && payload.userName) ||
     (email ? email.split("@")[0] : "Guest");
-  const isGuest =
-    payload.isGuest === true ||
-    payload.guest === true ||
-    (typeof payload.userType === "string" && payload.userType.toLowerCase() === "guest") ||
-    name === "Guest";
 
+  const isGuest = sessionJwtIsGuest(token);
+  if (!isGuest) {
+    try {
+      const result = await resolveAboutMe(token);
+      if (!result.error) {
+        return {
+          name: aboutMeDisplayName(result.user) || name,
+          email: result.user.email?.trim() || email,
+          isGuest,
+        };
+      }
+    } catch {
+      // Keep the signed-in shell available when the profile service cannot be reached.
+    }
+  }
   return { name, email, isGuest };
 }

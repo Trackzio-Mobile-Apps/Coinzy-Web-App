@@ -33,6 +33,7 @@ The auth Retrofit client does not automatically attach a session token. Refresh 
 | POST | `auth/guest-login` | No session token sent | `GuestDetails` |
 | POST | `auth/signup` | No session token sent | `UserResponse` |
 | POST | `auth/social-login/google` | No session token sent | `UserResponse` |
+| POST | `auth/social-login/apple` | No session token sent | `UserResponse` (mobile only; **not** proxied on web) |
 | POST | `auth/forgot-password` | No session token sent | `AuthBase` |
 | POST | `auth/reset-password` | Reset token in body | `AuthBase` |
 | GET | `auth/refresh-auth-token` | Existing user bearer token | `RefreshToken` |
@@ -40,7 +41,7 @@ The auth Retrofit client does not automatically attach a session token. Refresh 
 | PATCH | `auth/me` | Session bearer token | `AboutMeResponse` (web: `{ sellerDetails }` and/or `{ fullName, syncSellerEmail? }`) |
 | DELETE | `auth/me` | Session bearer token | Unstructured (`Any`) |
 
-Web proxies: `GET`/`PATCH`/`DELETE` `/api/auth/me` (HTTP-only `coinzy_session`). Local logout: `POST /api/auth/logout` (clears cookie; no upstream revoke). Google: browser Firebase popup → Google ID token → `POST /api/auth/google` → upstream `auth/social-login/google` (cookie set; JWT never returned to the client).
+Web proxies: `GET`/`PATCH`/`DELETE` `/api/auth/me` (HTTP-only `coinzy_session`). Local logout: `POST /api/auth/logout` (clears cookie; no upstream revoke). Google: browser Firebase popup → Google ID token → `POST /api/auth/google` → upstream `auth/social-login/google` (cookie set; JWT never returned to the client). Apple Sign-In will not ship on web (no `/api/auth/apple` proxy).
 
 Authorization entries describe client behavior, not independently verified backend access rules. Billing routes under `auth/` are outside this authentication reference.
 
@@ -135,9 +136,26 @@ All fields are nullable in `SignUpRequest`. Gson omits null request fields in th
 
 `credential` is the Google **ID token** returned by Credential Manager, not the Coinzy session token. `fullName` comes from the Google display name. The three `GLogin` fields are nullable strings; null fields are omitted by Gson. Guest ID availability depends on the login flow's local state. Returns `UserResponse`.
 
+## Apple login (mobile only)
+
+`POST auth/social-login/apple`
+
+```json
+{
+  "credential": "<apple-identity-token>",
+  "fullName": "Example Collector",
+  "guestId": "<existing-guest-id>",
+  "nonce": "<optional-raw-nonce>"
+}
+```
+
+Same shape as iOS (`UserAPI.appleSocialLogin`). `credential` is the Apple **identity token** (JWT), not the Coinzy session token. `nonce` is optional — native iOS often omits it. `fullName` is available mainly on the first Apple authorization. Returns `UserResponse`.
+
+**Web:** Apple Sign-In will not ship — there is no `/api/auth/apple` proxy. Use Google or email on web.
+
 ## Shared user-session response
 
-Email login, signup, and Google login deserialize into `UserResponse`:
+Email login, signup, and Google login deserialize into `UserResponse` (Apple login does too on mobile):
 
 ```json
 {
@@ -251,9 +269,11 @@ Response shape matches `AboutMeResponse` (`error`, `user`, …). Web proxy: `GET
 
 ## Delete account and logout
 
-`DELETE auth/me` with the session bearer token and no body deletes the current account. The service declares `Response<Any>`, so no stable JSON response schema is documented. After the application's delete flow reports success, `SettingsViewModel` resets local user data to a fresh-install state.
+`DELETE auth/me` with the session bearer token and no body deletes the current account. Observed prod/QA success: HTTP `201` + `{"error":false}`; subsequent `POST auth/login` with the same credentials returns `User not found`. The service declares `Response<Any>`, so treat only HTTP `200`/`201` without `error: true` as success (Android `requestWithoutBase`).
 
-Logout is a local reset through `AppUserDataResetter.resetToFreshInstall()`. No logout HTTP route is declared in these services; server-side token revocation is not established by this client behavior.
+Web: `DELETE /api/auth/me` proxies that call, clears the `coinzy_session` cookie on success, then the Settings client signs out Firebase and hard-navigates to `/auth` (Android resets local state via `AppUserDataResetter` then Splash). Guests cannot delete.
+
+Logout is a local reset through `AppUserDataResetter.resetToFreshInstall()`. No logout HTTP route is declared in these services; server-side token revocation is not established by this client behavior. Web local logout: `POST /api/auth/logout` (clears cookie only).
 
 ## Session renewal and errors
 

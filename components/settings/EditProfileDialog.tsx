@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useId, useState } from "react";
 import { useModalDialog } from "@/components/ui/useModalDialog";
+import { MAX_PROFILE_NAME_LENGTH } from "@/lib/settings/profile";
 
 /**
  * Edit your Profile — Figma `1370:216726`.
@@ -40,6 +41,10 @@ export function EditProfileDialog({
 
   const submit = () => {
     const fullName = name.trim();
+    if (fullName.length > MAX_PROFILE_NAME_LENGTH) {
+      setLocalError(`Name must be ${MAX_PROFILE_NAME_LENGTH} characters or fewer.`);
+      return;
+    }
     if (!/^[a-zA-Z ]{3,}$/.test(fullName)) {
       setLocalError("Enter a valid Name");
       return;
@@ -83,6 +88,7 @@ export function EditProfileDialog({
             id={`${titleId}-name`}
             type="text"
             autoComplete="name"
+            maxLength={MAX_PROFILE_NAME_LENGTH}
             value={name}
             onChange={(e) => {
               setName(e.target.value);
@@ -99,8 +105,10 @@ export function EditProfileDialog({
             id={`${titleId}-email`}
             type="email"
             readOnly
+            aria-readonly="true"
+            title="Your personal email can't be changed here"
             value={email || "—"}
-            className="h-8 w-full rounded-[10px] border border-[#e5e5e5] bg-neutral-50 px-2.5 text-sm text-[#606062]"
+            className="h-8 w-full cursor-not-allowed rounded-[10px] border border-[#e5e5e5] bg-neutral-50 px-2.5 text-sm text-[#606062] outline-none"
           />
           <label className="flex items-start gap-2">
             <input

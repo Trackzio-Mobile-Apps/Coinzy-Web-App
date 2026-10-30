@@ -14,7 +14,18 @@ type Crumb = { href: string; label: string };
  * Figma breadcrumb (797:38514): back button → last ancestor; ancestors, with the first collapsed to "…"
  * when there are two or more (as in Figma); current page in Plus Jakarta bold 18px.
  */
-export function DetailsBreadcrumb({ ancestors, current }: { ancestors: Crumb[]; current: string }) {
+export function DetailsBreadcrumb({
+  ancestors,
+  current,
+  backHref,
+  backLabel,
+}: {
+  ancestors: Crumb[];
+  current: string;
+  /** Overrides the back button target (default: the nearest ancestor). */
+  backHref?: string;
+  backLabel?: string;
+}) {
   const parent = ancestors[ancestors.length - 1];
   const collapsed = ancestors.length > 1;
   const separator = (className = "") => (
@@ -23,8 +34,9 @@ export function DetailsBreadcrumb({ ancestors, current }: { ancestors: Crumb[]; 
   return (
     <div className="flex items-center gap-5">
       <Link
-        href={parent.href}
-        aria-label={`Back to ${parent.label}`}
+        href={backHref ?? parent.href}
+        prefetch
+        aria-label={`Back to ${backLabel ?? parent.label}`}
         className="flex shrink-0 rounded border-[0.5px] border-[#c2c2c4] bg-white p-1 hover:bg-neutral-50"
       >
         <Image src={`${ICONS}/icon-breadcrumb-back.svg`} alt="" width={24} height={24} />

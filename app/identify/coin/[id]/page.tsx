@@ -32,7 +32,7 @@ async function IdentifyCoinDetails({ id, premium }: { id: string; premium: boole
 
   return (
     <>
-      <DetailsBreadcrumb ancestors={[{ href: "/identify", label: "Identify coin" }]} current={title} />
+      <DetailsBreadcrumb ancestors={[{ href: "/identify?step=matches", label: "Identify coin" }]} current={title} />
 
       <div className="mt-10 flex flex-col items-start gap-4 lg:flex-row">
         <div className="flex w-full min-w-0 flex-1 flex-col gap-4">

@@ -23,9 +23,9 @@ export function MarketplaceAppHeader({ user, premium }: { user: SessionUser; pre
         </div>
       ) : (
         <div className="flex items-center gap-4">
-          <PremiumUpgradeButton className="inline-flex h-6 items-center gap-1 rounded-full bg-[linear-gradient(90deg,#6366f1,#a855f7)] px-2 py-0.5 text-xs font-medium leading-4 text-white">
-            <Image src={`${A}/icon-crown-16.svg`} alt="" width={12} height={12} className="brightness-0 invert" />
-            Go Premium
+          <PremiumUpgradeButton className="inline-flex h-[22px] w-[101px] shrink-0 items-center justify-center gap-1 rounded-full bg-[linear-gradient(89.84deg,#6366f1_9.34%,#ec4899_90.16%)] px-2 py-0.5 font-sans text-xs font-medium leading-4 text-[#fafafa]">
+            <Image src={`${A}/icon-crown.svg`} alt="" width={12} height={12} className="shrink-0" />
+            <span className="w-[69px] whitespace-nowrap text-center">Go Premium</span>
           </PremiumUpgradeButton>
           <Link href="/settings" aria-label="Settings" className="flex size-6 items-center justify-center">
             <Image src={`${A}/icon-settings.svg`} alt="" width={24} height={24} />

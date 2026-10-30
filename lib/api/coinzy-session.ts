@@ -4,6 +4,7 @@
  */
 
 import type { Archetype, ArchetypeDetails, ArchetypePage } from "@/lib/api/coinzy";
+import { parseScanUsage, type ScanUsage } from "@/lib/identify/scanUsage";
 import { CoinzyApiError, isArchetypeId } from "@/lib/api/coinzy";
 
 import { resolveCatalogueOrigin } from "@/lib/api/catalogue-origin";
@@ -78,8 +79,8 @@ export async function identifyCoinV2(
   files: Blob[],
   matchCount = 5,
 ): Promise<
-  | { error: false; data: { imageUrls: string[]; matchesFoundCount: number; matches: unknown[] } }
-  | { error: true; reason?: string; aiErrorCode?: string; resetsAt?: number; _status: number }
+  | { error: false; data: { imageUrls: string[]; matchesFoundCount: number; matches: unknown[] }; usage: ScanUsage | null }
+  | { error: true; reason?: string; aiErrorCode?: string; resetsAt?: number; usage: ScanUsage | null; _status: number }
 > {
   const form = new FormData();
   for (const file of files) form.append("files", file);
@@ -96,19 +97,22 @@ export async function identifyCoinV2(
     aiErrorCode?: string;
     resetsAt?: number;
   };
+  // successCount / errorCount / thresholds ride at the top level of both success and error bodies.
+  const usage = parseScanUsage(json);
   if (!res.ok || json.error) {
     return {
       error: true,
       reason: json.reason,
       aiErrorCode: json.aiErrorCode,
       resetsAt: json.resetsAt,
+      usage,
       _status: res.status,
     };
   }
   if (!json.data) {
-    return { error: true, reason: "Empty identification response.", _status: 502 };
+    return { error: true, reason: "Empty identification response.", usage, _status: 502 };
   }
-  return { error: false, data: json.data };
+  return { error: false, data: json.data, usage };
 }
 
 export type SessionCollectionRow = {

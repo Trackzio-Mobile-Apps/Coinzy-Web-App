@@ -27,7 +27,12 @@ export default async function ExpertsNewPage({
 
   return (
     <ExpertsShell user={user} premium={premium}>
-      <ExpertUploadFlow creditBalance={creditBalance} experts={experts} />
+      <ExpertUploadFlow
+        creditBalance={creditBalance}
+        experts={experts}
+        email={user.email}
+        isGuest={user.isGuest}
+      />
     </ExpertsShell>
   );
 }

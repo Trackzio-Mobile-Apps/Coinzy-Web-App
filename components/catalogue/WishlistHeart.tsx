@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { setArchetypeWishlisted, WishlistAuthError } from "@/lib/catalogue/wishlistClient";
 import { authHref } from "@/lib/auth/returnTo";
 
@@ -24,6 +24,10 @@ export function WishlistHeart({
   const [wishlisted, setWishlisted] = useState(initialWishlisted);
   const [pending, setPending] = useState(false);
 
+  useEffect(() => {
+    setWishlisted(initialWishlisted);
+  }, [archetypeId, initialWishlisted]);
+
   async function toggle(event: React.MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
@@ -33,6 +37,7 @@ export function WishlistHeart({
     try {
       await setArchetypeWishlisted(archetypeId, next);
       setWishlisted(next);
+      router.refresh();
     } catch (error) {
       if (error instanceof WishlistAuthError) {
         const back =

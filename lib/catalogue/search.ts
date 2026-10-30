@@ -13,5 +13,8 @@ const titleCase = (s: string) =>
 
 /** Spellings to try, best first: as typed, Title Case, lower case (e.g. "1 dollar" exists as its own coin). */
 export function searchVariants(query: string): string[] {
-  return [...new Set([query, titleCase(query), query.toLowerCase()])];
+  // Android's names DB includes labels such as `1 Dollar 'Morgan Dollar'` while
+  // the catalogue API may index the shorter quoted name (`Morgan Dollar`).
+  const quotedNames = [...query.matchAll(/(?:^|\s)['"“]([^'"”]{2,})['"”](?=$|\s|[.,;:])/gu)].map((match) => match[1].trim());
+  return [...new Set([query, ...quotedNames].flatMap((name) => [name, titleCase(name), name.toLowerCase()]))];
 }

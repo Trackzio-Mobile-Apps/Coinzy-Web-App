@@ -22,9 +22,11 @@ export default async function AuthPage({ searchParams }: { searchParams: Promise
   const session = await getSessionUser();
   if (session && !session.isGuest) redirect(next ?? "/home");
 
-  const modes: AuthMode[] = ["welcome", "signup", "login", "forgot", "otp", "reset"];
-  const mode = modes.includes(requestedMode as AuthMode) ? requestedMode as AuthMode : "welcome";
-  const backHref = mode === "welcome" ? (next ?? "/") : mode === "forgot" ? authHref("login", next) : mode === "otp" ? authHref("forgot", next) : mode === "reset" ? authHref("otp", next) : authHref("welcome", next);
+  // `otp` was merged into `reset` (code + new password on one page, see AuthFlow); old `?mode=otp` links land there.
+  const modes: AuthMode[] = ["welcome", "signup", "login", "forgot", "reset"];
+  const normalizedMode = requestedMode === "otp" ? "reset" : requestedMode;
+  const mode = modes.includes(normalizedMode as AuthMode) ? normalizedMode as AuthMode : "welcome";
+  const backHref = mode === "welcome" ? (next ?? "/") : mode === "forgot" ? authHref("login", next) : mode === "reset" ? authHref("forgot", next) : authHref("welcome", next);
 
   return (
     <div className="min-h-screen bg-white">

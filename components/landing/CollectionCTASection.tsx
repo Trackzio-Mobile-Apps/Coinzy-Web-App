@@ -2,7 +2,10 @@ import Image from "next/image";
 import { ParchmentBackground } from "@/components/ui/ParchmentBackground";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { SectionShell } from "@/components/ui/SectionShell";
+import { authHref } from "@/lib/auth/returnTo";
 import { COLLECTION_COINS } from "@/lib/constants";
+
+const COLLECTION_AUTH_HREF = authHref(undefined, "/collection");
 
 export function CollectionCTASection() {
   return (
@@ -17,7 +20,7 @@ export function CollectionCTASection() {
           title="Keep track of what you own"
           description="Track coins you own, want, or want to watch. Value updates as the market moves."
           actionLabel="Start your collection"
-          actionHref="#collection"
+          actionHref={COLLECTION_AUTH_HREF}
         />
 
         <div className="space-y-6 rounded-[var(--radius-card)] border border-[#e8ddd5] bg-surface p-[25px]">

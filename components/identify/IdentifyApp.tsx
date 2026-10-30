@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { IdentifyAnalysing } from "@/components/identify/IdentifyAnalysing";
 import { IdentifyFailure } from "@/components/identify/IdentifyFailure";
 import { IdentifyMatchList } from "@/components/identify/IdentifyMatchList";
@@ -16,26 +15,48 @@ import { IdentifySideRail } from "@/components/identify/IdentifySideRail";
 import { IdentifyToast } from "@/components/identify/IdentifyToast";
 import { IdentifyDebugBar } from "@/components/identify/IdentifyDebugBar";
 import { IdentifyUploadCard } from "@/components/identify/IdentifyUploadCard";
+import { IdentifyCropModal } from "@/components/identify/IdentifyCropModal";
 import { identifyCoinsV2 } from "@/lib/identify/client";
 import { loadIdentifyDebugSample } from "@/lib/identify/debugSamples";
 import { identifyErrorMessage, isInlineIdentifyFailure } from "@/lib/identify/messages";
-import { notifyFreeScanUsageUpdated, recordFreeScanUsed } from "@/lib/identify/scanUsage";
-import { saveIdentifySession } from "@/lib/identify/storage";
+import type { ScanUsage } from "@/lib/identify/scanUsage";
+import { refreshScanUsage, setScanUsage } from "@/lib/identify/scanUsageStore";
+import { readIdentifySession, saveIdentifySession } from "@/lib/identify/storage";
 import type { IdentifyMatch } from "@/lib/identify/types";
 
 type Step = "upload" | "analysing" | "matches" | "failure";
 
 type Slot = { file: File; preview: string };
 
+function fileToDataUrl(file: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
 export function IdentifyApp({
   autoLoadDebug = false,
   premium = false,
+  restoreMatches = false,
+  initialUsage = null,
 }: {
   autoLoadDebug?: boolean;
   premium?: boolean;
+  /** `?step=matches` — coming back from a result page: re-show the saved Top 5 matches. */
+  restoreMatches?: boolean;
+  /** Server scan counters read on the page render (seeds the Free plan card). */
+  initialUsage?: ScanUsage | null;
 }) {
   const router = useRouter();
-  const [step, setStep] = useState<Step>("upload");
+  // Seed the shared scan-usage store from the server render (layout effect: before the first paint).
+  useLayoutEffect(() => {
+    if (!premium) setScanUsage(initialUsage);
+  }, [initialUsage, premium]);
+  const [step, setStep] = useState<Step>(restoreMatches ? "matches" : "upload");
+  const [restoredPreviews, setRestoredPreviews] = useState<[string, string] | null>(null);
   const [obverse, setObverse] = useState<Slot | null>(null);
   const [reverse, setReverse] = useState<Slot | null>(null);
   const [busy, setBusy] = useState(false);
@@ -46,6 +67,12 @@ export function IdentifyApp({
   const [cameraBlockedOpen, setCameraBlockedOpen] = useState(false);
   const [cameraSide, setCameraSide] = useState<"obverse" | "reverse" | null>(null);
   const [flipDismissed, setFlipDismissed] = useState(false);
+  const [crop, setCrop] = useState<{ side: "obverse" | "reverse"; file: File } | null>(null);
+  const queueCrop = (side: "obverse" | "reverse", file: File) => {
+    setCameraSide(null);
+    setCameraBlockedOpen(false);
+    setCrop({ side, file });
+  };
 
   const setSlot = useCallback((side: "obverse" | "reverse", file: File) => {
     const preview = URL.createObjectURL(file);
@@ -110,14 +137,14 @@ export function IdentifyApp({
   const flipNeedSide: "obverse" | "reverse" | null =
     obverse && !reverse ? "reverse" : reverse && !obverse ? "obverse" : null;
 
+  // Revoke only on unmount: per-change cleanup would also revoke the unchanged side's URL.
+  const previewsRef = useRef<[string, string]>(["", ""]);
+  previewsRef.current = [obverse?.preview ?? "", reverse?.preview ?? ""];
   useEffect(() => {
-    const o = obverse?.preview ?? "";
-    const r = reverse?.preview ?? "";
     return () => {
-      if (o) URL.revokeObjectURL(o);
-      if (r) URL.revokeObjectURL(r);
+      previewsRef.current.forEach((u) => u && URL.revokeObjectURL(u));
     };
-  }, [obverse?.preview, reverse?.preview]);
+  }, []);
 
   const openCamera = (side: "obverse" | "reverse") => {
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -139,6 +166,14 @@ export function IdentifyApp({
     }
   };
 
+  // Scan counts are owned by the server (successCount/errorCount + thresholds); nothing is stored locally.
+  // Show the counts carried by the scan response straight away, then ALWAYS re-read auth/me after the scan
+  // (success, failure or network error) so the Free plan card ends up with the backend's own numbers.
+  const applyServerUsage = (usage: ScanUsage | null | undefined) => {
+    if (premium || !usage) return;
+    setScanUsage(usage);
+  };
+
   const submit = async () => {
     if (!obverse || !reverse) return;
     setBusy(true);
@@ -147,6 +182,7 @@ export function IdentifyApp({
     setFailure(null);
     try {
       const res = await identifyCoinsV2(obverse.file, reverse.file);
+      applyServerUsage(res.usage);
       if (res.error) {
         const msg = identifyErrorMessage(res.aiErrorCode, res.reason);
         // Full-page failure (Figma `2098:158944`) for not-a-coin / blurry / photo issues.
@@ -167,52 +203,62 @@ export function IdentifyApp({
         return;
       }
       setMatches(list);
-      const previews: [string, string] = [obverse.preview, reverse.preview];
+      // Blob URLs are revoked when this page unmounts, so persist data URLs for the result pages.
+      const previews = await Promise.all([fileToDataUrl(obverse.file), fileToDataUrl(reverse.file)]).catch(
+        () => [obverse.preview, reverse.preview],
+      );
       saveIdentifySession({
         imageUrls: res.data.imageUrls,
         matches: list,
-        previewUrls: previews,
+        previewUrls: [previews[0], previews[1]],
       });
-      if (!premium) {
-        recordFreeScanUsed();
-        notifyFreeScanUsageUpdated();
-      }
       setStep("matches");
     } catch {
       setToast(identifyErrorMessage("E003"));
       setStep("upload");
     } finally {
       setBusy(false);
+      if (!premium) void refreshScanUsage();
     }
   };
 
+  // Layout effect: runs before paint on client navigation, so Back shows the list with no upload-form flash.
+  useLayoutEffect(() => {
+    if (!restoreMatches) return;
+    const saved = readIdentifySession();
+    if (saved?.matches?.length) {
+      setMatches(saved.matches);
+      setRestoredPreviews(saved.previewUrls ?? null);
+    } else {
+      setStep("upload");
+    }
+  }, [restoreMatches]);
+
   const pickMatch = (m: IdentifyMatch) => {
+    // Mark this history entry as the matches view so browser Back (and the result page's back arrow) return here.
+    window.history.replaceState(window.history.state, "", "/identify?step=matches");
     router.push(`/identify/coin/${m.archetypeId}`);
   };
 
   const previewPair: [string, string] | null =
-    obverse && reverse ? [obverse.preview, reverse.preview] : null;
+    obverse && reverse ? [obverse.preview, reverse.preview] : restoredPreviews;
 
   return (
     <>
       <IdentifyDebugBar onLoad={(files) => loadBoth(files.obverse, files.reverse)} />
 
       {step === "upload" && (
-        <nav className="mb-4 text-sm text-muted" aria-label="Breadcrumb">
-          <Link href="/home" className="hover:text-ink">Home</Link>
-          <span className="mx-2">/</span>
-          <span className="text-ink">Identify coin</span>
-        </nav>
+        <h1 className="mb-4 text-2xl font-semibold leading-8 text-ink">Identify coin</h1>
       )}
 
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
         <div className="min-w-0 flex-1 flex flex-col gap-4">
           {step === "upload" && (
             <IdentifyUploadCard
               obversePreview={obverse?.preview ?? null}
               reversePreview={reverse?.preview ?? null}
-              onObverseFile={(f) => setSlot("obverse", f)}
-              onReverseFile={(f) => setSlot("reverse", f)}
+              onObverseFile={(f) => queueCrop("obverse", f)}
+              onReverseFile={(f) => queueCrop("reverse", f)}
               onTakeObverse={() => openCamera("obverse")}
               onTakeReverse={() => openCamera("reverse")}
               onClearObverse={() => clearSlot("obverse")}
@@ -224,7 +270,7 @@ export function IdentifyApp({
           {step === "analysing" && previewPair && (
             <IdentifyAnalysing frontPreview={previewPair[0]} backPreview={previewPair[1]} />
           )}
-          {step === "matches" && previewPair && (
+          {step === "matches" && matches.length > 0 && (
             <IdentifyMatchList
               matches={matches}
               onPick={pickMatch}
@@ -251,22 +297,13 @@ export function IdentifyApp({
             />
           )}
 
-          {step === "upload" && (
-            <section className="rounded-2xl border border-[#e5e7eb] bg-white p-4 text-sm text-muted">
-              <p className="font-medium text-ink">Tips for best results</p>
-              <ul className="mt-2 list-disc space-y-1 pl-5 text-xs leading-5">
-                <li>Use natural light and a plain background.</li>
-                <li>Fill the frame with the coin; keep the camera parallel to the surface.</li>
-                <li>Upload one obverse and one reverse of the same coin.</li>
-              </ul>
-            </section>
-          )}
+
         </div>
 
-        <IdentifySideRail premium={premium} onScanApp={() => setQrOpen(true)} />
+        <IdentifySideRail premium={premium} initialUsage={initialUsage} onScanApp={() => setQrOpen(true)} />
       </div>
 
-      {flipNeedSide ? (
+      {flipNeedSide && !crop ? (
         <IdentifyFlipCoinModal
           open={!flipDismissed}
           needSide={flipNeedSide}
@@ -282,7 +319,7 @@ export function IdentifyApp({
           setCameraSide(null);
         }}
         onUpload={(file) => {
-          if (cameraSide) setSlot(cameraSide, file);
+          if (cameraSide) queueCrop(cameraSide, file);
         }}
       />
       <IdentifyCameraModal
@@ -293,9 +330,18 @@ export function IdentifyApp({
           if (cameraSide) setSlot(cameraSide, file);
         }}
         onUploadFile={(file) => {
-          if (cameraSide) setSlot(cameraSide, file);
+          if (cameraSide) queueCrop(cameraSide, file);
         }}
       />
+      {crop && <IdentifyCropModal
+        file={crop.file}
+        side={crop.side}
+        onClose={() => setCrop(null)}
+        onConfirm={(file) => {
+          setSlot(crop.side, file);
+          setCrop(null);
+        }}
+      />}
       {toast && <IdentifyToast title={toast.title} body={toast.body} onClose={() => setToast(null)} />}
     </>
   );

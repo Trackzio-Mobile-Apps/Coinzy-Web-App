@@ -68,7 +68,7 @@ async function SelfListingContent({ id, listed }: { id: string; listed: boolean 
 
   return (
     <>
-      <DetailsBreadcrumb ancestors={[{ href: "/marketplace", label: "Your listings" }]} current={title} />
+      <DetailsBreadcrumb ancestors={[{ href: "/marketplace/my-listings", label: "Your listings" }]} current={title} />
 
       <div className="mt-10 flex flex-col items-start gap-4 lg:flex-row">
         <div className="flex w-full min-w-0 flex-1 flex-col gap-4">

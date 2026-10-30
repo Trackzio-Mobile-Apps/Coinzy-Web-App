@@ -14,6 +14,10 @@ const routeSource = fs
   .replace(
     /import \{ resolveCatalogueOrigin \} from ["']@\/lib\/api\/catalogue-origin["'];\n/,
     'function resolveCatalogueOrigin() { return "https://coins-api.trackzio.com"; }\n',
+  )
+  .replace(
+    /import \{ setAuthedHintCookie \} from ["']@\/lib\/auth\/session-cookie["'];\n/,
+    'function setAuthedHintCookie(response, maxAge) { response.cookies.set("coinzy_authed", "1", { path: "/", sameSite: "lax", ...(typeof maxAge === "number" ? { maxAge } : {}) }); }\n',
   );
 const routeMod = new Module(routeFile, module);
 routeMod.filename = routeFile;
@@ -66,6 +70,7 @@ const request = (action, data, headers = {}) => POST(new NextRequest(`http://loc
   assert.deepEqual(calls.at(-1).body, { credential: 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.payload.sig', fullName: 'Example Collector' });
   assert.match(response.headers.get('set-cookie'), /coinzy_session=google-session/);
   assert.equal((await request('google', {})).status, 400);
+  assert.equal((await request('apple', { credential: 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.apple.sig' })).status, 404);
   assert.equal((await request('login', { email: 'bad', password: 'password' })).status, 400);
   assert.equal((await request('reset', { email: 'user@example.com', password: 'password', code: 'bad' })).status, 400);
   assert.equal((await request('guest', {}, { origin: 'https://other.example' })).status, 403);
@@ -86,5 +91,5 @@ const request = (action, data, headers = {}) => POST(new NextRequest(`http://loc
   assert.equal((await request('guest', {})).status, 502);
   global.fetch = async () => { throw new Error('Network unavailable'); };
   assert.equal((await request('guest', {})).status, 502);
-  console.log('PASS: auth contracts (incl. google), cookies, guest reuse, validation, origin checks and upstream errors');
+  console.log('PASS: auth contracts (incl. google; apple removed), cookies, guest reuse, validation, origin checks and upstream errors');
 })().catch(error => { console.error(error); process.exitCode = 1; });

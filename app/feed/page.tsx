@@ -23,8 +23,8 @@ export default async function FeedRoute({
     (await getPremiumStatus(user)) || (process.env.NODE_ENV !== "production" && sp.premium === "1");
 
   return (
-    <div className="flex min-h-dvh bg-[#f7f7f7]">
-      <AppSidebar user={user} active="feed" />
+    <div className="flex min-h-dvh bg-[#faf7f5]">
+      <div className="sticky top-0 h-dvh shrink-0 self-start"><AppSidebar user={user} active="feed" /></div>
       <div className="flex min-w-0 flex-1 flex-col">
         <MarketplaceAppHeader user={user} premium={premium} />
         <FeedPage

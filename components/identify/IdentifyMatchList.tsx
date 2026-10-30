@@ -5,7 +5,6 @@ import Link from "next/link";
 import type { IdentifyMatch } from "@/lib/identify/types";
 import { FallbackImage } from "@/components/ui/FallbackImage";
 import { CoinPlaceholder } from "@/components/ui/CoinPlaceholder";
-import { DetailsBreadcrumb } from "@/components/catalogue/DetailsParts";
 
 function matchSubtitle(m: IdentifyMatch) {
   const year = m.yearOfMinting != null ? String(m.yearOfMinting) : "";
@@ -16,18 +15,17 @@ function matchSubtitle(m: IdentifyMatch) {
 function MatchThumbs({ urls }: { urls: string[] }) {
   const a = urls[0];
   const b = urls[1] ?? urls[0];
-  const tile = "relative size-[72px] shrink-0 overflow-hidden rounded-lg border border-[#efefef] bg-white";
   return (
-    <div className="flex gap-2">
+    <div className="flex shrink-0 items-end gap-5 pl-5 pr-3">
       {[a, b].map((src, i) => (
-        <div key={`${src}-${i}`} className={tile}>
+        <div key={`${src}-${i}`} className="relative size-[90px] shrink-0 overflow-hidden rounded-lg">
           {src ? (
             <FallbackImage
               src={src}
               alt=""
               fill
-              className="object-cover"
-              sizes="72px"
+              className="object-contain"
+              sizes="90px"
               fallback={<CoinPlaceholder className="size-full" />}
             />
           ) : (
@@ -39,27 +37,34 @@ function MatchThumbs({ urls }: { urls: string[] }) {
   );
 }
 
+/** Figma Top 5 Matches (`14yn59xnujt`): #FAF7F5 canvas, white 12px card, 90px thumbs, 28px soft arrow. */
 export function IdentifyMatchList({
   matches,
   onPick,
-  onTryAgain,
-  onReportNoMatches,
 }: {
   matches: IdentifyMatch[];
   onPick: (match: IdentifyMatch) => void;
   onTryAgain: () => void;
   onReportNoMatches: () => void;
 }) {
-  const crumbCurrent = "AI Analysis - Possible top 5 matches";
-
   return (
     <div className="flex flex-col gap-4">
-      <DetailsBreadcrumb ancestors={[{ href: "/identify", label: "Identify coin" }]} current={crumbCurrent} />
+      <div className="flex items-center gap-3">
+        <Link
+          href="/home"
+          prefetch
+          aria-label="Back to Home"
+          className="flex shrink-0 rounded border-[0.5px] border-[#c2c2c4] bg-white p-1 hover:bg-neutral-50"
+        >
+          <Image src="/assets/catalogue/icon-breadcrumb-back.svg" alt="" width={24} height={24} />
+        </Link>
+        <h1 className="text-2xl font-semibold leading-8 text-ink">Identify coin</h1>
+      </div>
 
-      <div className="rounded-2xl border border-[#efefef] bg-white p-4">
-        <h2 className="text-lg font-semibold leading-7 text-ink">{crumbCurrent}</h2>
+      <div className="flex flex-col gap-4 rounded-xl bg-white p-4">
+        <h2 className="text-base font-medium leading-6 text-[#0a0a0a]">AI Analysis - Possible top 5 matches</h2>
 
-        <ul className="mt-4 flex flex-col gap-3">
+        <ul className="flex flex-col gap-3">
           {matches.map((m) => {
             const imgs = m.archetypeImageUrls?.length ? m.archetypeImageUrls : [];
             return (
@@ -67,52 +72,28 @@ export function IdentifyMatchList({
                 <button
                   type="button"
                   onClick={() => onPick(m)}
-                  className="flex w-full items-center gap-4 rounded-xl border border-[#efefef] bg-[#fafafa] px-3 py-3 text-left transition hover:border-[#edd2d3] hover:bg-white"
+                  className="flex w-full items-center gap-6 rounded-2xl border-[0.5px] border-[#e6e9eb] bg-white p-3 text-left transition hover:bg-[#fafafa]"
                 >
                   <MatchThumbs urls={imgs} />
+                  <span className="h-[90px] w-px shrink-0 bg-[#e5e5e5]" aria-hidden />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-base font-medium text-ink">{m.name}</p>
-                    <p className="mt-0.5 truncate text-sm text-[#87878a]">{matchSubtitle(m)}</p>
+                    <p className="truncate text-sm font-medium leading-5 text-ink">{m.name}</p>
+                    <p className="mt-1 flex gap-2 truncate font-jakarta text-sm font-semibold leading-[150%] text-[#87878a]">
+                      {matchSubtitle(m)
+                        .split(" • ")
+                        .flatMap((part, i) => (i ? ["•", part] : [part]))
+                        .map((part, i) => (
+                          <span key={i}>{part}</span>
+                        ))}
+                    </p>
                   </div>
-                  <span className="flex size-8 shrink-0 items-center justify-center rounded-full border border-[#e5e5e5] bg-white">
-                    <Image src="/assets/landing-page/icons/shared/arrow-right.svg" alt="" width={16} height={16} />
-                  </span>
+                  <Image src="/assets/identify/icon-match-arrow.svg" alt="" width={28} height={28} className="shrink-0" />
                 </button>
               </li>
             );
           })}
         </ul>
-
-        <div className="mt-6 rounded-xl bg-[#f7f1eb] px-4 py-4">
-          <h3 className="text-base font-medium text-ink">Still can&apos;t find your coin?</h3>
-          <p className="mt-2 text-sm leading-5 text-[#49494b]">
-            Let Coinzy AI know. The coin you&apos;re seeing may not be in our database yet — try another photo or tell us
-            so we can improve matches.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={onTryAgain}
-              className="inline-flex h-9 items-center rounded-[10px] bg-primary-500 px-4 text-sm font-medium text-white"
-            >
-              Try again
-            </button>
-            <button
-              type="button"
-              onClick={onReportNoMatches}
-              className="inline-flex h-9 items-center rounded-[10px] border border-[#e5e5e5] bg-white px-4 text-sm font-medium text-ink"
-            >
-              Report no matches
-            </button>
-          </div>
-        </div>
       </div>
-
-      <p className="text-center text-sm text-muted">
-        <Link href="/catalogue" className="font-medium text-primary-500 hover:underline">
-          Browse global catalogue
-        </Link>
-      </p>
     </div>
   );
 }
