@@ -503,8 +503,8 @@ export function IdentifySelectCollectionModal({
         </button>
         <button
           type="button"
-          onClick={() => void handleDone()}
-          disabled={loading || saving || creating || (createOpen && !newName.trim())}
+          onClick={handleDone}
+          disabled={loading || saving || creating || createOpen}
           className="inline-flex h-9 items-center rounded-[10px] bg-primary-500 px-3 text-sm font-medium text-white disabled:opacity-50"
         >
           {saving || creating ? "Saving…" : "Done"}
