@@ -3,6 +3,7 @@ import { AppQrCode } from "@/components/ui/AppQrCode";
 import Link from "next/link";
 import { PremiumUpgradeButton } from "@/components/premium/PremiumUpgradeButton";
 import { HOME_OTHER_APPS } from "@/lib/home";
+import { OtherAppDownloadButton } from "@/components/ui/OtherAppDownloadButton";
 
 /** Right rail on Settings — Figma `1368:256937` (Premium + other apps + QR). */
 export function SettingsAside({ premium }: { premium: boolean }) {
@@ -42,14 +43,7 @@ export function SettingsAside({ premium }: { premium: boolean }) {
                 <p className="truncate text-sm font-medium leading-5 text-ink">{app.name}</p>
                 <p className="mt-1 truncate text-xs leading-4 text-[#9e9ea1]">{app.description}</p>
               </div>
-              <a
-                href={app.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="shrink-0 rounded-lg border border-[#e5e5e5] px-2 py-1 text-xs font-medium text-ink hover:bg-black/[0.03]"
-              >
-                Try free
-              </a>
+              <OtherAppDownloadButton app={app} className="shrink-0 rounded-lg border border-[#e5e5e5] px-2 py-1 text-xs font-medium text-ink hover:bg-black/[0.03]" />
             </li>
           ))}
         </ul>

@@ -245,9 +245,9 @@ export function IdentifyApp({
 
   return (
     <>
-      <IdentifyDebugBar onLoad={(files) => loadBoth(files.obverse, files.reverse)} />
+      {autoLoadDebug && step === "upload" && <IdentifyDebugBar onLoad={(files) => loadBoth(files.obverse, files.reverse)} />}
 
-      {step === "upload" && (
+      {(step === "upload" || step === "matches") && (
         <h1 className="mb-4 text-2xl font-semibold leading-8 text-ink">Identify coin</h1>
       )}
 

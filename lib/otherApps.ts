@@ -1,7 +1,7 @@
 /**
  * "Our other apps" page (Figma `Landing page/Our other apps`, 876:23169).
  * Card art + icons are 3x renders of the Figma cards (`public/assets/other-apps/`).
- * Links: "Explore" → the app's page on trackzio.com, "Get the app" → Google Play
+ * Links: "Explore" → the app's page on trackzio.com; store links follow its app page
  * (developer: https://play.google.com/store/apps/developer?id=Trackzio).
  * TCG / Vinyl / Birds omitted (ClickUp 14yn59xn56c) until they ship links.
  */
@@ -15,6 +15,7 @@ export type OtherApp = {
   description: string;
   exploreHref?: string;
   playHref?: string;
+  appStoreHref?: string;
 };
 
 const play = (id: string) => `https://play.google.com/store/apps/details?id=${id}`;
@@ -41,6 +42,7 @@ export const OTHER_APP_SECTIONS: {
         description: "Identify banknotes using Banknote AI",
         exploreHref: site("banknotes"),
         playHref: play("com.trackzio.banknote"),
+        appStoreHref: "https://apps.apple.com/us/app/banknote-identification-ai/id6747063766",
       },
       {
         slug: "coinzy",
@@ -48,6 +50,7 @@ export const OTHER_APP_SECTIONS: {
         description: "Identify rare and valuable coins using Coinzy AI",
         exploreHref: site("coinzy"),
         playHref: play("com.coinzy.trackzio"),
+        appStoreHref: "https://apps.apple.com/app/id6752857760",
       },
       {
         slug: "antiqzy",
@@ -62,6 +65,7 @@ export const OTHER_APP_SECTIONS: {
         description: "Identify rocks, gems & minerals using Rockzy AI",
         exploreHref: site("rockzy"),
         playHref: play("com.trackzio.minerals"),
+        appStoreHref: "https://apps.apple.com/us/app/rockzy-ai-rock-identifier/id6758651735",
       },
     ],
   },
@@ -92,6 +96,7 @@ export const OTHER_APP_SECTIONS: {
         description: "Identify plants using Plantzy AI",
         exploreHref: site("plantzy"),
         playHref: play("com.trackzio.plants"),
+        appStoreHref: "https://apps.apple.com/us/app/plantzy-ai-plant-id-and-care/id6770974717",
       },
     ],
   },
@@ -108,6 +113,7 @@ export const OTHER_APP_SECTIONS: {
         description: "Your personal friend and Pal helping you with your Habits",
         exploreHref: site("habiteazy"),
         playHref: play("com.progresspal"),
+        appStoreHref: "https://apps.apple.com/in/app/habit-eazy-habit-to-do-pal/id6738790392",
       },
     ],
   },

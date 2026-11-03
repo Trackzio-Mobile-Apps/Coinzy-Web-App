@@ -43,7 +43,7 @@ a{color:inherit}.m{color:var(--mut);font-size:12px;margin-top:2px}
 <tbody id="tb"></tbody>
 </table></div>
 <script>
-const BASE=[{"id":"14yn59xnd1p","title":"Google sign-up opens new tab and exposes Firebase API key URL","screen":"Auth","area":"Auth","figma":false,"priority":"P1","status":"open","note":"Not an issue: The API key in the URL is public by design. Firebase web API keys identify the project. They don't authorize anything on their own. Access is controlled by Firebase Auth rules, authorized domains and Firestore/Storage rules. Every Firebase web app sends this key to the browser, so it can't be hidden.","fixedAt":null},{"id":"14yn59xndgp","title":"Signup buttons stuck on \"Please Wait\" after returning from sign-in","screen":"Auth","area":"Functional","figma":false,"priority":"P2","status":"open","note":"Edge middleware redirects non-guest coinzy_session off /auth to ?next= or /home; Cache-Control no-store; pageshow clears pending. Guests still upgrade via /auth.","fixedAt":null},{"id":"14yn59xnm5t","title":"Try Free CTA goes to Play Store instead of QA; Antiques app name wrong","screen":"Other Apps","area":"Content","figma":false,"priority":"P2","status":"open","note":"Partially fixed: user confirmed the app-name issue is fixed (Antiqzy AI). Remaining: Try Free should open the appropriate QA website instead of the Play Store. Ticket remains open locally; ClickUp unchanged.","fixedAt":null},{"id":"14yn59xnnhd","title":"Crop screen not shown after selecting an image","screen":"Identify","area":"Functional","figma":false,"priority":"P2","status":"open","note":"Fixed locally: gallery file selection now queues IdentifyCropModal instead of immediately saving the original image. Both sides and camera upload fallbacks route through the crop step. Reuses circular camera guide and zoom slider; drag/arrow-key positioning; confirms a 1024x1024 JPEG of the guide bounds. Cancel/Escape preserve existing slots; unreadable files show an error. Flip reminder waits until crop confirmation. Isolated Chromium regression (actual IdentifyApp/upload/crop components; API/other panels mocked) passes selection-before-save, exported crop pixels after drag, zoom, cancel, two-photo submit gating, invalid image, Escape and mobile width. Targeted TypeScript checks pass. No live identification request or deployment performed. Default-zoom correction: 1x now fits the full image to the 240px guide instead of filling the 540x420 viewport; smaller dimensions remain centred and unused export space is black. Added browser regression asserting initial image size fits the guide.","fixedAt":null},{"id":"14yn59xnu85","title":"Obverse coin image broken / not fully displayed after scan","screen":"Identify","area":"Functional","figma":false,"priority":"P2","status":"open","note":"Fixed locally. Root causes: (1) IdentifyApp blob-URL cleanup effect re-ran on every photo change and revoked the unchanged side (obverse broke after reverse was added); now revoked on unmount only. (2) Result pages fell back to blob previews revoked on unmount when API imageUrls < 2; session now stores data URLs, and IdentifyCoinClient only forwards http(s) URLs to the API. (3) Failure/Analysing thumbnails use object-contain so the whole image shows. Browser verification pending.","fixedAt":null},{"id":"14yn59xnu8r","title":"Back button doesn't navigate back from Top 5 Matches","screen":"Top 5 Matches","area":"Navigation","figma":false,"priority":"P2","status":"open","note":"Fixed locally: back arrow on Top 5 Matches linked to /identify (the page itself, so a no-op). DetailsBreadcrumb gained backHref/backLabel; IdentifyMatchList sends back to /home. Browser verification pending.","fixedAt":null},{"id":"14yn59xnujt","title":"Top 5 Matches UI doesn't match Figma","screen":"Top 5 Matches","area":"UI","figma":true,"priority":"P2","status":"open","note":"Fixed locally per supplied screenshot/CSS: IdentifyMatchList restyled \u2014 24px semibold Identify coin title (breadcrumb replaced; back arrow to /home kept), white 12px card with 16px padding/gaps, 16px medium #0A0A0A card title, rows 0.5px #E6E9EB border radius 16 padding 12 gap 24, 90x90 radius-8 thumbs with 20px gap, 1px #E5E5E5 separator, 14px medium name + 14px semibold #87878A Plus Jakarta subtitle, 28px soft arrow button. Removed Still-cant-find box and catalogue link (not in design). Browser verification pending.","fixedAt":null},{"id":"14yn59xnv6h","title":"No character limit in \"Rate This Match\" text box","screen":"Top 5 Matches","area":"Validation","figma":false,"priority":"P2","status":"open","note":"Fixed locally: Rate-this-match message capped at 100 words (limitWords on change, handles paste) with an n/100 words counter. Browser verification pending.","fixedAt":null},{"id":"14yn59xnvpf","title":"Free user can't create first free collection (wrong premium popup)","screen":"Collections","area":"Functional","figma":false,"priority":"P2","status":"open","note":"Backend issue \u2014 done on the BE side (per user, 2026-10-29). No web change.","fixedAt":null},{"id":"14yn59xpj2j","title":"Updated settings data not reflected after saving","screen":"Settings","area":"Functional","figma":false,"priority":"P2","status":"open","note":"Fixed locally: greeting/sidebar use current auth/me name/email instead of stale login JWT; Settings profile/seller saves refresh server-rendered data. Profile lookup is shared with Premium/scan usage per request; JWT fallback on upstream failure. Targeted ESLint and mocked profile/session regression checks passed; live account verification pending.","fixedAt":null},{"id":"14yn59xr1rr","title":"Coinzy Webapp Unable to List Coins for Sale Due to Missing Dropdown in the Grading Details Section","screen":"Marketplace","area":"Functional","figma":false,"priority":"P1","status":"open","note":"","fixedAt":null}];
+const BASE=[{"id":"14yn59xnd1p","title":"Google sign-up opens new tab and exposes Firebase API key URL","screen":"Auth","area":"Auth","figma":false,"priority":"P1","status":"open","note":"Not an issue: The API key in the URL is public by design. Firebase web API keys identify the project. They don't authorize anything on their own. Access is controlled by Firebase Auth rules, authorized domains and Firestore/Storage rules. Every Firebase web app sends this key to the browser, so it can't be hidden.","fixedAt":null},{"id":"14yn59xndgp","title":"Signup buttons stuck on \"Please Wait\" after returning from sign-in","screen":"Auth","area":"Functional","figma":false,"priority":"P2","status":"fixed","note":"Marked done locally: signed-in users reaching auth redirect to /home, including a session refresh on cached client navigation.","fixedAt":"2026-11-03"},{"id":"14yn59xnm5t","title":"Try Free CTA goes to Play Store instead of QA; Antiques app name wrong","screen":"Other Apps","area":"Content","figma":false,"priority":"P2","status":"fixed","note":"Marked done locally: Other apps download dialogs show app-specific smart QR codes and available store links; Antiqzy AI naming is corrected.","fixedAt":"2026-11-03"},{"id":"14yn59xnnhd","title":"Crop screen not shown after selecting an image","screen":"Identify","area":"Functional","figma":false,"priority":"P2","status":"fixed","note":"Marked done locally: gallery crop matches supplied capture layout, with circular guide and default 3x zoom.","fixedAt":"2026-11-03"},{"id":"14yn59xnu85","title":"Obverse coin image broken / not fully displayed after scan","screen":"Identify","area":"Functional","figma":false,"priority":"P2","status":"not-a-bug","note":"Marked not a bug locally per user: worked locally; uploaded image dimensions may explain the report.","fixedAt":null},{"id":"14yn59xnu8r","title":"Back button doesn't navigate back from Top 5 Matches","screen":"Top 5 Matches","area":"Navigation","figma":false,"priority":"P2","status":"fixed","note":"Marked done locally at user request; matches design has no in-page back arrow and browser navigation remains available.","fixedAt":"2026-11-03"},{"id":"14yn59xnujt","title":"Top 5 Matches UI doesn't match Figma","screen":"Top 5 Matches","area":"UI","figma":true,"priority":"P2","status":"fixed","note":"Marked done locally at user request: Top 5 Matches heading, header alignment, match cards and rail follow supplied design.","fixedAt":"2026-11-03"},{"id":"14yn59xnv6h","title":"No character limit in \"Rate This Match\" text box","screen":"Top 5 Matches","area":"Validation","figma":false,"priority":"P2","status":"fixed","note":"Marked done locally: Rate This Match message is limited to 100 characters and shows a character counter.","fixedAt":"2026-11-03"},{"id":"14yn59xnvpf","title":"Free user can't create first free collection (wrong premium popup)","screen":"Collections","area":"Functional","figma":false,"priority":"P2","status":"fixed","note":"Marked done locally at user request: collection creation and selection flow updated.","fixedAt":"2026-11-03"},{"id":"14yn59xpj2j","title":"Updated settings data not reflected after saving","screen":"Settings","area":"Functional","figma":false,"priority":"P2","status":"fixed","note":"Marked done locally: headers show the full profile name and settings saves refresh the profile.","fixedAt":"2026-11-03"},{"id":"14yn59xr1rr","title":"Coinzy Webapp Unable to List Coins for Sale Due to Missing Dropdown in the Grading Details Section","screen":"Marketplace","area":"Functional","figma":false,"priority":"P1","status":"fixed","note":"Marked done locally. Sale grading dropdowns use Android options when QA filter values are empty.","fixedAt":"2026-11-03"}];
 const CLICKUP_SYNCED_AT="2026-10-30";
 const CLICKUP_STATUSES={"14yn59xmwyy":"testiing","14yn59xmx6x":"testiing","14yn59xmx97":"testiing","14yn59xn2u9":"testiing","14yn59xn3c3":"testiing","14yn59xn44e":"testiing","14yn59xn53u":"not a bug","14yn59xn544":"testiing","14yn59xn56c":"testiing","14yn59xn598":"testiing","14yn59xn68y":"not a bug","14yn59xn69a":"testiing","14yn59xn6ab":"testiing","14yn59xn6me":"testiing","14yn59xnby9":"testiing","14yn59xnd1p":"reopen","14yn59xndgp":"reopen","14yn59xnedt":"testiing","14yn59xnfc6":"testiing","14yn59xnkmh":"testiing","14yn59xnkmy":"testiing","14yn59xnknh":"testiing","14yn59xnkpg":"testiing","14yn59xnm5t":"Open","14yn59xnmmf":"testiing","14yn59xnnhd":"reopen","14yn59xnnj3":"testiing","14yn59xntxu":"testiing","14yn59xnu85":"reopen","14yn59xnu8r":"reopen","14yn59xnujt":"reopen","14yn59xnuqx":"testiing","14yn59xnv6h":"reopen","14yn59xnvhy":"testiing","14yn59xnvjx":"testiing","14yn59xnvme":"testiing","14yn59xnvpf":"reopen","14yn59xnvrk":"testiing","14yn59xnvu1":"testiing","14yn59xnvzf":"testiing","14yn59xnxup":"testiing","14yn59xp1z6":"testiing","14yn59xp2px":"testiing","14yn59xp2qa":"testiing","14yn59xp2re":"testiing","14yn59xp2yf":"testiing","14yn59xp307":"testiing","14yn59xp31m":"testiing","14yn59xp32c":"testiing","14yn59xp32z":"not a bug","14yn59xp34q":"testiing","14yn59xp3pu":"testiing","14yn59xpf6j":"testiing","14yn59xpf8e":"testiing","14yn59xpgpp":"testiing","14yn59xphpa":"testiing","14yn59xpj0q":"testiing","14yn59xpj2j":"reopen","14yn59xpj78":"testiing","14yn59xpjcj":"testiing","14yn59xpjd2":"testiing","14yn59xpjdf":"testiing","14yn59xpje8":"testiing","14yn59xpjuc":"testiing","14yn59xpk7d":"testiing","14yn59xpk85":"testiing","14yn59xpka8":"testiing","14yn59xpkfv":"testiing","14yn59xpkgu":"testiing","14yn59xpkj8":"testiing","14yn59xpkjq":"testiing","14yn59xpkm1":"testiing","14yn59xprd9":"testiing","14yn59xprj8":"testiing","14yn59xpv9b":"testiing","14yn59xpvwr":"testiing","14yn59xpw3e":"testiing","14yn59xpw6h":"reopen","14yn59xm4pv":"Open","14yn59xpt33":"Open","14yn59xr1rr":"Open","14yn59xm68v":"Open","14yn59xpj2t":"Open"};
 const RECENT_CLICKUP_IDS=new Set(["14yn59xnd1p","14yn59xndgp","14yn59xnnhd","14yn59xnu85","14yn59xnu8r","14yn59xnujt","14yn59xnv6h","14yn59xnvpf","14yn59xpj2j","14yn59xpw6h","14yn59xm4pv","14yn59xnm5t","14yn59xpt33","14yn59xr1rr","14yn59xm68v","14yn59xpj2t"]);
@@ -58,6 +58,96 @@ try {
   const migrationKey=KEY+"-reopened-2026-11-03";
   if (!localStorage.getItem(migrationKey)) {
     for (const id of REOPENED_IDS) if (S[id]) { S[id].status="open"; S[id].fixedAt=null; }
+    localStorage.setItem(KEY,JSON.stringify(S));
+    localStorage.setItem(migrationKey,"1");
+  }
+} catch(e) {}
+// Apply the locally confirmed grading fix once, preserving saved notes.
+try {
+  const migrationKey=KEY+"-grading-fixed-2026-11-03";
+  if (!localStorage.getItem(migrationKey)) {
+    if (S["14yn59xr1rr"]) { S["14yn59xr1rr"].status="fixed"; S["14yn59xr1rr"].fixedAt="2026-11-03"; }
+    localStorage.setItem(KEY,JSON.stringify(S));
+    localStorage.setItem(migrationKey,"1");
+  }
+} catch(e) {}
+// Apply the locally confirmed signup fix once, preserving saved notes.
+try {
+  const migrationKey=KEY+"-signup-fixed-2026-11-03";
+  if (!localStorage.getItem(migrationKey)) {
+    if (S["14yn59xndgp"]) { S["14yn59xndgp"].status="fixed"; S["14yn59xndgp"].fixedAt="2026-11-03"; }
+    localStorage.setItem(KEY,JSON.stringify(S));
+    localStorage.setItem(migrationKey,"1");
+  }
+} catch(e) {}
+// Apply the locally confirmed other-apps fix once, preserving saved notes.
+try {
+  const migrationKey=KEY+"-other-apps-fixed-2026-11-03";
+  if (!localStorage.getItem(migrationKey)) {
+    if (S["14yn59xnm5t"]) { S["14yn59xnm5t"].status="fixed"; S["14yn59xnm5t"].fixedAt="2026-11-03"; }
+    localStorage.setItem(KEY,JSON.stringify(S));
+    localStorage.setItem(migrationKey,"1");
+  }
+} catch(e) {}
+// Apply the locally confirmed crop fix once, preserving saved notes.
+try {
+  const migrationKey=KEY+"-crop-fixed-2026-11-03";
+  if (!localStorage.getItem(migrationKey)) {
+    if (S["14yn59xnnhd"]) { S["14yn59xnnhd"].status="fixed"; S["14yn59xnnhd"].fixedAt="2026-11-03"; }
+    localStorage.setItem(KEY,JSON.stringify(S));
+    localStorage.setItem(migrationKey,"1");
+  }
+} catch(e) {}
+// Apply the locally confirmed navigation status once, preserving saved notes.
+try {
+  const migrationKey=KEY+"-matches-back-fixed-2026-11-03";
+  if (!localStorage.getItem(migrationKey)) {
+    if (S["14yn59xnu8r"]) { S["14yn59xnu8r"].status="fixed"; S["14yn59xnu8r"].fixedAt="2026-11-03"; }
+    localStorage.setItem(KEY,JSON.stringify(S));
+    localStorage.setItem(migrationKey,"1");
+  }
+} catch(e) {}
+// Apply the locally confirmed image assessment once, preserving saved notes.
+try {
+  const migrationKey=KEY+"-obverse-not-a-bug-2026-11-03";
+  if (!localStorage.getItem(migrationKey)) {
+    if (S["14yn59xnu85"]) { S["14yn59xnu85"].status="not-a-bug"; S["14yn59xnu85"].fixedAt=null; }
+    localStorage.setItem(KEY,JSON.stringify(S));
+    localStorage.setItem(migrationKey,"1");
+  }
+} catch(e) {}
+// Apply the locally confirmed matches UI status once, preserving saved notes.
+try {
+  const migrationKey=KEY+"-matches-ui-fixed-2026-11-03";
+  if (!localStorage.getItem(migrationKey)) {
+    if (S["14yn59xnujt"]) { S["14yn59xnujt"].status="fixed"; S["14yn59xnujt"].fixedAt="2026-11-03"; }
+    localStorage.setItem(KEY,JSON.stringify(S));
+    localStorage.setItem(migrationKey,"1");
+  }
+} catch(e) {}
+// Apply the locally confirmed rate-message fix once, preserving saved notes.
+try {
+  const migrationKey=KEY+"-rate-message-fixed-2026-11-03";
+  if (!localStorage.getItem(migrationKey)) {
+    if (S["14yn59xnv6h"]) { S["14yn59xnv6h"].status="fixed"; S["14yn59xnv6h"].fixedAt="2026-11-03"; }
+    localStorage.setItem(KEY,JSON.stringify(S));
+    localStorage.setItem(migrationKey,"1");
+  }
+} catch(e) {}
+// Apply the locally confirmed collection status once, preserving saved notes.
+try {
+  const migrationKey=KEY+"-collection-fixed-2026-11-03";
+  if (!localStorage.getItem(migrationKey)) {
+    if (S["14yn59xnvpf"]) { S["14yn59xnvpf"].status="fixed"; S["14yn59xnvpf"].fixedAt="2026-11-03"; }
+    localStorage.setItem(KEY,JSON.stringify(S));
+    localStorage.setItem(migrationKey,"1");
+  }
+} catch(e) {}
+// Apply the locally confirmed settings status once, preserving saved notes.
+try {
+  const migrationKey=KEY+"-settings-name-fixed-2026-11-03";
+  if (!localStorage.getItem(migrationKey)) {
+    if (S["14yn59xpj2j"]) { S["14yn59xpj2j"].status="fixed"; S["14yn59xpj2j"].fixedAt="2026-11-03"; }
     localStorage.setItem(KEY,JSON.stringify(S));
     localStorage.setItem(migrationKey,"1");
   }

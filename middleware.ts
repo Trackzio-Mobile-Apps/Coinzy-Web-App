@@ -1,7 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { AUTHED_HINT_COOKIE, clearAuthedHintCookie, setAuthedHintCookie } from "@/lib/auth/authed-hint";
 import { sessionJwtIsGuest } from "@/lib/auth/jwt-payload";
-import { safeReturnPath } from "@/lib/auth/returnTo";
 
 function withNoStore(response: NextResponse) {
   response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
@@ -23,8 +22,7 @@ export function middleware(request: NextRequest) {
   const onAuth = request.nextUrl.pathname === "/auth";
 
   if (onAuth && sessionToken && !sessionJwtIsGuest(sessionToken)) {
-    const next = safeReturnPath(request.nextUrl.searchParams.get("next"));
-    const response = NextResponse.redirect(new URL(next ?? "/home", request.url));
+    const response = NextResponse.redirect(new URL("/home", request.url));
     if (!hasHint) setAuthedHintCookie(response);
     return withNoStore(response);
   }

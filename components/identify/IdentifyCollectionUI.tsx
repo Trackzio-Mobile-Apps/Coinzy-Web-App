@@ -328,7 +328,6 @@ export function IdentifySelectCollectionModal({
   const [newName, setNewName] = useState("");
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
-  const [nameEdited, setNameEdited] = useState(false);
 
   const privateCount = collections.filter((o) => o.kind === "private").length;
 
@@ -337,11 +336,9 @@ export function IdentifySelectCollectionModal({
       setCreateOpen(false);
       setCreateError(null);
       setCreating(false);
-      setNameEdited(false);
       return;
     }
     setNewName(defaultNewCollectionName(privateCount));
-    setNameEdited(false);
   }, [open, privateCount]);
 
   const saveNewCollection = async (): Promise<boolean> => {
@@ -363,12 +360,8 @@ export function IdentifySelectCollectionModal({
     return true;
   };
 
-  const handleDone = async () => {
-    if (loading || saving || creating) return;
-    if (createOpen && newName.trim() && nameEdited) {
-      const created = await saveNewCollection();
-      if (!created) return;
-    }
+  const handleDone = () => {
+    if (loading || saving || creating || createOpen) return;
     onDone();
   };
 
@@ -434,12 +427,12 @@ export function IdentifySelectCollectionModal({
         >
           <button
             type="button"
+            disabled={creating}
             onClick={() => {
               setCreateError(null);
               setCreateOpen((v) => !v);
               if (!createOpen) {
                 setNewName(defaultNewCollectionName(privateCount));
-                setNameEdited(false);
               }
             }}
             className="flex w-full items-center gap-1.5 px-4 py-2 text-sm font-medium text-primary-500"
@@ -459,7 +452,6 @@ export function IdentifySelectCollectionModal({
                   maxLength={MAX_COLLECTION_NAME_LENGTH}
                   onChange={(e) => {
                     setNewName(e.target.value.slice(0, MAX_COLLECTION_NAME_LENGTH));
-                    setNameEdited(true);
                   }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
@@ -482,7 +474,12 @@ export function IdentifySelectCollectionModal({
                   </button>
                 ) : null}
               </div>
-              <p className="text-sm leading-5 text-[#737373] opacity-80">Press Enter to save</p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm leading-5 text-[#737373] opacity-80">Press Enter to save</p>
+                <button type="button" onClick={() => void saveNewCollection()} disabled={creating || !newName.trim()} className="rounded-lg border border-[#edd2d3] bg-white px-3 py-1 text-xs font-medium text-primary-500 disabled:opacity-50">
+                  {creating ? "Saving…" : "Save"}
+                </button>
+              </div>
               {createError ? <p className="text-xs text-[#dc2626]" role="alert">{createError}</p> : null}
             </div>
           )}
@@ -499,8 +496,8 @@ export function IdentifySelectCollectionModal({
         </button>
         <button
           type="button"
-          onClick={() => void handleDone()}
-          disabled={loading || saving || creating || (createOpen && !newName.trim())}
+          onClick={handleDone}
+          disabled={loading || saving || creating || createOpen}
           className="inline-flex h-9 items-center rounded-[10px] bg-primary-500 px-3 text-sm font-medium text-white disabled:opacity-50"
         >
           {saving || creating ? "Saving…" : "Done"}

@@ -10,6 +10,7 @@ import { PremiumUpgradeButton } from "@/components/premium/PremiumUpgradeButton"
 import { CatalogueSearch } from "@/components/catalogue/CatalogueSearch";
 import { ListCoinButton } from "@/components/marketplace/ListCoinButton";
 import { HOME_CATALOGUE_FALLBACK, HOME_MARKETPLACE_FALLBACK, HOME_OTHER_APPS } from "@/lib/home";
+import { OtherAppDownloadButton } from "@/components/ui/OtherAppDownloadButton";
 import type { SessionUser } from "@/lib/auth/session";
 import { FROM_HOME, withFrom } from "@/lib/backNav";
 
@@ -85,12 +86,12 @@ export function HomeDashboard({
   const activeChip = marketChips.find((c) => c.active);
   const cat = catalogue.length ? catalogue : HOME_CATALOGUE_FALLBACK;
   const cotd = coinOfTheDay;
-  const greet = user.isGuest ? "Guest" : user.name.split(" ")[0] || user.name;
+  const greet = user.isGuest ? "Guest" : user.name;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-[#f7f7f8]">
       <header className="flex h-[76px] shrink-0 items-center justify-between border-b border-[#e5e7eb] bg-white px-8">
-        <h1 className="text-2xl font-medium leading-8 text-ink">Hi {greet}!</h1>
+        <h1 className="min-w-0 truncate pr-4 text-2xl font-medium leading-8 text-ink">Hi {greet}!</h1>
         {premium ? (
           <div className="flex items-center gap-4">
             {/* Gradient-outline pill: indigo → pink 1px border over a white fill. */}
@@ -382,12 +383,7 @@ export function HomeDashboard({
                       <p className="truncate text-xs font-medium leading-4 text-ink">{app.name}</p>
                       <p className="truncate text-[11px] leading-4 text-muted">{app.description}</p>
                     </div>
-                    <Link
-                      href={app.href}
-                      className="shrink-0 rounded-lg border border-[#e5e5e5] px-2 py-1 text-[11px] font-medium text-ink"
-                    >
-                      Try free
-                    </Link>
+                    <OtherAppDownloadButton app={app} className="shrink-0 rounded-lg border border-[#e5e5e5] px-2 py-1 text-[11px] font-medium text-ink" />
                   </li>
                 ))}
               </ul>
