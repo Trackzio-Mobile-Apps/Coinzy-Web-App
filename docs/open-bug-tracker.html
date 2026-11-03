@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Coinzy Web Bug Tracker</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--mut:#666;--bd:#ddd;--card:#f6f6f8;--ac:#c0392b;--ok:#1e7a3a}
+@media(prefers-color-scheme:dark){:root{--bg:#141416;--fg:#eee;--mut:#999;--bd:#333;--card:#1e1e22;--ok:#6dcea0}}
+*{box-sizing:border-box}body{font:14px/1.4 system-ui,sans-serif;background:var(--bg);color:var(--fg);margin:0;padding:16px;max-width:1280px;margin-inline:auto}
+h1{margin:0 0 4px;font-size:22px}.sum{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+.k{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:8px 12px;min-width:110px}.k b{display:block;font-size:20px;margin-top:2px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;align-items:center}
+select,input,button{font:inherit;padding:5px 8px;border:1px solid var(--bd);border-radius:6px;background:var(--bg);color:var(--fg)}
+button{cursor:pointer}button:hover{border-color:var(--fg)}
+table{width:100%;border-collapse:collapse;min-width:960px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd);vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.03em;color:var(--mut);position:sticky;top:0;background:var(--bg)}
+.g td{background:var(--card);font-weight:600}.P1{color:var(--ac);font-weight:700}.P2{font-weight:600}
+.fixed td:nth-child(2){text-decoration:line-through;color:var(--mut)}.fixed td:nth-child(2) .badge{background:var(--ok);color:#fff}
+.nb td{color:var(--mut)}.tbl{overflow-x:auto;max-height:70vh;overflow-y:auto;border:1px solid var(--bd);border-radius:8px}
+a{color:inherit}.m{color:var(--mut);font-size:12px;margin-top:2px}
+.badge{display:inline-block;font-size:11px;padding:1px 6px;border-radius:999px;border:1px solid var(--bd)}
+.hint{color:var(--mut);font-size:12px;margin:0 0 8px}
+</style>
+</head>
+<body>
+<h1>Coinzy Web Bug Tracker</h1>
+<p class="hint">ClickUp list <code>901615236848</code> · Status edits persist in <code>localStorage</code> · Use Export to bake edits into the repo · ETA = open effort points ÷ fix velocity (P1=3, P2=2, P3=1, +1 if Figma). Group by priority / screen / area / figma.</p>
+<p class="hint"><strong>ClickUp synced 2026-10-30:</strong> 72 fixed locally, 1 in local testing, 1 open, 3 not a bug. All 72 locally fixed issues are in ClickUp Testing (73 Testing total). ClickUp statuses below are a verified snapshot, displayed separately from editable local progress; the existing ClickUp status is spelled <code>testiing</code>.</p>
+<div class="sum" id="sum"></div>
+<div class="bar">
+<label>Group by <select id="grp"><option>priority</option><option>screen</option><option>area</option><option>figma</option><option>none</option></select></label>
+<label>Local status <select id="fs"><option value="">all</option><option>open</option><option>fixed</option><option value="testiing">testing</option><option>not-a-bug</option></select></label>
+<label>Figma <select id="ff"><option value="">any</option><option value="Y">required</option><option value="N">not required</option></select></label>
+<input id="q" placeholder="Search title, screen, id…" style="min-width:220px">
+<button type="button" id="exp">Export JSON</button>
+<button type="button" id="imp">Import JSON</button>
+<button type="button" id="rst">Reset local edits</button>
+<input type="file" id="file" accept="application/json,.json" hidden>
+</div>
+<div class="tbl"><table>
+<thead><tr><th>Pri</th><th>Issue</th><th>Screen</th><th>Area</th><th>Figma</th><th>Local status</th><th>ClickUp status</th><th>ETA</th><th>Note</th></tr></thead>
+<tbody id="tb"></tbody>
+</table></div>
+<script>
+const BASE=[{"id":"14yn59xnd1p","title":"Google sign-up opens new tab and exposes Firebase API key URL","screen":"Auth","area":"Auth","figma":false,"priority":"P1","status":"open","note":"Not an issue: The API key in the URL is public by design. Firebase web API keys identify the project. They don't authorize anything on their own. Access is controlled by Firebase Auth rules, authorized domains and Firestore/Storage rules. Every Firebase web app sends this key to the browser, so it can't be hidden.","fixedAt":null},{"id":"14yn59xndgp","title":"Signup buttons stuck on \"Please Wait\" after returning from sign-in","screen":"Auth","area":"Functional","figma":false,"priority":"P2","status":"open","note":"Edge middleware redirects non-guest coinzy_session off /auth to ?next= or /home; Cache-Control no-store; pageshow clears pending. Guests still upgrade via /auth.","fixedAt":null},{"id":"14yn59xnm5t","title":"Try Free CTA goes to Play Store instead of QA; Antiques app name wrong","screen":"Other Apps","area":"Content","figma":false,"priority":"P2","status":"open","note":"Partially fixed: user confirmed the app-name issue is fixed (Antiqzy AI). Remaining: Try Free should open the appropriate QA website instead of the Play Store. Ticket remains open locally; ClickUp unchanged.","fixedAt":null},{"id":"14yn59xnnhd","title":"Crop screen not shown after selecting an image","screen":"Identify","area":"Functional","figma":false,"priority":"P2","status":"open","note":"Fixed locally: gallery file selection now queues IdentifyCropModal instead of immediately saving the original image. Both sides and camera upload fallbacks route through the crop step. Reuses circular camera guide and zoom slider; drag/arrow-key positioning; confirms a 1024x1024 JPEG of the guide bounds. Cancel/Escape preserve existing slots; unreadable files show an error. Flip reminder waits until crop confirmation. Isolated Chromium regression (actual IdentifyApp/upload/crop components; API/other panels mocked) passes selection-before-save, exported crop pixels after drag, zoom, cancel, two-photo submit gating, invalid image, Escape and mobile width. Targeted TypeScript checks pass. No live identification request or deployment performed. Default-zoom correction: 1x now fits the full image to the 240px guide instead of filling the 540x420 viewport; smaller dimensions remain centred and unused export space is black. Added browser regression asserting initial image size fits the guide.","fixedAt":null},{"id":"14yn59xnu85","title":"Obverse coin image broken / not fully displayed after scan","screen":"Identify","area":"Functional","figma":false,"priority":"P2","status":"open","note":"Fixed locally. Root causes: (1) IdentifyApp blob-URL cleanup effect re-ran on every photo change and revoked the unchanged side (obverse broke after reverse was added); now revoked on unmount only. (2) Result pages fell back to blob previews revoked on unmount when API imageUrls < 2; session now stores data URLs, and IdentifyCoinClient only forwards http(s) URLs to the API. (3) Failure/Analysing thumbnails use object-contain so the whole image shows. Browser verification pending.","fixedAt":null},{"id":"14yn59xnu8r","title":"Back button doesn't navigate back from Top 5 Matches","screen":"Top 5 Matches","area":"Navigation","figma":false,"priority":"P2","status":"open","note":"Fixed locally: back arrow on Top 5 Matches linked to /identify (the page itself, so a no-op). DetailsBreadcrumb gained backHref/backLabel; IdentifyMatchList sends back to /home. Browser verification pending.","fixedAt":null},{"id":"14yn59xnujt","title":"Top 5 Matches UI doesn't match Figma","screen":"Top 5 Matches","area":"UI","figma":true,"priority":"P2","status":"open","note":"Fixed locally per supplied screenshot/CSS: IdentifyMatchList restyled \u2014 24px semibold Identify coin title (breadcrumb replaced; back arrow to /home kept), white 12px card with 16px padding/gaps, 16px medium #0A0A0A card title, rows 0.5px #E6E9EB border radius 16 padding 12 gap 24, 90x90 radius-8 thumbs with 20px gap, 1px #E5E5E5 separator, 14px medium name + 14px semibold #87878A Plus Jakarta subtitle, 28px soft arrow button. Removed Still-cant-find box and catalogue link (not in design). Browser verification pending.","fixedAt":null},{"id":"14yn59xnv6h","title":"No character limit in \"Rate This Match\" text box","screen":"Top 5 Matches","area":"Validation","figma":false,"priority":"P2","status":"open","note":"Fixed locally: Rate-this-match message capped at 100 words (limitWords on change, handles paste) with an n/100 words counter. Browser verification pending.","fixedAt":null},{"id":"14yn59xnvpf","title":"Free user can't create first free collection (wrong premium popup)","screen":"Collections","area":"Functional","figma":false,"priority":"P2","status":"open","note":"Backend issue \u2014 done on the BE side (per user, 2026-10-29). No web change.","fixedAt":null},{"id":"14yn59xpj2j","title":"Updated settings data not reflected after saving","screen":"Settings","area":"Functional","figma":false,"priority":"P2","status":"open","note":"Fixed locally: greeting/sidebar use current auth/me name/email instead of stale login JWT; Settings profile/seller saves refresh server-rendered data. Profile lookup is shared with Premium/scan usage per request; JWT fallback on upstream failure. Targeted ESLint and mocked profile/session regression checks passed; live account verification pending.","fixedAt":null},{"id":"14yn59xr1rr","title":"Coinzy Webapp Unable to List Coins for Sale Due to Missing Dropdown in the Grading Details Section","screen":"Marketplace","area":"Functional","figma":false,"priority":"P1","status":"open","note":"","fixedAt":null}];
+const CLICKUP_SYNCED_AT="2026-10-30";
+const CLICKUP_STATUSES={"14yn59xmwyy":"testiing","14yn59xmx6x":"testiing","14yn59xmx97":"testiing","14yn59xn2u9":"testiing","14yn59xn3c3":"testiing","14yn59xn44e":"testiing","14yn59xn53u":"not a bug","14yn59xn544":"testiing","14yn59xn56c":"testiing","14yn59xn598":"testiing","14yn59xn68y":"not a bug","14yn59xn69a":"testiing","14yn59xn6ab":"testiing","14yn59xn6me":"testiing","14yn59xnby9":"testiing","14yn59xnd1p":"reopen","14yn59xndgp":"reopen","14yn59xnedt":"testiing","14yn59xnfc6":"testiing","14yn59xnkmh":"testiing","14yn59xnkmy":"testiing","14yn59xnknh":"testiing","14yn59xnkpg":"testiing","14yn59xnm5t":"Open","14yn59xnmmf":"testiing","14yn59xnnhd":"reopen","14yn59xnnj3":"testiing","14yn59xntxu":"testiing","14yn59xnu85":"reopen","14yn59xnu8r":"reopen","14yn59xnujt":"reopen","14yn59xnuqx":"testiing","14yn59xnv6h":"reopen","14yn59xnvhy":"testiing","14yn59xnvjx":"testiing","14yn59xnvme":"testiing","14yn59xnvpf":"reopen","14yn59xnvrk":"testiing","14yn59xnvu1":"testiing","14yn59xnvzf":"testiing","14yn59xnxup":"testiing","14yn59xp1z6":"testiing","14yn59xp2px":"testiing","14yn59xp2qa":"testiing","14yn59xp2re":"testiing","14yn59xp2yf":"testiing","14yn59xp307":"testiing","14yn59xp31m":"testiing","14yn59xp32c":"testiing","14yn59xp32z":"not a bug","14yn59xp34q":"testiing","14yn59xp3pu":"testiing","14yn59xpf6j":"testiing","14yn59xpf8e":"testiing","14yn59xpgpp":"testiing","14yn59xphpa":"testiing","14yn59xpj0q":"testiing","14yn59xpj2j":"reopen","14yn59xpj78":"testiing","14yn59xpjcj":"testiing","14yn59xpjd2":"testiing","14yn59xpjdf":"testiing","14yn59xpje8":"testiing","14yn59xpjuc":"testiing","14yn59xpk7d":"testiing","14yn59xpk85":"testiing","14yn59xpka8":"testiing","14yn59xpkfv":"testiing","14yn59xpkgu":"testiing","14yn59xpkj8":"testiing","14yn59xpkjq":"testiing","14yn59xpkm1":"testiing","14yn59xprd9":"testiing","14yn59xprj8":"testiing","14yn59xpv9b":"testiing","14yn59xpvwr":"testiing","14yn59xpw3e":"testiing","14yn59xpw6h":"reopen","14yn59xm4pv":"Open","14yn59xpt33":"Open","14yn59xr1rr":"Open","14yn59xm68v":"Open","14yn59xpj2t":"Open"};
+const RECENT_CLICKUP_IDS=new Set(["14yn59xnd1p","14yn59xndgp","14yn59xnnhd","14yn59xnu85","14yn59xnu8r","14yn59xnujt","14yn59xnv6h","14yn59xnvpf","14yn59xpj2j","14yn59xpw6h","14yn59xm4pv","14yn59xnm5t","14yn59xpt33","14yn59xr1rr","14yn59xm68v","14yn59xpj2t"]);
+const REOPENED_IDS=["14yn59xnd1p","14yn59xndgp","14yn59xnnhd","14yn59xnu85","14yn59xnu8r","14yn59xnujt","14yn59xnv6h","14yn59xnvpf","14yn59xpj2j","14yn59xpw6h"];
+const KEY="coinzy-open-bug-tracker-v1";
+const W={P1:3,P2:2,P3:1}, DEF_VELOCITY=8;
+/** Anchor ETA math to the last baked sync day so mid-day clock skew does not inflate pts/day. */
+const AS_OF="2026-10-28";
+let S={}; try{S=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){}
+// Apply the reopened snapshot once without discarding saved notes or later local edits.
+try {
+  const migrationKey=KEY+"-reopened-2026-11-03";
+  if (!localStorage.getItem(migrationKey)) {
+    for (const id of REOPENED_IDS) if (S[id]) { S[id].status="open"; S[id].fixedAt=null; }
+    localStorage.setItem(KEY,JSON.stringify(S));
+    localStorage.setItem(migrationKey,"1");
+  }
+} catch(e) {}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const rows=()=>BASE.map(r=>({...r,...(S[r.id]||{}),clickupStatus:CLICKUP_STATUSES[r.id]||"unknown",clickupSyncedAt:RECENT_CLICKUP_IDS.has(r.id)?"2026-11-03":CLICKUP_SYNCED_AT}));
+const pts=r=>W[r.priority]+(r.figma?1:0);
+const day=d=>new Date(d+"T00:00:00");
+const isoDay=d=>{const x=d instanceof Date?d:day(d);return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,"0")}-${String(x.getDate()).padStart(2,"0")}`};
+function velocity(rs){
+  const f=rs.filter(r=>r.status==="fixed"&&r.fixedAt);
+  if(f.length<3) return DEF_VELOCITY;
+  const t0=Math.min(...f.map(r=>+day(r.fixedAt)));
+  const t1=Math.max(+day(AS_OF),...f.map(r=>+day(r.fixedAt)));
+  // Inclusive calendar days (same-day burst ⇒ 1 day), not fractional wall-clock.
+  const days=Math.max(1, Math.round((t1-t0)/864e5)+1);
+  return f.reduce((a,r)=>a+pts(r),0)/days;
+}
+function etaDate(openPts,v){
+  if(!openPts) return {label:"done", iso:null, days:0};
+  const days=Math.ceil(openPts/v);
+  const d=new Date(+day(AS_OF)+days*864e5);
+  return {label:isoDay(d)+" (~"+days+"d)", iso:isoDay(d), days};
+}
+function cumulativeEta(items,v){
+  // FIFO by priority weight then original order — ETA for each open row as when it would finish
+  const open=items.filter(r=>r.status==="open");
+  const order=[...open].sort((a,b)=>pts(b)-pts(a));
+  let cum=0; const map={};
+  for(const r of order){ cum+=pts(r); map[r.id]=etaDate(cum,v).label; }
+  return map;
+}
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function gkey(r,g){return g==="figma"?(r.figma?"Figma required":"No Figma needed"):g==="none"?"All":r[g]}
+function render(){
+  const all=rows(), v=velocity(all), open=all.filter(r=>r.status==="open");
+  const openPts=open.reduce((a,r)=>a+pts(r),0);
+  const overall=etaDate(openPts,v);
+  const n=s=>all.filter(r=>r.status===s).length;
+  sum.innerHTML=[["Total",all.length],["Open",n("open")],["Fixed locally",n("fixed")],["Local testing",n("testiing")],["ClickUp Testing",all.filter(r=>r.clickupStatus==="testiing").length],["Not a bug",n("not-a-bug")],
+    ["Figma-blocked open",open.filter(r=>r.figma).length],["P1 open",open.filter(r=>r.priority==="P1").length],
+    ["Velocity pts/day",v.toFixed(1)],["Overall ETA",overall.label]].map(([a,b])=>`<div class="k">${a}<b>${b}</b></div>`).join("");
+  const g=grp.value, q=(document.getElementById("q").value||"").toLowerCase();
+  let l=all.filter(r=>(!fs.value||r.status===fs.value)&&(!ff.value||(r.figma?"Y":"N")===ff.value)&&(!q||(r.title+r.screen+r.area+r.id+r.note).toLowerCase().includes(q)));
+  const done=l.filter(r=>r.status!=="open"); l=l.filter(r=>r.status==="open");
+  const gs={}; l.forEach(r=>(gs[gkey(r,g)]??=[]).push(r));
+  const keys=Object.keys(gs).sort((a,b)=>{
+    if(g==="priority") return a.localeCompare(b);
+    return a.localeCompare(b);
+  });
+  let h="";
+  for(const k of keys){
+    const items=gs[k], o=items.filter(r=>r.status==="open");
+    const oPts=o.reduce((a,r)=>a+pts(r),0);
+    const etas=cumulativeEta(items,v);
+    if(g!=="none") h+=`<tr class="g"><td colspan="9">${esc(k)} — ${items.length} issues, ${o.length} open · group ETA ${etaDate(oPts,v).label}</td></tr>`;
+    for(const r of items) h+=row(r,etas);
+  }
+  if(done.length){
+    h+=`<tr class="g"><td colspan="9">Completed or testing — ${done.length} issues (${done.filter(r=>r.status==="fixed").length} fixed, ${done.filter(r=>r.status==="testiing").length} testing, ${done.filter(r=>r.status==="not-a-bug").length} not a bug)</td></tr>`;
+    for(const r of done) h+=row(r,{});
+  }
+  tb.innerHTML=h||'<tr><td colspan="9">No matches</td></tr>';
+}
+function row(r,etas){
+  {
+    {
+      const stBadge=r.status==="fixed"?' <span class="badge">fixed</span>':r.status==="not-a-bug"?' <span class="badge">n/a</span>':'';
+      return `<tr class="${r.status==="fixed"?"fixed":r.status==="not-a-bug"?"nb":""}">
+        <td class="${r.priority}">${r.priority}</td>
+        <td><a href="https://app.clickup.com/t/90161574019/${r.id}" target="_blank" rel="noopener">${esc(r.title)}</a>${stBadge}<div class="m">${r.id}</div></td>
+        <td>${esc(r.screen)}</td><td>${esc(r.area)}</td><td>${r.figma?"Yes":"No"}</td>
+        <td><select data-id="${r.id}" class="st">${["open","fixed","testiing","not-a-bug"].map(s=>`<option${s===r.status?" selected":""}>${s==="testiing"?"testing":s}</option>`).join("")}</select>${r.fixedAt?`<div class="m">${r.fixedAt}</div>`:""}</td>
+        <td><span class="badge" title="${esc(r.clickupStatus)}">${esc(r.clickupStatus==="testiing"?"TESTING":r.clickupStatus.toUpperCase())}</span><div class="m">Synced ${esc(r.clickupSyncedAt)}</div></td>
+        <td class="m">${r.status==="open"?esc(etas[r.id]||"—"):"—"}</td>
+        <td><input data-id="${r.id}" class="nt" value="${esc(r.note||"")}" style="width:100%;min-width:160px"></td>
+      </tr>`;
+    }
+  }
+}
+document.addEventListener("change",e=>{
+  const t=e.target, id=t.dataset&&t.dataset.id;
+  if(!id){ render(); return; }
+  const s=S[id]=S[id]||{};
+  if(t.classList.contains("st")){ s.status=t.value; s.fixedAt=t.value==="fixed"?new Date().toISOString().slice(0,10):null; }
+  else if(t.classList.contains("nt")) s.note=t.value;
+  save(); render();
+});
+document.addEventListener("input",e=>{
+  const t=e.target; if(!t.classList||!t.classList.contains("nt")) return;
+  const id=t.dataset.id; if(!id) return;
+  (S[id]=S[id]||{}).note=t.value; save();
+});
+q.oninput=render;
+exp.onclick=()=>{
+  const blob=new Blob([JSON.stringify(rows(),null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="bug-tracker.json"; a.click();
+};
+imp.onclick=()=>file.click();
+file.onchange=async()=>{
+  const f=file.files&&file.files[0]; if(!f) return;
+  try{
+    const arr=JSON.parse(await f.text());
+    if(!Array.isArray(arr)) throw new Error("expected array");
+    for(const r of arr){ if(!r.id) continue; S[r.id]={status:r.status, note:r.note||"", fixedAt:r.fixedAt||null}; }
+    save(); render();
+  }catch(err){ alert("Import failed: "+err.message); }
+  file.value="";
+};
+rst.onclick=()=>{ if(confirm("Discard local edits?")){ S={}; save(); render(); } };
+render();
+</script>
+</body>
+</html>

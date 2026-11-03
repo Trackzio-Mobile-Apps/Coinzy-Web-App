@@ -23,6 +23,21 @@ const sectionTitle = "text-sm font-medium leading-5 text-[#1e1e1f]";
 const label = "text-xs font-medium leading-4 text-[#1e1e1f]";
 const errorText = "text-xs text-[#dc2626]";
 
+// The marketplace filter endpoint contains only values used by existing listings.
+// Use Android's sale-form options when that endpoint has no values for a field.
+const fallbackScales = ["Sheldon Scale (1–70)", "European Numeric Scale (1–100)", "British Grading System"];
+const fallbackGrades = [
+  "P-1:Poor", "FR-2:Fair", "AG-3:About Good", "G-4:Good", "G-6:Good+", "VG-8:Very Good",
+  "VG-10:Very Good+", "F-12:Fine", "F-15:Fine+", "VF-20:Very Fine", "VF-25:Very Fine+",
+  "VF-30:Very Fine++", "VF-35:Choice Very Fine", "EF-40:Extremely Fine", "EF-45:Choice Extremely Fine",
+  "AU-50:About Uncirculated", "AU-53:About Uncirculated+", "AU-55:Choice About Uncirculated",
+  "AU-58:Near Mint State", "MS-60 to MS-70:Mint State", "PR-60 to PR-70:Proof",
+];
+const britishGrades = ["B:Basal", "P:Poor", "G:Good", "VG:Very Good", "F:Fine", "VF:Very Fine", "EF:Extremely Fine", "AU:About Uncirculated", "UNC:Uncirculated", "BU:Brilliant Uncirculated", "FDC:Fleur de Coin"];
+const fallbackAuthorities = ["PCGS (Professional Coin Grading Service)", "NGC (Numismatic Guaranty Company)", "ANACS (American Numismatic Association Certification Service)", "ICG (Independent Coin Graders)", "SEGS (Sovereign Entities Grading Service)", "PGCS China", "Self-graded (no professional certification)"];
+const fallbackStrikes = ["Business Strike (Regular)", "Proof", "Reverse Proof", "Matte Proof", "Brilliant Uncirculated (BU)", "Specimen (SP)", "Satin Finish", "Error Coin", "Pattern / Trial Strike", "Token / Medal"];
+const fallbackCleaning = ["Uncleaned / Original", "Lightly Cleaned", "Heavily Cleaned", "Polished", "Re-toned", "Artificially Aged", "Repaired (e.g., plugged holes)", "Whizzed (mechanically altered)", "Mount Marks / Removed Mount", "Tooling (re-engraved details)"];
+
 function Field({
   id,
   title,
@@ -168,6 +183,10 @@ export function CollectionSellDrawer({
 
   const submit = () => {
     const nextErrors = validateSellForm(values);
+    if (values.gradingScale === fallbackScales[1] && values.gradeValue &&
+        (!Number.isInteger(Number(values.gradeValue)) || Number(values.gradeValue) < 1 || Number(values.gradeValue) > 100)) {
+      nextErrors.gradeValue = "Enter a whole number from 1 to 100";
+    }
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
     onSubmit(buildSellPayload(values, { name: sellerName, email: defaultEmail }, coinTitle));
@@ -286,19 +305,31 @@ export function CollectionSellDrawer({
                   <Select
                     id={`${priceId}-scale`}
                     value={values.gradingScale}
-                    onChange={(v) => set("gradingScale", v)}
+                    onChange={(v) => {
+                      set("gradingScale", v);
+                      set("gradeValue", "");
+                    }}
                     placeholder="Select grading scale used"
-                    options={filterOptions.gradingScale ?? ["Sheldon Scale", "PCGS"]}
+                    options={filterOptions.gradingScale?.length ? filterOptions.gradingScale : fallbackScales}
                   />
                 </Field>
-                <Field id={`${priceId}-grade`} title="Grading Condition">
-                  <Select
+                <Field id={`${priceId}-grade`} title="Grading Condition" error={errors.gradeValue}>
+                  {values.gradingScale === fallbackScales[1] ? <input
+                    id={`${priceId}-grade`}
+                    type="number"
+                    min={1}
+                    max={100}
+                    value={values.gradeValue}
+                    onChange={(e) => set("gradeValue", e.target.value)}
+                    placeholder="Enter a grade from 1 to 100"
+                    className={input}
+                  /> : <Select
                     id={`${priceId}-grade`}
                     value={values.gradeValue}
                     onChange={(v) => set("gradeValue", v)}
                     placeholder="Select grading condition"
-                    options={filterOptions.gradeValue ?? []}
-                  />
+                    options={values.gradingScale === fallbackScales[2] ? britishGrades : values.gradingScale === fallbackScales[0] ? fallbackGrades : filterOptions.gradeValue?.length ? filterOptions.gradeValue : fallbackGrades}
+                  />}
                 </Field>
                 <Field id={`${priceId}-auth`} title="Grading Authority" error={errors.gradingAuthority}>
                   <Select
@@ -306,7 +337,7 @@ export function CollectionSellDrawer({
                     value={values.gradingAuthority}
                     onChange={(v) => set("gradingAuthority", v)}
                     placeholder="Select name of the authority"
-                    options={filterOptions.gradingAuthority ?? ["Self-graded", "PCGS", "NGC"]}
+                    options={filterOptions.gradingAuthority?.length ? filterOptions.gradingAuthority : fallbackAuthorities}
                   />
                 </Field>
                 <Field id={`${priceId}-cert`} title="Certification number">
@@ -324,7 +355,7 @@ export function CollectionSellDrawer({
                     value={values.strikerType}
                     onChange={(v) => set("strikerType", v)}
                     placeholder="Select strike type"
-                    options={filterOptions.strikerType ?? ["Business Strike", "Proof"]}
+                    options={filterOptions.strikerType?.length ? filterOptions.strikerType : fallbackStrikes}
                   />
                 </Field>
                 <Field id={`${priceId}-clean`} title="Cleaning/Alteration">
@@ -333,7 +364,7 @@ export function CollectionSellDrawer({
                     value={values.cleaningAlterations}
                     onChange={(v) => set("cleaningAlterations", v)}
                     placeholder="Select alterations"
-                    options={filterOptions.cleaningAlterations ?? ["None", "Heavily Cleaned"]}
+                    options={filterOptions.cleaningAlterations?.length ? filterOptions.cleaningAlterations : fallbackCleaning}
                   />
                 </Field>
                 <Field id={`${priceId}-notes`} title="Coin Condition Notes">

@@ -218,13 +218,8 @@ export function IdentifyAddToCollectionDrawer({
                         <label className="flex min-w-0 flex-1 flex-col gap-2">
                           <span className="text-xs font-medium leading-4 text-ink">Date acquired</span>
                           <input
-                            type="text"
+                            type="date"
                             value={dateAcquired}
-                            placeholder="Enter the date of acquirement"
-                            onFocus={(e) => (e.currentTarget.type = "date")}
-                            onBlur={(e) => {
-                              if (!e.currentTarget.value) e.currentTarget.type = "text";
-                            }}
                             onChange={(e) => setDateAcquired(e.target.value)}
                             className={inputCls}
                           />

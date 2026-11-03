@@ -210,6 +210,7 @@ Active nav: `components/landing/NavLinks.tsx` (`usePathname`).
 - Rate message (`14yn59xnv6h`): `limitWords` caps at 100 words + counter in `IdentifyCoinClient`.
 - Add-to-collection drawer (`14yn59xnvhy`): `IdentifyCollectionUI.IdentifyAddToCollectionDrawer` follows Figma 585px side panel (inline purse icon; no asset).
 - Drawer Yes state (`14yn59xnvjx`): ownership tab + date/price/notes fields; single scrolling page with tab anchors; `onConfirmAdd` opts carry date/price/notes (not persisted to API yet).
+- Ownership date input stays `type="date"` during focus changes so interacting with the native calendar does not close it by changing the input type.
 - Select-collection modal (Android parity, `SelectCollectionBottomSheet`+`IdentifyViewModel.addCoinToCollections`): multi-select (`selectedIds`); owned user -> Owned locked checked; `finishAdd` adds each selected collection sequentially (Owned first; custom collections saved isOwned=false), then one success toast naming the single non-Identified collection or "collections".
 - Collections popup (`14yn59xnvme`): system rows (Identified/Owned) are local initial state; private collections prefetched on mount of `IdentifyResultRail`.
 - Real QR (`14yn59xnvzf`): `public/assets/coin-details/qr-coinzy.svg` and `qr-coinzy-qa.svg` encode the production/QA `/get-app` URLs respectively; callers share `AppQrCode`, including Settings. QR generation tools stay in scratch directories, with no project dependency.
@@ -222,6 +223,7 @@ Active nav: `components/landing/NavLinks.tsx` (`usePathname`).
 - Seller profile gate (`14yn59xp2yf`): `ListCoinButton` awaits `useSellerProfileGate().ensureSellerProfile()` on the current page before routing to `/collection/coin/[id]?list=1`; `validateSellerProfileForm` also checks optional phone (`isValidPhoneNumber`, optional 7–15 digits only).
 - Seller profile dialog (`14yn59xp307`): profile picture = `/assets/home/avatar.png` (read-only, no + badge); Personal Email field styled/aria read-only in `SetSellerProfileDialog` + `EditProfileDialog`.
 - Add for Sale panel (`14yn59xp31m`): `CollectionSellDrawer` is a 585px side panel with collapsible sections (Figma); validation/payload logic unchanged (`lib/marketplace/sellForm.ts`).
+- Sale grading dropdowns (`14yn59xr1rr`): marketplace filter values come from existing listings and may be empty on QA; the drawer falls back to Android sale-form options, with Sheldon/British conditions and a 1–100 numeric field for the European scale.
 - Forgot-password (`14yn59xpf6j`): OTP + new password are ONE page (`mode=reset` in `AuthFlow`; `?mode=otp` aliases to it in `app/auth/page.tsx`) because the backend has no verify-code endpoint - the reset-password call is the only code check; wrong code clears digits + shows the OTP error in place; no email in state -> back to forgot.
 - Post-reset auto redirect (`14yn59xpf8e`): `AuthFlow` `resetDone` effect replaces to `/auth?mode=login` after 2s.
 - `app/home/loading.tsx` (SignedInRouteLoading) gives instant Home paint on back/nav; breadcrumb back link uses `prefetch`.
@@ -284,7 +286,7 @@ Runtime under `public/assets/<area>/` (landing numbered folders `01-top-nav`…`
 Data for landing copy/lists: `lib/constants.ts` (marketplace strip coins are live API, not `MARKETPLACE_COINS`). Favicon: `app/icon.png` + `app/apple-icon.png`. Identify demo pills: AI → `/auth?next=/identify`, Human Expert → `/auth?next=/experts` (`authHref`; `/` is logged-out only). Collection CTA “Start your collection” → `/auth?next=/collection` (`authHref`). Listing details `?from=landing` breadcrumb → `/#marketplace` (`FROM_LANDING` in `lib/backNav.ts`). Store badges: `APP_STORE_URL` / `PLAY_STORE_URL` in `lib/constants.ts` — `AppStoreButtons` (MobileAppSection) + Footer `StoreBadge` use the matching store (ClickUp `14yn59xn598`).
 
 ## Bug tracker
-- `docs/bug-tracker.html` — ClickUp web-bug tracker (77 issues; 14 fixed / 62 open as of 2026-10-28; grouped by priority/screen/area/Figma; statuses persist in localStorage; ETA from inclusive-day fix velocity). Baked headline: **34 pts/day → overall ETA 2026-11-02**. Edit BASE or Export after in-page edits.
+- `docs/bug-tracker.html` — 83 issues: baseline 64 locally fixed, 16 open, 3 not a bug. Includes the 3 Nov issue batch, including mobile reports; nine previously tracked issues were reopened locally while retaining notes. A one-time localStorage migration resets those reopened statuses without overwriting notes. ClickUp statuses are read-only snapshots: the batch was checked 3 Nov 2026, remaining rows 30 Oct 2026. Local edits and imports cannot override the ClickUp snapshot.
 
 ## SEO / LLM SEO
 - `lib/site.ts`: `SITE_URL` (`NEXT_PUBLIC_SITE_URL` → Netlify `URL` → localhost), `PUBLIC_PATHS`, `PRIVATE_PATHS`, `absoluteUrl()`.
