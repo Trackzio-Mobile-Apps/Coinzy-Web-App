@@ -318,8 +318,8 @@ export function IdentifySelectCollectionModal({
   selectedIds: string[];
   onToggle: (id: string) => void;
   onClose: () => void;
-  onDone: () => void;
-  onCreateCollection: (name: string) => Promise<{ error: true; reason?: string; code?: string } | { error: false }>;
+  onDone: (created?: UserCollectionOption) => void;
+  onCreateCollection: (name: string) => Promise<{ error: true; reason?: string; code?: string } | { error: false; option: UserCollectionOption }>;
   saving?: boolean;
 }) {
   const titleId = useId();
@@ -343,28 +343,33 @@ export function IdentifySelectCollectionModal({
     setNewName(defaultNewCollectionName(privateCount));
   }, [open, privateCount]);
 
-  const saveNewCollection = async (): Promise<boolean> => {
+  const saveNewCollection = async (): Promise<UserCollectionOption | null> => {
     const name = newName.trim();
-    if (creating) return false;
+    if (creating) return null;
     if (!name) {
       setCreateError("Enter a collection name.");
-      return false;
+      return null;
     }
     setCreating(true);
     setCreateError(null);
     const res = await onCreateCollection(name);
     setCreating(false);
     if (res.error) {
-      if (res.code === "COLLECTION_LIMIT") { onClose(); setLimitOpen(true); return false; }
+      if (res.code === "COLLECTION_LIMIT") { onClose(); setLimitOpen(true); return null; }
       setCreateError(res.reason ?? "Could not create collection.");
-      return false;
+      return null;
     }
     setCreateOpen(false);
-    return true;
+    return res.option;
   };
 
-  const handleDone = () => {
-    if (loading || saving || creating || createOpen) return;
+  const handleDone = async () => {
+    if (loading || saving || creating) return;
+    if (createOpen) {
+      const created = await saveNewCollection();
+      if (created) onDone(created);
+      return;
+    }
     onDone();
   };
 
@@ -459,7 +464,7 @@ export function IdentifySelectCollectionModal({
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
-                      saveNewCollection();
+                      void handleDone();
                     }
                   }}
                   disabled={creating}
@@ -477,12 +482,7 @@ export function IdentifySelectCollectionModal({
                   </button>
                 ) : null}
               </div>
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-sm leading-5 text-[#737373] opacity-80">Press Enter to save</p>
-                <button type="button" onClick={() => void saveNewCollection()} disabled={creating || !newName.trim()} className="rounded-lg border border-[#edd2d3] bg-white px-3 py-1 text-xs font-medium text-primary-500 disabled:opacity-50">
-                  {creating ? "Saving…" : "Save"}
-                </button>
-              </div>
+              <p className="text-sm leading-5 text-[#737373] opacity-80">Press Enter or Done to save</p>
               {createError ? <p className="text-xs text-[#dc2626]" role="alert">{createError}</p> : null}
             </div>
           )}
@@ -500,7 +500,7 @@ export function IdentifySelectCollectionModal({
         <button
           type="button"
           onClick={handleDone}
-          disabled={loading || saving || creating || createOpen}
+          disabled={loading || saving || creating}
           className="inline-flex h-9 items-center rounded-[10px] bg-primary-500 px-3 text-sm font-medium text-white disabled:opacity-50"
         >
           {saving || creating ? "Saving…" : "Done"}
