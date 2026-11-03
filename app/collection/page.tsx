@@ -50,9 +50,11 @@ async function CollectionSidebar({ user }: { user: SessionUser }) {
 async function CollectionHomeBody({
   token,
   premium,
+  query,
 }: {
   token: string;
   premium: boolean;
+  query: string;
 }) {
   const [collections, owned, identified, wishlist, recent] = await Promise.all([
     fetchCollectionsForSession(token, 0, 20),
@@ -111,26 +113,38 @@ async function CollectionHomeBody({
   ];
 
   return (
-    <div className="mx-auto flex w-full max-w-[1122px] gap-4">
+    <div className="mx-auto w-full max-w-[1122px]">
+      <div className="flex flex-wrap items-center gap-3">
+        <h1 className="text-2xl font-semibold leading-8 text-ink sm:flex-1">Collection</h1>
+        <CatalogueSearch action="/collection/owned" query={query} placeholder="Search coins, empires, countries, years…" className="h-8 w-full max-w-none sm:min-w-0 sm:flex-1" />
+        <CollectionCreateCollectionCard privateCount={privateRows.length} variant="button" />
+      </div>
+      <div className="flex gap-4">
       <div className="min-w-0 flex-1">
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           {cards.map((card) => (
             <CollectionHomeCard key={card.href} {...card} />
           ))}
-          <CollectionCreateCollectionCard privateCount={privateRows.length} />
         </div>
       </div>
-      <aside className="hidden shrink-0 flex-col gap-4 lg:flex">
+      <aside className="mt-4 hidden shrink-0 flex-col gap-4 lg:flex">
         {!premium && <CollectionFreePlanCard used={collections.error ? null : DEFAULT_COLLECTION_COUNT + privateRows.length} />}
         <CollectionRecentlyIdentified coins={recentList} />
       </aside>
+      </div>
     </div>
   );
 }
 
 function CollectionHomeBodyFallback() {
   return (
-    <div className="mx-auto flex w-full max-w-[1122px] gap-4">
+    <div className="mx-auto w-full max-w-[1122px]">
+      <div className="flex flex-wrap items-center gap-3">
+        <h1 className="text-2xl font-semibold leading-8 text-ink sm:flex-1">Collection</h1>
+        <CatalogueSearch action="/collection/owned" query="" placeholder="Search coins, empires, countries, years…" className="h-8 w-full max-w-none sm:min-w-0 sm:flex-1" />
+        <span className="inline-flex h-8 items-center rounded-[10px] bg-[#7C3C3F]/80 px-3 text-sm font-medium text-white">Create new collection</span>
+      </div>
+      <div className="flex gap-4">
       <div className="min-w-0 flex-1">
         <CollectionGridSkeleton count={6} />
       </div>
@@ -138,6 +152,7 @@ function CollectionHomeBodyFallback() {
         <div className="h-36 rounded-xl border border-[#efefef] bg-white" />
         <div className="h-48 rounded-xl border border-[#efefef] bg-white" />
       </aside>
+      </div>
     </div>
   );
 }
@@ -165,19 +180,8 @@ export default async function CollectionHomePage({
       <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-[#f7f7f8]">
         <MarketplaceAppHeader user={user} premium={premium} />
         <main className="min-w-0 flex-1 overflow-y-auto px-8 py-6">
-          <div className="mx-auto w-full max-w-[1122px]">
-            <div className="flex max-w-[695px] flex-col gap-4">
-              <h1 className="text-2xl font-semibold leading-8 text-ink">Collections</h1>
-              <CatalogueSearch
-                action="/collection/owned"
-                query={query}
-                placeholder="Search coins, empires, countries, years…"
-                className="h-8 max-w-none w-full"
-              />
-            </div>
-          </div>
           <Suspense fallback={<CollectionHomeBodyFallback />}>
-            <CollectionHomeBody token={token} premium={premium} />
+            <CollectionHomeBody token={token} premium={premium} query={query} />
           </Suspense>
         </main>
       </div>

@@ -9,7 +9,7 @@ import { createCollectionViaApi } from "@/lib/identify/collectionClient";
 import { defaultNewCollectionName, MAX_COLLECTION_NAME_LENGTH } from "@/lib/identify/collections";
 
 /** Create private collection from `/collection` — same API as identify modal `1500:287599`. */
-export function CollectionCreateCollectionCard({ privateCount }: { privateCount: number }) {
+export function CollectionCreateCollectionCard({ privateCount, variant = "card" }: { privateCount: number; variant?: "card" | "button" }) {
   const router = useRouter();
   const titleId = useId();
   const inputId = useId();
@@ -54,12 +54,12 @@ export function CollectionCreateCollectionCard({ privateCount }: { privateCount:
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex w-full min-w-0 max-w-[411px] flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-[#edd2d3] bg-[rgba(247,231,232,0.35)] px-4 py-8 text-primary-500 transition-colors hover:border-primary-300 hover:bg-primary-50/50"
+        className={variant === "button" ? "inline-flex h-8 shrink-0 items-center justify-center rounded-[10px] bg-[#7C3C3F]/80 px-3 text-sm font-medium text-white hover:bg-[#7C3C3F]" : "flex w-full min-w-0 max-w-[411px] flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-[#edd2d3] bg-[rgba(247,231,232,0.35)] px-4 py-8 text-primary-500 transition-colors hover:border-primary-300 hover:bg-primary-50/50"}
       >
-        <span className="flex size-10 items-center justify-center rounded-full border border-[#edd2d3] bg-white text-2xl leading-none font-light">
+        {variant === "card" && <span className="flex size-10 items-center justify-center rounded-full border border-[#edd2d3] bg-white text-2xl leading-none font-light">
           +
-        </span>
-        <span className="text-sm font-medium">Add new collection</span>
+        </span>}
+        <span>{variant === "button" ? "Create new collection" : "Add new collection"}</span>
       </button>
 
       <dialog

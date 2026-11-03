@@ -108,12 +108,14 @@ Timeline: `coinzy-web-timeline.html` (browser + localStorage) and `coinzy-web-ti
 | `/api/coin/add` | `app/api/coin/add/route.ts` | — | Session `POST /coin/add`; custom collections require body `_collection` (see `docs/coinid-api.md`) |
 | `/api/coin/delete/[coinId]` | `app/api/coin/delete/[coinId]/route.ts` | — | Session `DELETE /coin/delete/:id`; collection details ⋯ → confirm (`CollectionCoinOverflowMenu`) |
 | `/api/collections/fetchAll` | `app/api/collections/fetchAll/route.ts` | — | Session `GET /collections/fetchAll` (identified/owned + private lists for select modal) |
-| `/api/collections/add` | `app/api/collections/add/route.ts` | — | Session `POST /collections/add` body `{ name }` — see `docs/coinid-api.md` · Custom collections; `/collection` add tile + identify modal (Done saves pending name if expanded, not only Enter) |
+| `/api/collections/add` | `app/api/collections/add/route.ts` | — | Session `POST /collections/add` body `{ name }` — see `docs/coinid-api.md` · Custom collections; `/collection` header button + identify modal (Done saves pending name if expanded, not only Enter) |
 | `/api/ai/identify-v2` | `app/api/ai/identify-v2/route.ts` | — | Multipart `files` (×2) → `COINZY_API_ORIGIN` `/ai/identify-v2` with `coinzy_session` |
 
 Active nav: `components/landing/NavLinks.tsx` (`usePathname`).
 
 ---
+
+- Collection overview header uses the existing private collection creation dialog for its Create new collection button; search submits to Owned.
 
 ## Key modules
 
