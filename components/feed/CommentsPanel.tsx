@@ -13,6 +13,8 @@ import { formatFeedTime, initials } from "@/lib/feed/format";
 import { createNotification } from "@/lib/feed/notifications";
 import type { CommunityUser, FeedComment, FeedPost } from "@/lib/feed/types";
 
+const COMMENT_MAX_LENGTH = 1000;
+
 /** Comments / replies modal — Figma Feed replies frame. */
 export function CommentsPanel({
   open,
@@ -62,6 +64,10 @@ export function CommentsPanel({
   const submit = async () => {
     const body = text.trim();
     if (!body || busy) return;
+    if (text.length > COMMENT_MAX_LENGTH) {
+      setError(`Comments must be ${COMMENT_MAX_LENGTH} characters or fewer.`);
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -231,6 +237,7 @@ export function CommentsPanel({
             </div>
             <input
               value={text}
+              maxLength={COMMENT_MAX_LENGTH}
               onChange={(e) => setText(e.target.value)}
               placeholder="Add a comment..."
               className="min-w-0 flex-1 rounded-full border border-[#e5e7eb] px-4 py-2.5 text-sm outline-none focus:border-primary-500"
@@ -249,6 +256,9 @@ export function CommentsPanel({
               <Image src="/assets/home/icon-arrow-right.svg" alt="" width={14} height={12} className="brightness-0 invert" />
             </button>
           </div>
+          <p className="mt-1 text-right text-xs text-muted" aria-live="polite">
+            {text.length >= COMMENT_MAX_LENGTH ? `Character limit reached (${COMMENT_MAX_LENGTH}).` : `${text.length}/${COMMENT_MAX_LENGTH}`}
+          </p>
         </div>
       </div>
     </div>

@@ -20,7 +20,7 @@ export default async function AuthPage({ searchParams }: { searchParams: Promise
   // `?next=` (validated, same-origin relative paths only) returns the visitor to the page that asked them to sign in.
   const next = safeReturnPath(requestedNext);
   const session = await getSessionUser();
-  if (session && !session.isGuest) redirect(next ?? "/home");
+  if (session && !session.isGuest) redirect("/home");
 
   // `otp` was merged into `reset` (code + new password on one page, see AuthFlow); old `?mode=otp` links land there.
   const modes: AuthMode[] = ["welcome", "signup", "login", "forgot", "reset"];
@@ -30,7 +30,7 @@ export default async function AuthPage({ searchParams }: { searchParams: Promise
 
   return (
     <div className="min-h-screen bg-white">
-      <ReloadOnRestore />
+      <ReloadOnRestore refreshOnMount />
       <header className="flex h-16 items-center justify-between border-b border-border-light px-4 sm:px-8">
         <Link href="/" className="flex items-center gap-2 border-r border-border-light pr-4 sm:w-[222px] sm:pr-6">
           <LogoMark />

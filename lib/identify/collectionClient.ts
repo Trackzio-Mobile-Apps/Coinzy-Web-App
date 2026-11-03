@@ -23,7 +23,7 @@ export async function fetchCollectionsViaApi(): Promise<
 
 export async function createCollectionViaApi(
   name: string,
-): Promise<{ error: false; collectionId: string; name: string } | { error: true; reason?: string }> {
+): Promise<{ error: false; collectionId: string; name: string } | { error: true; reason?: string; code?: string }> {
   // Whitespace-only names are rejected before any request (ClickUp 14yn59xnxup).
   name = name.trim();
   if (!name) return { error: true, reason: "Enter a collection name." };
@@ -36,11 +36,12 @@ export async function createCollectionViaApi(
   const json = (await res.json()) as {
     error?: boolean;
     reason?: string;
+    code?: string;
     data?: { collectionId?: string; _id?: string; name?: string };
   };
   const collectionId = json.data?.collectionId ?? json.data?._id;
   if (!res.ok || json.error || !collectionId) {
-    return { error: true, reason: json.reason ?? "Could not create collection." };
+    return { error: true, reason: json.reason ?? "Could not create collection.", code: json.code };
   }
   return {
     error: false,

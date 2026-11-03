@@ -51,14 +51,13 @@ export default React.forwardRef(function Image({unoptimized, fill, ...props}, re
     const png = await page.evaluate(() => { const c=document.createElement('canvas'); c.width=600; c.height=400; const x=c.getContext('2d'); ['red','green','blue'].forEach((color,i)=>{x.fillStyle=color;x.fillRect(i*200,0,200,400);}); return c.toDataURL().split(',')[1]; });
     const file = {name: 'coin.png', mimeType: 'image/png', buffer: Buffer.from(png, 'base64')};
     await page.locator('input[type=file]').first().setInputFiles(file);
-    const modal = page.getByRole('dialog', {name:'Crop your coin photo'});
+    const modal = page.getByRole('dialog', {name:'Capture a clear image of your coin'});
     await modal.waitFor({state:'visible'});
     assert.equal(await page.getByAltText('Obverse', {exact:true}).count(), 0, 'Original file must not enter the slot before crop confirmation');
-    const confirm = page.getByRole('button', {name:'Use photo',exact:true});
-    await page.waitForFunction(() => ![...document.querySelectorAll('button')].find(b=>b.textContent==='Use photo').disabled);
+    const confirm = page.getByRole('button', {name:'Capture',exact:true});
+    await page.waitForFunction(() => ![...document.querySelectorAll('button')].find(b=>b.textContent==='Capture').disabled);
     const region = page.getByRole('group', {name:/Crop position/}); const box=await region.boundingBox();
-    const initialPhoto=await page.getByAltText('Coin photo to crop').boundingBox();
-    assert.ok(Math.max(initialPhoto.width,initialPhoto.height)<=box.width*240/540+1, 'Default zoom must fit the complete image within the guide bounds');
+    assert.equal(await page.getByText('3x',{exact:true}).count(),1, 'Default zoom must be 3x');
     await page.getByRole('slider',{name:'Zoom'}).press('End');
     await page.mouse.move(box.x+box.width/2,box.y+box.height/2); await page.mouse.down(); await page.mouse.move(box.x+box.width-5,box.y+box.height/2,{steps:10}); await page.mouse.up();
     await confirm.click();
@@ -77,11 +76,11 @@ export default React.forwardRef(function Image({unoptimized, fill, ...props}, re
     await page.getByRole('alert').waitFor(); assert.equal(await confirm.isDisabled(),true);
     await page.keyboard.press('Escape'); await modal.waitFor({state:'hidden'});
     await page.setViewportSize({width:390,height:844}); await page.locator('input[type=file]').first().setInputFiles(file); await modal.waitFor({state:'visible'});
-    await page.waitForFunction(() => ![...document.querySelectorAll('button')].find(b=>b.textContent==='Use photo').disabled);
+    await page.waitForFunction(() => ![...document.querySelectorAll('button')].find(b=>b.textContent==='Capture').disabled);
     const mobile=await modal.boundingBox(); assert.ok(mobile.x>=0 && mobile.x+mobile.width<=390,'Crop dialog must fit mobile width');
     await page.screenshot({path:path.join(temporary,'crop-mobile.png')});
     assert.deepEqual(errors,[]);
-    console.log('PASS: default image fits guide, gallery crop opens, defers slot update, exports dragged 1024px JPEG, cancel preserves slots, zoom works, two-photo gating, corrupt-image error, Escape, and mobile dialog fit.');
+    console.log('PASS: default zoom is 3x, gallery crop opens, defers slot update, exports dragged 1024px JPEG, cancel preserves slots, zoom works, two-photo gating, corrupt-image error, Escape, and mobile dialog fit.');
     console.log('Screenshot: '+path.join(temporary,'crop-mobile.png'));
   } finally {
     if(browser) await browser.close(); if(server) await new Promise(resolve=>server.close(resolve));

@@ -13,26 +13,30 @@ function detectPlatform(): Platform {
   return "other";
 }
 
-const STORE = {
-  ios: { url: APP_STORE_URL, label: "the App Store" },
-  android: { url: PLAY_STORE_URL, label: "Google Play" },
-} as const;
-
 /** Detects iOS / Android on the phone and opens the matching store; desktop keeps both buttons. */
-export function GetAppRedirect() {
+export function GetAppRedirect({ appName = "Coinzy AI", appStoreHref = APP_STORE_URL, playHref = PLAY_STORE_URL }: {
+  appName?: string;
+  appStoreHref?: string | null;
+  playHref?: string;
+}) {
   const [platform, setPlatform] = useState<Platform | null>(null);
+  const store = {
+    ios: appStoreHref ? { url: appStoreHref, label: "the App Store" } : null,
+    android: { url: playHref, label: "Google Play" },
+  };
 
   useEffect(() => {
     const detected = detectPlatform();
     setPlatform(detected);
-    if (detected !== "other") window.location.replace(STORE[detected].url);
-  }, []);
+    const target = detected === "ios" ? appStoreHref : detected === "android" ? playHref : null;
+    if (target) window.location.replace(target);
+  }, [appStoreHref, playHref]);
 
-  const target = platform && platform !== "other" ? STORE[platform] : null;
+  const target = platform && platform !== "other" ? store[platform] : null;
 
   return (
     <p className="text-base leading-6 text-muted" role="status">
-      {target ? `Opening ${target.label}…` : platform === "other" ? "Choose your store to download Coinzy AI." : " "}
+      {target ? `Opening ${target.label}…` : platform === "ios" ? `${appName} is not available on the App Store yet.` : platform === "other" ? `Choose your store to download ${appName}.` : " "}
     </p>
   );
 }

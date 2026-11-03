@@ -27,7 +27,7 @@ export function CatalogueDetailsPremiumOverlay() {
             <p className="text-sm leading-5">Unlock more coin details with Premium.</p>
           </div>
         </div>
-        <PremiumUpgradeButton className="inline-flex h-8 w-full items-center justify-center rounded-[10px] bg-white px-3 text-sm font-medium leading-5 text-ink hover:opacity-95">
+        <PremiumUpgradeButton headerStyle catalogueDetails className="inline-flex h-8 w-full items-center justify-center rounded-[10px] bg-white px-3 text-sm font-medium leading-5 text-ink hover:opacity-95">
           Go Premium
         </PremiumUpgradeButton>
       </div>

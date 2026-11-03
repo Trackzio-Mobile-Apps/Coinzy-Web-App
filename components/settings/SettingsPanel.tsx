@@ -333,6 +333,8 @@ export function SettingsPanel({
       />
       <PremiumSubscribeDialog
         open={plansOpen}
+        headerStyle
+        email={email}
         onClose={() => {
           setPlansOpen(false);
           router.refresh();

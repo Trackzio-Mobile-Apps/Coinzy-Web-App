@@ -18,7 +18,7 @@ const A = "/assets/other-apps";
 const button =
   "flex w-full items-center justify-center rounded-lg px-3 py-1.5 text-sm font-medium leading-5 transition-colors";
 
-/** Figma "Card" (908:42681): 172.5px art, 64px icon + title/description, footer with two buttons. */
+/** Figma "Card" (908:42681): 172.5px art, 64px icon + title/description and app links. */
 function AppCard({ app }: { app: OtherApp }) {
   return (
     <article className="flex h-full flex-col gap-4 overflow-hidden rounded-[14px] bg-white shadow-[0_0_0_1px_rgba(10,10,10,0.1)]">
@@ -59,6 +59,7 @@ function AppCard({ app }: { app: OtherApp }) {
             Explore {app.name}
           </span>
         )}
+        <div className="grid grid-cols-2 gap-2">
         {app.playHref ? (
           <a
             href={app.playHref}
@@ -66,13 +67,28 @@ function AppCard({ app }: { app: OtherApp }) {
             rel="noopener noreferrer"
             className={`${button} border border-[#e5e5e5] bg-white text-ink hover:bg-neutral-50`}
           >
-            Get the app
+            Play Store
           </a>
         ) : (
           <span aria-disabled className={`${button} border border-[#e5e5e5] bg-white text-muted`}>
             Coming soon
           </span>
         )}
+        {app.appStoreHref ? (
+          <a
+            href={app.appStoreHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${button} border border-[#e5e5e5] bg-white text-ink hover:bg-neutral-50`}
+          >
+            App Store
+          </a>
+        ) : (
+          <span aria-label="App Store unavailable" aria-disabled="true" className={`${button} border border-[#e5e5e5] bg-[#f5f5f5] text-muted opacity-60`}>
+            App Store
+          </span>
+        )}
+        </div>
       </div>
     </article>
   );

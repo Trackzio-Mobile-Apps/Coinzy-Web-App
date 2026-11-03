@@ -5,11 +5,10 @@ import { useId } from "react";
 /** Figma `1248:154298` — 240px coin guide (circle + corner brackets + grid) over the camera viewport. */
 export function IdentifyCameraGuide({ className = "" }: { className?: string }) {
   const maskId = useId();
+  const clipId = useId();
   const cx = 270;
   const cy = 210;
   const r = 120;
-  const bracket = 36;
-  const inner = r - 8;
 
   return (
     <svg
@@ -24,50 +23,36 @@ export function IdentifyCameraGuide({ className = "" }: { className?: string }) 
           <rect width="540" height="420" fill="white" />
           <circle cx={cx} cy={cy} r={r} fill="black" />
         </mask>
+        <clipPath id={clipId}><circle cx={cx} cy={cy} r={r} /></clipPath>
       </defs>
       <rect width="540" height="420" fill="rgba(0,0,0,0.52)" mask={`url(#${maskId})`} />
-      <circle cx={cx} cy={cy} r={r} stroke="white" strokeWidth="1.5" strokeOpacity="0.95" />
-      {[ -1, 0, 1 ].map((i) => (
+      <g clipPath={`url(#${clipId})`}>
+      {[ -1.5, -0.5, 0.5, 1.5 ].map((i) => (
         <line
           key={`v${i}`}
-          x1={cx + (i * inner) / 2}
-          y1={cy - inner}
-          x2={cx + (i * inner) / 2}
-          y2={cy + inner}
+          x1={cx + i * 48}
+          y1={cy - r}
+          x2={cx + i * 48}
+          y2={cy + r}
           stroke="white"
           strokeOpacity="0.35"
           strokeWidth="1"
         />
       ))}
-      {[ -1, 0, 1 ].map((i) => (
+      {[ -1.5, -0.5, 0.5, 1.5 ].map((i) => (
         <line
           key={`h${i}`}
-          x1={cx - inner}
-          y1={cy + (i * inner) / 2}
-          x2={cx + inner}
-          y2={cy + (i * inner) / 2}
+          x1={cx - r}
+          y1={cy + i * 48}
+          x2={cx + r}
+          y2={cy + i * 48}
           stroke="white"
           strokeOpacity="0.35"
           strokeWidth="1"
         />
       ))}
-      {(
-        [
-          [cx - inner, cy - inner, 1, 1],
-          [cx + inner, cy - inner, -1, 1],
-          [cx - inner, cy + inner, 1, -1],
-          [cx + inner, cy + inner, -1, -1],
-        ] as const
-      ).map(([x, y, sx, sy], idx) => (
-        <path
-          key={idx}
-          d={`M${x + sx * bracket} ${y} H${x} V${y + sy * bracket}`}
-          stroke="white"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      ))}
+      </g>
+      <path d={`M${cx - 36} ${cy - r}h72 M${cx - 36} ${cy + r}h72 M${cx - r} ${cy - 36}v72 M${cx + r} ${cy - 36}v72`} stroke="white" strokeWidth="3" />
     </svg>
   );
 }

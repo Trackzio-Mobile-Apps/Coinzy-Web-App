@@ -41,7 +41,7 @@ export async function AppSidebar({
   }
   return (
     <aside className="flex h-full w-[254px] shrink-0 flex-col border-r border-[#e5e7eb] bg-white">
-      <div className="flex h-[76px] items-center gap-2 border-b border-[#e5e7eb] px-4">
+      <div className={`flex h-[76px] items-center gap-2 border-b border-[#e5e7eb] ${active === "identify" ? "px-8" : "px-4"}`}>
         <LogoMark />
         <div className="min-w-0">
           <p className="truncate text-lg font-medium leading-7 text-ink">Coinzy AI</p>

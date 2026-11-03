@@ -94,21 +94,30 @@ export const HOME_CATALOGUE_FALLBACK = [
 
 export const HOME_OTHER_APPS = [
   {
+    slug: "banknote",
     name: "Banknote AI",
     description: "Identify banknotes using Banknote AI",
     icon: "/assets/other-apps/banknote-icon.png",
-    href: "https://play.google.com/store/apps/details?id=com.trackzio.banknote",
+    playHref: "https://play.google.com/store/apps/details?id=com.trackzio.banknote",
+    appStoreHref: "https://apps.apple.com/us/app/banknote-identification-ai/id6747063766",
+    qr: "/assets/other-apps/banknote-qr.svg",
   },
   {
+    slug: "habit-eazy",
     name: "Habit Eazy",
     description: "Build better habits with Habit Eazy",
     icon: "/assets/other-apps/habit-eazy-icon.png",
-    href: "https://play.google.com/store/apps/details?id=com.progresspal",
+    playHref: "https://play.google.com/store/apps/details?id=com.progresspal",
+    appStoreHref: "https://apps.apple.com/in/app/habit-eazy-habit-to-do-pal/id6738790392",
+    qr: "/assets/other-apps/habit-eazy-qr.svg",
   },
   {
+    slug: "antiqzy",
     name: "Antiqzy AI",
     description: "Identify antiques using Antiqzy AI",
     icon: "/assets/other-apps/antiqzy-icon.png",
-    href: "https://play.google.com/store/apps/details?id=com.trackzio.antiquevintage",
+    playHref: "https://play.google.com/store/apps/details?id=com.trackzio.antiquevintage",
+    appStoreHref: null,
+    qr: "/assets/other-apps/antiqzy-qr.svg",
   },
 ];

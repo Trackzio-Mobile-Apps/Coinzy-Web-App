@@ -212,6 +212,7 @@ export function IdentifyApp({
         matches: list,
         previewUrls: [previews[0], previews[1]],
       });
+      window.history.pushState(window.history.state, "", "/identify?step=matches");
       setStep("matches");
     } catch {
       setToast(identifyErrorMessage("E003"));
@@ -234,6 +235,23 @@ export function IdentifyApp({
     }
   }, [restoreMatches]);
 
+  useEffect(() => {
+    const onPopState = () => {
+      if (new URLSearchParams(window.location.search).get("step") === "matches") {
+        const saved = readIdentifySession();
+        if (saved?.matches?.length) {
+          setMatches(saved.matches);
+          setRestoredPreviews(saved.previewUrls ?? null);
+          setStep("matches");
+        }
+      } else {
+        setStep("upload");
+      }
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
   const pickMatch = (m: IdentifyMatch) => {
     // Mark this history entry as the matches view so browser Back (and the result page's back arrow) return here.
     window.history.replaceState(window.history.state, "", "/identify?step=matches");
@@ -245,9 +263,9 @@ export function IdentifyApp({
 
   return (
     <>
-      <IdentifyDebugBar onLoad={(files) => loadBoth(files.obverse, files.reverse)} />
+      {autoLoadDebug && step === "upload" && <IdentifyDebugBar onLoad={(files) => loadBoth(files.obverse, files.reverse)} />}
 
-      {step === "upload" && (
+      {(step === "upload" || step === "matches") && (
         <h1 className="mb-4 text-2xl font-semibold leading-8 text-ink">Identify coin</h1>
       )}
 

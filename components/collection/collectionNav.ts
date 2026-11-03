@@ -1,7 +1,5 @@
 import type { SessionCollectionRow } from "@/lib/api/coinzy-session";
 
-export const COLLECTION_COIN_LIMIT = 100;
-
 export type CollectionBucket = "owned" | "identified" | "wishlist";
 
 export type CollectionNavIcon = "owned" | "identified" | "wishlist" | "private";

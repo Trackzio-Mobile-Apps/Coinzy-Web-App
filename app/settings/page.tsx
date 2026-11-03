@@ -111,7 +111,7 @@ export default async function SettingsPage({
                 premium={premium}
               />
             </Suspense>
-            <SettingsAside premium={premium} />
+            <SettingsAside premium={premium} email={user.email} />
           </div>
         </main>
       </div>

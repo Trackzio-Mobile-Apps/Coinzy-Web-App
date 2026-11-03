@@ -21,7 +21,7 @@ export function IdentifyCropModal({ file, side, onClose, onConfirm }: {
   const [source, setSource] = useState("");
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(0);
+  const [zoom, setZoom] = useState(50);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -74,15 +74,14 @@ export function IdentifyCropModal({ file, side, onClose, onConfirm }: {
 
   return (
     <dialog ref={ref} aria-labelledby={titleId} onClose={onClose} onClick={(event) => event.target === event.currentTarget && !saving && onClose()} className="m-auto w-[572px] max-w-[calc(100%-2rem)] overflow-y-auto rounded-[14px] border-0 bg-white p-0 shadow-xl backdrop:bg-black/55">
-      <div className="relative border-b border-[#e5e5e5] p-4">
+      <div className="relative p-4">
         <button type="button" onClick={onClose} disabled={saving} aria-label="Close crop" className="absolute right-4 top-4 flex size-4 items-center justify-center">
           <Image src="/assets/auth/close.svg" alt="" width={16} height={16} />
         </button>
-        <h2 id={titleId} className="pr-8 text-base font-medium leading-6 text-ink">Crop your coin photo</h2>
-        <p className="mt-1 text-sm leading-5 text-muted">Drag and zoom to position the entire coin inside the guide.</p>
-        <p className="mt-1 text-xs text-[#87878a]">{side === "obverse" ? "Obverse (front side)" : "Reverse (back side)"}</p>
+        <h2 id={titleId} className="pr-8 text-base font-medium leading-6 text-ink">Capture a clear image of your coin</h2>
+        <p className="mt-1 text-sm leading-5 text-muted">Position the entire coin inside the guide. Make sure it&apos;s well lit and in focus.</p>
       </div>
-      <div className="p-4">
+      <div className="px-4 pb-4">
         <div
           role="group" aria-label="Crop position; drag or use arrow keys to move the photo" tabIndex={0}
           className="relative aspect-[9/7] w-full touch-none overflow-hidden rounded-2xl bg-black outline-offset-2 focus-visible:outline-primary-500"
@@ -117,7 +116,7 @@ export function IdentifyCropModal({ file, side, onClose, onConfirm }: {
         <IdentifyZoomSlider value={zoom} onChange={(value) => { setOffset({ x, y }); setZoom(value); }} />
         <div className="flex shrink-0 justify-end gap-3">
           <button type="button" onClick={onClose} disabled={saving} className="h-8 rounded-[10px] border border-[#e5e5e5] bg-white px-3 text-sm font-medium text-ink">Cancel</button>
-          <button type="button" onClick={confirm} disabled={!size.width || saving} className="h-8 rounded-[10px] bg-primary-500 px-3 text-sm font-medium text-white disabled:opacity-50">{saving ? "Cropping…" : "Use photo"}</button>
+          <button type="button" onClick={confirm} disabled={!size.width || saving} className="h-8 rounded-[10px] bg-primary-500 px-3 text-sm font-medium text-white disabled:opacity-50">{saving ? "Cropping…" : "Capture"}</button>
         </div>
       </div>
     </dialog>
