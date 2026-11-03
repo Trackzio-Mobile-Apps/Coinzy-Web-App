@@ -36,10 +36,12 @@ function MatchThumbs({ urls }: { urls: string[] }) {
   );
 }
 
-/** Figma Top 5 Matches (`14yn59xnujt`): #FAF7F5 canvas, white 12px card, 90px thumbs, 28px soft arrow. */
+/** Figma Top 5 Matches (`14yn59xnujt`): #F9F6F4 canvas, white 12px card, 90px thumbs, 28px soft arrow. */
 export function IdentifyMatchList({
   matches,
   onPick,
+  onTryAgain,
+  onReportNoMatches,
 }: {
   matches: IdentifyMatch[];
   onPick: (match: IdentifyMatch) => void;
@@ -81,6 +83,16 @@ export function IdentifyMatchList({
           })}
         </ul>
       </div>
+      <section className="flex flex-col gap-4 rounded-lg bg-[#f7f1eb] p-4">
+        <div className="flex flex-col gap-2">
+          <h2 className="text-lg font-medium leading-7 text-[#2f2f31]">Still can’t find your coin?</h2>
+          <p className="text-sm leading-5 text-[#606062]">Let Coinzy AI know. The coin you’re seeing may not be in our database yet. Your response will help improve Coinzy’s accuracy.</p>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <button type="button" onClick={onTryAgain} className="h-9 w-44 rounded-[10px] bg-primary-500 px-4 text-sm font-medium text-white hover:bg-primary-700">Try again</button>
+          <button type="button" onClick={onReportNoMatches} className="h-9 rounded-[10px] border border-[#e5e5e5] bg-white px-4 text-sm font-medium text-ink hover:bg-neutral-50">Report no matches</button>
+        </div>
+      </section>
     </div>
   );
 }

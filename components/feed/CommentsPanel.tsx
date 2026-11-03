@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   addComment,
   addReply,
@@ -12,6 +12,8 @@ import {
 import { formatFeedTime, initials } from "@/lib/feed/format";
 import { createNotification } from "@/lib/feed/notifications";
 import type { CommunityUser, FeedComment, FeedPost } from "@/lib/feed/types";
+
+const COMMENT_MAX_LENGTH = 500;
 
 /** Comments / replies modal — Figma Feed replies frame. */
 export function CommentsPanel({
@@ -33,6 +35,14 @@ export function CommentsPanel({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  useLayoutEffect(() => {
+    const input = inputRef.current;
+    if (!input) return;
+    input.style.height = "auto";
+    input.style.height = `${Math.min(input.scrollHeight, 82)}px`;
+  }, [text, open]);
 
   useEffect(() => {
     if (!open || !post) return;
@@ -62,6 +72,10 @@ export function CommentsPanel({
   const submit = async () => {
     const body = text.trim();
     if (!body || busy) return;
+    if (text.length > COMMENT_MAX_LENGTH) {
+      setError(`Comments must be ${COMMENT_MAX_LENGTH} characters or fewer.`);
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -229,14 +243,20 @@ export function CommentsPanel({
             <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary-50 text-[10px] font-medium text-primary-500">
               {initials(me.name || "?")}
             </div>
-            <input
+            <textarea
+              ref={inputRef}
+              rows={1}
               value={text}
+              maxLength={COMMENT_MAX_LENGTH}
               onChange={(e) => setText(e.target.value)}
               placeholder="Add a comment..."
-              className="min-w-0 flex-1 rounded-full border border-[#e5e7eb] px-4 py-2.5 text-sm outline-none focus:border-primary-500"
+              className="min-h-[42px] max-h-[82px] min-w-0 flex-1 resize-none overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden rounded-xl border border-[#e5e7eb] px-4 py-2.5 text-sm leading-5 outline-none focus:border-primary-500"
               disabled={busy}
               onKeyDown={(e) => {
-                if (e.key === "Enter") void submit();
+                if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                  e.preventDefault();
+                  void submit();
+                }
               }}
             />
             <button
@@ -249,6 +269,9 @@ export function CommentsPanel({
               <Image src="/assets/home/icon-arrow-right.svg" alt="" width={14} height={12} className="brightness-0 invert" />
             </button>
           </div>
+          <p className="mt-1 text-right text-xs text-muted" aria-live="polite">
+            {text.length >= COMMENT_MAX_LENGTH ? `Character limit reached (${COMMENT_MAX_LENGTH}).` : `${text.length}/${COMMENT_MAX_LENGTH}`}
+          </p>
         </div>
       </div>
     </div>

@@ -19,12 +19,14 @@ export function DetailsBreadcrumb({
   current,
   backHref,
   backLabel,
+  onBack,
 }: {
   ancestors: Crumb[];
   current: string;
   /** Overrides the back button target (default: the nearest ancestor). */
   backHref?: string;
   backLabel?: string;
+  onBack?: () => void;
 }) {
   const parent = ancestors[ancestors.length - 1];
   const collapsed = ancestors.length > 1;
@@ -35,6 +37,7 @@ export function DetailsBreadcrumb({
     <div className="flex items-center gap-5">
       <Link
         href={backHref ?? parent.href}
+        onClick={onBack ? (event) => { event.preventDefault(); onBack(); } : undefined}
         prefetch
         aria-label={`Back to ${backLabel ?? parent.label}`}
         className="flex shrink-0 rounded border-[0.5px] border-[#c2c2c4] bg-white p-1 hover:bg-neutral-50"
@@ -52,7 +55,7 @@ export function DetailsBreadcrumb({
             </span>
           ) : (
             <span key={crumb.href} className={collapsed ? "hidden sm:contents" : "contents"}>
-              <Link href={crumb.href} className="shrink-0 text-base leading-6 text-primary-500 underline">
+              <Link href={crumb.href} onClick={onBack && i === ancestors.length - 1 ? (event) => { event.preventDefault(); onBack(); } : undefined} className="shrink-0 text-base leading-6 text-primary-500 underline">
                 {crumb.label}
               </Link>
               {separator()}

@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import { useModalDialog } from "@/components/ui/useModalDialog";
 import { AppQrCode } from "@/components/ui/AppQrCode";
 import { APP_STORE_URL, PLAY_STORE_URL } from "@/lib/constants";
-import { FREE_COLLECTION_LIMIT } from "@/lib/identify/collections";
 
 const A = "/assets/home";
 const PACK_GRADIENT =
@@ -20,9 +19,7 @@ const PACK_GRADIENT =
 export function PremiumSubscribeDialog({
   open,
   onClose,
-  headerStyle = false,
   email,
-  startAtDownload = false,
   scanUsage,
   catalogueDetails = false,
   collectionLimit = false,
@@ -39,13 +36,12 @@ export function PremiumSubscribeDialog({
   const titleId = useId();
   const ref = useModalDialog(open, (next) => !next && onClose());
   const router = useRouter();
-  const [downloadStep, setDownloadStep] = useState(startAtDownload);
   const [checking, setChecking] = useState(false);
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
-    if (!open) { setDownloadStep(startAtDownload); setNotice(""); }
-  }, [open, startAtDownload]);
+    if (!open) setNotice("");
+  }, [open]);
 
   const checkPremium = async () => {
     if (checking) return;
@@ -72,16 +68,16 @@ export function PremiumSubscribeDialog({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className={`m-auto ${headerStyle ? "w-[382px]" : "w-[400px]"} max-w-[calc(100%-32px)] overflow-hidden rounded-[14px] border-0 bg-white p-0 text-ink shadow-[0_0_0_1px_rgba(10,10,10,0.1)] backdrop:bg-black/55`}
+      className="m-auto w-[382px] max-w-[calc(100%-32px)] overflow-hidden rounded-[14px] border-0 bg-white p-0 text-ink shadow-[0_0_0_1px_rgba(10,10,10,0.1)] backdrop:bg-black/55"
     >
-      <div className={`relative flex flex-col ${headerStyle ? "gap-4 p-4" : "gap-3 p-5"}`} style={{ backgroundImage: PACK_GRADIENT }}>
-        <Image src={`${A}/premium-crown.svg`} alt="" width={headerStyle ? 64 : 48} height={headerStyle ? 64 : 48} />
+      <div className="relative flex flex-col gap-4 p-4" style={{ backgroundImage: PACK_GRADIENT }}>
+        <Image src={`${A}/premium-crown.svg`} alt="" width={64} height={64} />
         <div className="space-y-1 pr-6">
           <h2 id={titleId} className="text-xl font-medium leading-7 text-white">
             {collectionLimit ? "Get unlimited collection space" : catalogueDetails ? "Get advanced coin details - Go Premium" : scanUsage ? scanUsage.used >= scanUsage.limit ? `You've used all ${scanUsage.limit} free scans!` : `You've used ${scanUsage.used} of ${scanUsage.limit} free scans!` : "Get Premium in the app"}
           </h2>
           <p className="text-sm leading-5 text-white/90">
-            {downloadStep ? "Premium is available in the Coinzy mobile app. Scan the code with your phone to get it." : collectionLimit ? `Free accounts are limited to ${FREE_COLLECTION_LIMIT} collections, including the 3 default collections. Upgrade for unlimited collections.` : catalogueDetails ? "Want deeper insights? Unlock advanced coin data, history, and rarity with Premium access." : scanUsage ? "Get unlimited scans with Premium. Your collection and past results stay free to view." : "Subscribe on Android or iOS, then sign in here with the same account to unlock Premium on web."}
+            Premium is available in the Coinzy mobile app. Scan the code with your phone to get it.
           </p>
         </div>
         <button
@@ -94,41 +90,6 @@ export function PremiumSubscribeDialog({
         </button>
       </div>
 
-      {!downloadStep && !catalogueDetails && !collectionLimit && <div className={headerStyle ? "px-4 py-3" : "flex flex-col gap-3 p-4"}>
-        {scanUsage ? <div className="flex items-center gap-3 rounded-xl bg-[#f5f5f5] p-3">
-          <span aria-hidden className="flex size-5 shrink-0 items-center justify-center rounded-full border border-ink text-sm text-ink">!</span>
-          <div><p className="text-sm font-medium leading-5 text-ink">You&apos;ve identified {scanUsage.used} coins so far</p><p className="text-xs leading-4 text-[#87878a]">Keep your collection growing with Premium</p></div>
-        </div> : <ul className={`list-disc space-y-1 text-sm leading-5 text-muted ${headerStyle ? "rounded-xl bg-[#f5f5f5] py-2 pl-9 pr-3" : "pl-5"}`}>
-          <li>Unlimited coin scans and deeper catalogue details</li>
-          <li>More Coin of the Day reveals</li>
-          <li>Manage or cancel in Google Play or the App Store</li>
-        </ul>}
-        {!headerStyle && <>
-        <Link
-          href={PLAY_STORE_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={onClose}
-          className="inline-flex h-11 items-center justify-center rounded-[14px] bg-[linear-gradient(90deg,#6a65ed_0%,#e54a9f_100%)] px-6 text-base font-medium text-white hover:opacity-95"
-        >
-          Get the Coinzy app
-        </Link>
-        <button
-          type="button"
-          onClick={onClose}
-          className="text-center text-sm font-medium text-muted hover:text-ink"
-        >
-          Not now
-        </button>
-        </>}
-      </div>}
-      {headerStyle && !downloadStep && (
-        <div className="flex items-center justify-end gap-2 border-t border-[#e5e5e5] bg-[#fafafa] p-4">
-          <button type="button" onClick={onClose} className="h-8 rounded-[10px] border border-[#e5e5e5] bg-white px-3 text-sm font-medium text-ink">{scanUsage || catalogueDetails || collectionLimit ? "Cancel" : "Not now"}</button>
-          <button type="button" onClick={() => setDownloadStep(true)} className="inline-flex h-8 items-center justify-center rounded-[10px] bg-[linear-gradient(90deg,#6a65ed_0%,#e54a9f_100%)] px-3 text-sm font-medium text-white">{catalogueDetails || collectionLimit ? "Go Premium" : scanUsage ? "Get unlimited scans" : "Get the Coinzy app"}</button>
-        </div>
-      )}
-      {headerStyle && downloadStep && <>
         <div className="flex flex-col gap-6 p-4">
           <div className="flex flex-wrap items-center justify-center gap-4 sm:justify-between">
             <AppQrCode size={156} className="max-w-[45%] shrink-0 object-contain" />
@@ -157,7 +118,6 @@ export function PremiumSubscribeDialog({
           <button type="button" onClick={onClose} className="h-8 rounded-[10px] border border-[#e5e5e5] bg-white px-3 text-sm font-medium text-ink">Maybe later</button>
           <button type="button" disabled={checking} onClick={() => void checkPremium()} className="h-8 rounded-[10px] bg-primary-500 px-3 text-sm font-medium text-white disabled:opacity-50">{checking ? "Checking…" : "I’ve Premium!"}</button>
         </div>
-      </>}
     </dialog>
   );
 }

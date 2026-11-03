@@ -31,7 +31,7 @@ export default async function IdentifyPage({
     <div className="flex h-svh overflow-hidden bg-white">
       <ReloadOnRestore />
       <AppSidebar user={user} active="identify" />
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-[#faf7f5]">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-[#f9f6f4]">
         <MarketplaceAppHeader user={user} premium={premium} />
         <main className="min-w-0 flex-1 overflow-y-auto px-4 py-4 sm:px-8">
           <div className="mx-auto w-full max-w-[1122px]">

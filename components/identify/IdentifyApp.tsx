@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { DetailsBreadcrumb } from "@/components/catalogue/DetailsParts";
 import { IdentifyAnalysing } from "@/components/identify/IdentifyAnalysing";
 import { IdentifyFailure } from "@/components/identify/IdentifyFailure";
 import { IdentifyMatchList } from "@/components/identify/IdentifyMatchList";
@@ -234,6 +235,13 @@ export function IdentifyApp({
     }
   }, [restoreMatches]);
 
+  const backToUpload = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("step");
+    window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
+    resetToUpload(false);
+  };
+
   const pickMatch = (m: IdentifyMatch) => {
     // Mark this history entry as the matches view so browser Back (and the result page's back arrow) return here.
     window.history.replaceState(window.history.state, "", "/identify?step=matches");
@@ -247,8 +255,11 @@ export function IdentifyApp({
     <>
       {autoLoadDebug && step === "upload" && <IdentifyDebugBar onLoad={(files) => loadBoth(files.obverse, files.reverse)} />}
 
-      {(step === "upload" || step === "matches") && (
-        <h1 className="mb-4 text-2xl font-semibold leading-8 text-ink">Identify coin</h1>
+      {step === "upload" && <h1 className="mb-4 text-2xl font-semibold leading-8 text-ink">Identify coin</h1>}
+      {step === "matches" && (
+        <div className="mb-4">
+          <DetailsBreadcrumb ancestors={[{ href: "/identify", label: "Identify coin" }]} current="AI Analysis - Possible top 5 matches" onBack={backToUpload} />
+        </div>
       )}
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
@@ -274,14 +285,11 @@ export function IdentifyApp({
             <IdentifyMatchList
               matches={matches}
               onPick={pickMatch}
-              onTryAgain={() => {
-                setStep("upload");
-                setMatches([]);
-              }}
+              onTryAgain={backToUpload}
               onReportNoMatches={() =>
                 setToast({
-                  title: "Thanks for the feedback",
-                  body: "We’ve noted that none of the matches fit. Try again with clearer photos or browse the catalogue.",
+                  title: "Reporting is not available yet",
+                  body: "Try again with clearer photos or browse the catalogue.",
                 })
               }
             />
