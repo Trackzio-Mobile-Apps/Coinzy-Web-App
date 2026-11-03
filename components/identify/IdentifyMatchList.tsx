@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import type { IdentifyMatch } from "@/lib/identify/types";
 import { FallbackImage } from "@/components/ui/FallbackImage";
 import { CoinPlaceholder } from "@/components/ui/CoinPlaceholder";
@@ -49,18 +48,6 @@ export function IdentifyMatchList({
 }) {
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-3">
-        <Link
-          href="/home"
-          prefetch
-          aria-label="Back to Home"
-          className="flex shrink-0 rounded border-[0.5px] border-[#c2c2c4] bg-white p-1 hover:bg-neutral-50"
-        >
-          <Image src="/assets/catalogue/icon-breadcrumb-back.svg" alt="" width={24} height={24} />
-        </Link>
-        <h1 className="text-2xl font-semibold leading-8 text-ink">Identify coin</h1>
-      </div>
-
       <div className="flex flex-col gap-4 rounded-xl bg-white p-4">
         <h2 className="text-base font-medium leading-6 text-[#0a0a0a]">AI Analysis - Possible top 5 matches</h2>
 

@@ -5,6 +5,7 @@ import { useEffect, useId, useState } from "react";
 import type { ArchetypeDetails } from "@/lib/api/coinzy";
 import { coinTitle, detailTabs, overviewRows } from "@/lib/catalogue/coinDetails";
 import { useModalDialog } from "@/components/ui/useModalDialog";
+import { PremiumSubscribeDialog } from "@/components/premium/PremiumSubscribeDialog";
 import { defaultNewCollectionName, MAX_COLLECTION_NAME_LENGTH, type UserCollectionOption } from "@/lib/identify/collections";
 
 function CollectionCheckbox({
@@ -218,13 +219,8 @@ export function IdentifyAddToCollectionDrawer({
                         <label className="flex min-w-0 flex-1 flex-col gap-2">
                           <span className="text-xs font-medium leading-4 text-ink">Date acquired</span>
                           <input
-                            type="text"
+                            type="date"
                             value={dateAcquired}
-                            placeholder="Enter the date of acquirement"
-                            onFocus={(e) => (e.currentTarget.type = "date")}
-                            onBlur={(e) => {
-                              if (!e.currentTarget.value) e.currentTarget.type = "text";
-                            }}
                             onChange={(e) => setDateAcquired(e.target.value)}
                             className={inputCls}
                           />
@@ -323,7 +319,7 @@ export function IdentifySelectCollectionModal({
   onToggle: (id: string) => void;
   onClose: () => void;
   onDone: () => void;
-  onCreateCollection: (name: string) => Promise<{ error: true; reason?: string } | { error: false }>;
+  onCreateCollection: (name: string) => Promise<{ error: true; reason?: string; code?: string } | { error: false }>;
   saving?: boolean;
 }) {
   const titleId = useId();
@@ -333,7 +329,7 @@ export function IdentifySelectCollectionModal({
   const [newName, setNewName] = useState("");
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
-  const [nameEdited, setNameEdited] = useState(false);
+  const [limitOpen, setLimitOpen] = useState(false);
 
   const privateCount = collections.filter((o) => o.kind === "private").length;
 
@@ -342,11 +338,9 @@ export function IdentifySelectCollectionModal({
       setCreateOpen(false);
       setCreateError(null);
       setCreating(false);
-      setNameEdited(false);
       return;
     }
     setNewName(defaultNewCollectionName(privateCount));
-    setNameEdited(false);
   }, [open, privateCount]);
 
   const saveNewCollection = async (): Promise<boolean> => {
@@ -361,6 +355,7 @@ export function IdentifySelectCollectionModal({
     const res = await onCreateCollection(name);
     setCreating(false);
     if (res.error) {
+      if (res.code === "COLLECTION_LIMIT") { onClose(); setLimitOpen(true); return false; }
       setCreateError(res.reason ?? "Could not create collection.");
       return false;
     }
@@ -368,16 +363,12 @@ export function IdentifySelectCollectionModal({
     return true;
   };
 
-  const handleDone = async () => {
-    if (loading || saving || creating) return;
-    if (createOpen && newName.trim() && nameEdited) {
-      const created = await saveNewCollection();
-      if (!created) return;
-    }
+  const handleDone = () => {
+    if (loading || saving || creating || createOpen) return;
     onDone();
   };
 
-  return (
+  return (<>
     <dialog
       ref={ref}
       aria-labelledby={titleId}
@@ -439,12 +430,12 @@ export function IdentifySelectCollectionModal({
         >
           <button
             type="button"
+            disabled={creating}
             onClick={() => {
               setCreateError(null);
               setCreateOpen((v) => !v);
               if (!createOpen) {
                 setNewName(defaultNewCollectionName(privateCount));
-                setNameEdited(false);
               }
             }}
             className="flex w-full items-center gap-1.5 px-4 py-2 text-sm font-medium text-primary-500"
@@ -464,7 +455,6 @@ export function IdentifySelectCollectionModal({
                   maxLength={MAX_COLLECTION_NAME_LENGTH}
                   onChange={(e) => {
                     setNewName(e.target.value.slice(0, MAX_COLLECTION_NAME_LENGTH));
-                    setNameEdited(true);
                   }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
@@ -487,7 +477,12 @@ export function IdentifySelectCollectionModal({
                   </button>
                 ) : null}
               </div>
-              <p className="text-sm leading-5 text-[#737373] opacity-80">Press Enter to save</p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm leading-5 text-[#737373] opacity-80">Press Enter to save</p>
+                <button type="button" onClick={() => void saveNewCollection()} disabled={creating || !newName.trim()} className="rounded-lg border border-[#edd2d3] bg-white px-3 py-1 text-xs font-medium text-primary-500 disabled:opacity-50">
+                  {creating ? "Saving…" : "Save"}
+                </button>
+              </div>
               {createError ? <p className="text-xs text-[#dc2626]" role="alert">{createError}</p> : null}
             </div>
           )}
@@ -504,13 +499,15 @@ export function IdentifySelectCollectionModal({
         </button>
         <button
           type="button"
-          onClick={() => void handleDone()}
-          disabled={loading || saving || creating || (createOpen && !newName.trim())}
+          onClick={handleDone}
+          disabled={loading || saving || creating || createOpen}
           className="inline-flex h-9 items-center rounded-[10px] bg-primary-500 px-3 text-sm font-medium text-white disabled:opacity-50"
         >
           {saving || creating ? "Saving…" : "Done"}
         </button>
       </div>
     </dialog>
+    <PremiumSubscribeDialog open={limitOpen} onClose={() => setLimitOpen(false)} headerStyle collectionLimit />
+    </>
   );
 }

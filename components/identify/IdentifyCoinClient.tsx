@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ArchetypeDetails } from "@/lib/api/coinzy";
 import {
@@ -20,20 +21,9 @@ import {
 import { addCoinViaApi, createCollectionViaApi, fetchCollectionsViaApi } from "@/lib/identify/collectionClient";
 import { readIdentifySession } from "@/lib/identify/storage";
 
+const RATE_MESSAGE_MAX_LENGTH = 100;
+
 /** Figma `1254:103144` faces — Stroke default, Solid primary when selected (`1252:102854`). */
-const RATE_MESSAGE_MAX_WORDS = 100;
-
-/** Keeps at most `max` words, preserving the user's spacing (and a trailing space while typing). */
-function limitWords(text: string, max: number): string {
-  const re = /\S+/g;
-  let count = 0;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(text))) {
-    if (++count === max) return text.slice(0, m.index + m[0].length) + (/\s$/.test(text) && re.lastIndex < text.length ? " " : "");
-  }
-  return text;
-}
-
 const RATE_FACES = [
   {
     src: "/assets/identify/rate/sad-02.png",
@@ -79,6 +69,7 @@ export function IdentifyResultRail({
   archetypeId: string;
   coin: ArchetypeDetails;
 }) {
+  const router = useRouter();
   const [uploads, setUploads] = useState<[string, string] | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectOpen, setSelectOpen] = useState(false);
@@ -92,8 +83,17 @@ export function IdentifyResultRail({
   const [rateCardVisible, setRateCardVisible] = useState(true);
   const [feedbackToast, setFeedbackToast] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState<{ title: string; body: string } | null>(null);
+  const [collectionAdded, setCollectionAdded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!collectionAdded) return;
+    const timer = window.setTimeout(() => {
+      router.push("/collection");
+      router.refresh();
+    }, 2000);
+    return () => window.clearTimeout(timer);
+  }, [collectionAdded, router]);
 
   useEffect(() => {
     setUploads(userUploadUrls());
@@ -145,7 +145,7 @@ export function IdentifyResultRail({
       setError("Upload photos are missing — identify this coin again.");
       return;
     }
-    // Android parity: add to each selected collection one by one (Owned first), then one success message.
+    // Add to each selected collection one by one (Owned first).
     const picked = collections
       .filter((o) => selectedIds.includes(o.id))
       .sort((x, y) => Number(y.kind === "owned") - Number(x.kind === "owned"));
@@ -170,14 +170,7 @@ export function IdentifyResultRail({
     setSaving(false);
     setSelectOpen(false);
     setDrawerOpen(false);
-    const named = picked.filter((o) => o.kind !== "identified");
-    const only = named.length === 1 ? named[0] : picked.length === 1 ? picked[0] : null;
-    setSuccess({
-      title: "Your coin added to collection!",
-      body: only
-        ? `The coin has been successfully added to your ${only.label.replace(/ collection$/i, "")} collection`
-        : "The coin has been successfully added to your collections",
-    });
+    setCollectionAdded(true);
   }, [archetypeId, coin, selectedIds, collections, imagePair, userOwnsCoin]);
 
   const handleCreateCollection = useCallback(
@@ -274,13 +267,14 @@ export function IdentifyResultRail({
               <textarea
                 id="identify-rate-message"
                 value={message}
-                onChange={(e) => setMessage(limitWords(e.target.value, RATE_MESSAGE_MAX_WORDS))}
+                maxLength={RATE_MESSAGE_MAX_LENGTH}
+                onChange={(e) => setMessage(e.target.value.slice(0, RATE_MESSAGE_MAX_LENGTH))}
                 placeholder="Type here"
                 rows={2}
                 className="h-16 w-full resize-none rounded-lg border border-[#e5e5e5] bg-white px-2.5 py-2 text-sm text-ink placeholder:text-[#737373]"
               />
               <p className="text-right text-xs text-[#87878a]">
-                {message.trim() ? message.trim().split(/\s+/).length : 0}/{RATE_MESSAGE_MAX_WORDS} words
+                {message.length}/{RATE_MESSAGE_MAX_LENGTH} characters
               </p>
             </div>
             <button
@@ -335,7 +329,7 @@ export function IdentifyResultRail({
           onClose={() => setFeedbackToast(false)}
         />
       )}
-      {success && <IdentifySuccessToast title={success.title} body={success.body} onClose={() => setSuccess(null)} />}
+      {collectionAdded && <IdentifySuccessToast title="Your coin added to collection!" body="The coin has been successfully added to your collections." onClose={() => { setCollectionAdded(false); router.push("/collection"); router.refresh(); }} />}
     </>
   );
 }

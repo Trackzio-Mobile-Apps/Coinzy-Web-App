@@ -4,12 +4,12 @@ import { FallbackImage } from "@/components/ui/FallbackImage";
 import { CoinPlaceholder } from "@/components/ui/CoinPlaceholder";
 import { CoinFacts, CoinThumb } from "@/components/home/CoinThumb";
 import { PremiumCoinOfTheDay, type CotdCoin } from "@/components/home/PremiumCoinOfTheDay";
-import { PremiumCountdown } from "@/components/home/PremiumCountdown";
 import { CoinOfTheDayDrawer, type CoinOfTheDayDrawerCoin } from "@/components/home/CoinOfTheDayDrawer";
 import { PremiumUpgradeButton } from "@/components/premium/PremiumUpgradeButton";
 import { CatalogueSearch } from "@/components/catalogue/CatalogueSearch";
 import { ListCoinButton } from "@/components/marketplace/ListCoinButton";
 import { HOME_CATALOGUE_FALLBACK, HOME_MARKETPLACE_FALLBACK, HOME_OTHER_APPS } from "@/lib/home";
+import { OtherAppDownloadButton } from "@/components/ui/OtherAppDownloadButton";
 import type { SessionUser } from "@/lib/auth/session";
 import { FROM_HOME, withFrom } from "@/lib/backNav";
 
@@ -85,12 +85,12 @@ export function HomeDashboard({
   const activeChip = marketChips.find((c) => c.active);
   const cat = catalogue.length ? catalogue : HOME_CATALOGUE_FALLBACK;
   const cotd = coinOfTheDay;
-  const greet = user.isGuest ? "Guest" : user.name.split(" ")[0] || user.name;
+  const greet = user.isGuest ? "Guest" : user.name;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-[#f7f7f8]">
       <header className="flex h-[76px] shrink-0 items-center justify-between border-b border-[#e5e7eb] bg-white px-8">
-        <h1 className="text-2xl font-medium leading-8 text-ink">Hi {greet}!</h1>
+        <h1 className="min-w-0 truncate pr-4 text-2xl font-medium leading-8 text-ink">Hi {greet}!</h1>
         {premium ? (
           <div className="flex items-center gap-4">
             {/* Gradient-outline pill: indigo → pink 1px border over a white fill. */}
@@ -104,7 +104,7 @@ export function HomeDashboard({
           </div>
         ) : (
           <div className="flex items-center gap-4">
-            <PremiumUpgradeButton className="inline-flex h-[22px] w-[101px] shrink-0 items-center justify-center gap-1 rounded-full bg-[linear-gradient(89.84deg,#6366f1_9.34%,#ec4899_90.16%)] px-2 py-0.5 font-sans text-xs font-medium leading-4 text-[#fafafa]">
+            <PremiumUpgradeButton headerStyle email={user.email} className="inline-flex h-[22px] w-[101px] shrink-0 items-center justify-center gap-1 rounded-full bg-[linear-gradient(89.84deg,#6366f1_9.34%,#ec4899_90.16%)] px-2 py-0.5 font-sans text-xs font-medium leading-4 text-[#fafafa]">
               <Image src={`${A}/icon-crown.svg`} alt="" width={12} height={12} className="shrink-0" />
               <span className="w-[69px] whitespace-nowrap text-center">Go Premium</span>
             </PremiumUpgradeButton>
@@ -169,39 +169,12 @@ export function HomeDashboard({
             </section>
 
             {!premium && (
-            <section
-              id="premium"
-              className="flex flex-col gap-3 rounded-2xl p-5 sm:flex-row sm:items-end sm:justify-between"
-              style={{
-                backgroundImage:
-                  "linear-gradient(-36.21deg, rgb(106, 101, 237) 10.1%, rgb(229, 74, 159) 98.5%)",
-              }}
-            >
-              <div className="space-y-2">
-                <PremiumCountdown />
-                <p className="flex flex-wrap items-center gap-3 text-2xl leading-8 text-[#f2f2f3]">
-                  <span className="font-medium">Unlock unlimited for less</span>
-                  <span className="font-light line-through text-[#dfdfe0]">$39</span>
-                  <span className="font-bold">$19/mo</span>
-                </p>
-                <p className="flex gap-2 text-sm leading-5 text-white">
-                  <span>Billed yearly</span>
-                  <span className="font-medium">•</span>
-                  <span>Cancel anytime</span>
-                </p>
-              </div>
-              <div className="flex flex-col items-center gap-3 sm:items-end">
-                <PremiumUpgradeButton
-                  openOnHash
-                  className="inline-flex h-10 items-center justify-center rounded-[14px] border border-white bg-white px-6 text-base font-medium leading-6 text-primary-500 shadow-[0_0_0_2px_#b155bf]"
-                >
+              <section className="flex flex-col gap-3 rounded-2xl p-5 sm:flex-row sm:items-center sm:justify-between" style={{ backgroundImage: "linear-gradient(-36.21deg, rgb(106, 101, 237) 10.1%, rgb(229, 74, 159) 98.5%)" }}>
+                <p className="text-2xl font-medium leading-8 text-[#f2f2f3]">Unlock unlimited</p>
+                <PremiumUpgradeButton headerStyle email={user.email} className="inline-flex h-10 items-center justify-center rounded-[14px] border border-white bg-white px-6 text-base font-medium leading-6 text-primary-500 shadow-[0_0_0_2px_#b155bf]">
                   Subscribe
                 </PremiumUpgradeButton>
-                <PremiumUpgradeButton className="text-sm font-medium leading-5 text-white underline">
-                  See all plans
-                </PremiumUpgradeButton>
-              </div>
-            </section>
+              </section>
             )}
 
             <section className="rounded-2xl border-[0.5px] border-[#dfdfe0] bg-white px-[16.5px] py-[12.5px]">
@@ -333,6 +306,7 @@ export function HomeDashboard({
                   <div className="space-y-2.5">
                     <CoinOfTheDayDrawer
                       coin={cotd.drawer}
+                      email={user.email}
                       detailsHref={cotd.id ? withFrom(`/catalogue/coin/${cotd.id}`, FROM_HOME) : "/catalogue"}
                       lockedCount={cotd.lockedCount}
                     />
@@ -382,12 +356,7 @@ export function HomeDashboard({
                       <p className="truncate text-xs font-medium leading-4 text-ink">{app.name}</p>
                       <p className="truncate text-[11px] leading-4 text-muted">{app.description}</p>
                     </div>
-                    <Link
-                      href={app.href}
-                      className="shrink-0 rounded-lg border border-[#e5e5e5] px-2 py-1 text-[11px] font-medium text-ink"
-                    >
-                      Try free
-                    </Link>
+                    <OtherAppDownloadButton app={app} className="shrink-0 rounded-lg border border-[#e5e5e5] px-2 py-1 text-[11px] font-medium text-ink" />
                   </li>
                 ))}
               </ul>

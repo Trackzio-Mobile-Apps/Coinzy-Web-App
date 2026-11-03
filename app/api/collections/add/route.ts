@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
   const result = await addCollectionForSession(token, name);
   if (result.error) {
     const status = result._status >= 500 ? 502 : result._status;
-    return reply({ error: true, reason: result.reason ?? "Could not create collection." }, status);
+    return reply({ error: true, reason: result.reason ?? "Could not create collection.", ...(status === 403 ? { code: "COLLECTION_LIMIT" } : {}) }, status);
   }
   return reply({ error: false, data: result.data });
 }

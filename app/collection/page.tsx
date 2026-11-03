@@ -5,6 +5,7 @@ import { AppSidebar } from "@/components/home/AppSidebar";
 import { MarketplaceAppHeader } from "@/components/marketplace/MarketplaceAppHeader";
 import { CatalogueSearch } from "@/components/catalogue/CatalogueSearch";
 import { CollectionFreePlanCard } from "@/components/collection/CollectionFreePlanCard";
+import { DEFAULT_COLLECTION_COUNT } from "@/lib/identify/collections";
 import { CollectionCreateCollectionCard } from "@/components/collection/CollectionCreateCollectionCard";
 import { CollectionGridSkeleton } from "@/components/collection/CollectionGridSkeleton";
 import { CollectionHomeCard } from "@/components/collection/CollectionHomeCard";
@@ -53,20 +54,18 @@ async function CollectionHomeBody({
   token: string;
   premium: boolean;
 }) {
-  const [collections, owned, identified, wishlist, recent, all] = await Promise.all([
+  const [collections, owned, identified, wishlist, recent] = await Promise.all([
     fetchCollectionsForSession(token, 0, 20),
     fetchUserCoins(token, { pageSize: 5, filters: { isOwned: [true] } }),
     fetchUserCoins(token, { pageSize: 5, filters: { isIdentified: [true] } }),
     fetchUserCoins(token, { pageSize: 5, filters: { isWishlisted: [true] } }),
     fetchUserCoins(token, { pageSize: 5, filters: { isIdentified: [true] } }),
-    fetchUserCoins(token, { pageSize: 1 }),
   ]);
 
   const rows = collections.error ? [] : collections.data;
   const ownedCount = collections.error ? 0 : collections.ownedCount;
   const identifiedCount = collections.error ? 0 : collections.identifiedCount;
   const wishlistedCount = collections.error ? 0 : collections.wishlistedCount;
-  const used = all.error ? 0 : all.totalCount;
   const ownedList = owned.error ? [] : owned.data;
   const identifiedList = identified.error ? [] : identified.data;
   const wishlistList = wishlist.error ? [] : wishlist.data;
@@ -122,7 +121,7 @@ async function CollectionHomeBody({
         </div>
       </div>
       <aside className="hidden shrink-0 flex-col gap-4 lg:flex">
-        {!premium && <CollectionFreePlanCard used={used} />}
+        {!premium && <CollectionFreePlanCard used={collections.error ? null : DEFAULT_COLLECTION_COUNT + privateRows.length} />}
         <CollectionRecentlyIdentified coins={recentList} />
       </aside>
     </div>

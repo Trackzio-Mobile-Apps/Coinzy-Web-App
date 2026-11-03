@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { ScanUsage } from "@/lib/identify/scanUsage";
 import { IdentifyFreePlanCard } from "@/components/identify/IdentifyFreePlanCard";
 import { HOME_OTHER_APPS } from "@/lib/home";
+import { OtherAppDownloadButton } from "@/components/ui/OtherAppDownloadButton";
 
 const A = "/assets/home";
 
@@ -42,9 +43,7 @@ export function IdentifySideRail({
                 <p className="truncate text-sm font-medium leading-5 text-ink">{app.name}</p>
                 <p className="mt-1 truncate text-xs leading-4 text-[#87878a]">{["Identify banknotes", "Habits & Tasks", "Identify antiques"][index]}</p>
               </div>
-              <a href={app.href} target="_blank" rel="noopener noreferrer" aria-label={`Try ${app.name} free`} className="shrink-0 rounded-lg border border-[#dfdfe0] bg-white px-2 py-1 text-xs font-medium leading-4 text-ink">
-                Try free
-              </a>
+              <OtherAppDownloadButton app={app} className="shrink-0 rounded-lg border border-[#dfdfe0] bg-white px-2 py-1 text-xs font-medium leading-4 text-ink" />
             </li>
           ))}
         </ul>

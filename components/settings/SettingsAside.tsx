@@ -3,9 +3,10 @@ import { AppQrCode } from "@/components/ui/AppQrCode";
 import Link from "next/link";
 import { PremiumUpgradeButton } from "@/components/premium/PremiumUpgradeButton";
 import { HOME_OTHER_APPS } from "@/lib/home";
+import { OtherAppDownloadButton } from "@/components/ui/OtherAppDownloadButton";
 
 /** Right rail on Settings — Figma `1368:256937` (Premium + other apps + QR). */
-export function SettingsAside({ premium }: { premium: boolean }) {
+export function SettingsAside({ premium, email }: { premium: boolean; email?: string }) {
   return (
     <aside className="hidden w-[268px] shrink-0 flex-col gap-4 xl:flex">
       {!premium && (
@@ -25,7 +26,7 @@ export function SettingsAside({ premium }: { premium: boolean }) {
               Unlock <span className="text-base font-bold text-white">200,000+</span> Coins from Around the World
             </p>
           </div>
-          <PremiumUpgradeButton className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-[#34228f]">
+          <PremiumUpgradeButton headerStyle email={email} className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-[#34228f]">
             Go Premium
             <Image src="/assets/home/icon-arrow-right.svg" alt="" width={16} height={12} className="opacity-80" />
           </PremiumUpgradeButton>
@@ -42,14 +43,7 @@ export function SettingsAside({ premium }: { premium: boolean }) {
                 <p className="truncate text-sm font-medium leading-5 text-ink">{app.name}</p>
                 <p className="mt-1 truncate text-xs leading-4 text-[#9e9ea1]">{app.description}</p>
               </div>
-              <a
-                href={app.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="shrink-0 rounded-lg border border-[#e5e5e5] px-2 py-1 text-xs font-medium text-ink hover:bg-black/[0.03]"
-              >
-                Try free
-              </a>
+              <OtherAppDownloadButton app={app} className="shrink-0 rounded-lg border border-[#e5e5e5] px-2 py-1 text-xs font-medium text-ink hover:bg-black/[0.03]" />
             </li>
           ))}
         </ul>
