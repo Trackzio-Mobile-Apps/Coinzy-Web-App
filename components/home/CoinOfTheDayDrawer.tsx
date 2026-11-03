@@ -53,11 +53,13 @@ export function CoinOfTheDayDrawer({
   detailsHref,
   lockedCount,
   pro,
+  email,
 }: {
   coin: CoinOfTheDayDrawerCoin;
   detailsHref: string;
   lockedCount: number;
   pro?: ProDrawerControls;
+  email?: string;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
@@ -315,6 +317,7 @@ export function CoinOfTheDayDrawer({
 
       <PremiumUpsellDialog
         open={upsellOpen}
+        email={email}
         onClose={() => {
           setUpsellOpen(false);
           // Opened from inside the (now closed) drawer → hand focus back to the page trigger; otherwise the browser

@@ -11,7 +11,7 @@ const A = "/assets/home";
  * "More knowledge, more fun!" Premium upsell — Figma `1248:114479` (Modal `1248:119042`).
  * "Go Premium" opens the app-store subscribe dialog.
  */
-export function PremiumUpsellDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function PremiumUpsellDialog({ open, onClose, email }: { open: boolean; onClose: () => void; email?: string }) {
   const titleId = useId();
   const ref = useModalDialog(open, (next) => !next && onClose());
   const [plansOpen, setPlansOpen] = useState(false);
@@ -67,7 +67,7 @@ export function PremiumUpsellDialog({ open, onClose }: { open: boolean; onClose:
           </button>
         </div>
       </dialog>
-      <PremiumSubscribeDialog open={plansOpen} onClose={() => setPlansOpen(false)} />
+      <PremiumSubscribeDialog open={plansOpen} onClose={() => setPlansOpen(false)} headerStyle startAtDownload email={email} />
     </>
   );
 }

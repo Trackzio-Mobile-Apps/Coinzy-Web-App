@@ -23,7 +23,7 @@ export function MarketplaceAppHeader({ user, premium }: { user: SessionUser; pre
         </div>
       ) : (
         <div className="flex items-center gap-4">
-          <PremiumUpgradeButton className="inline-flex h-[22px] w-[101px] shrink-0 items-center justify-center gap-1 rounded-full bg-[linear-gradient(89.84deg,#6366f1_9.34%,#ec4899_90.16%)] px-2 py-0.5 font-sans text-xs font-medium leading-4 text-[#fafafa]">
+          <PremiumUpgradeButton headerStyle email={user.email} className="inline-flex h-[22px] w-[101px] shrink-0 items-center justify-center gap-1 rounded-full bg-[linear-gradient(89.84deg,#6366f1_9.34%,#ec4899_90.16%)] px-2 py-0.5 font-sans text-xs font-medium leading-4 text-[#fafafa]">
             <Image src={`${A}/icon-crown.svg`} alt="" width={12} height={12} className="shrink-0" />
             <span className="w-[69px] whitespace-nowrap text-center">Go Premium</span>
           </PremiumUpgradeButton>

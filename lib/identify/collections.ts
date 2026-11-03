@@ -19,6 +19,8 @@ export type CollectionsFetchPayload = {
 
 export const OWNED_COLLECTION_ID = "system:owned";
 export const IDENTIFIED_COLLECTION_ID = "system:identified";
+export const FREE_COLLECTION_LIMIT = 5;
+export const DEFAULT_COLLECTION_COUNT = 3;
 
 export type UserCollectionOption = {
   id: string;

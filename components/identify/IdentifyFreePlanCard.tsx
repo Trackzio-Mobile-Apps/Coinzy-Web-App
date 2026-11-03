@@ -35,7 +35,7 @@ export function IdentifyFreePlanCard({ hidden, initialUsage = null }: { hidden?:
           style={{ width: used > 0 ? `${pct}%` : "8px" }}
         />
       </div>
-      <PremiumUpgradeButton className="flex h-9 w-full items-center justify-center rounded-[10px] border border-[#e5e5e5] bg-white text-sm font-medium text-[#1e1e1f]">
+      <PremiumUpgradeButton headerStyle scanUsage={{ used, limit }} className="flex h-9 w-full items-center justify-center rounded-[10px] border border-[#e5e5e5] bg-white text-sm font-medium text-[#1e1e1f]">
         Upgrade
       </PremiumUpgradeButton>
     </div>

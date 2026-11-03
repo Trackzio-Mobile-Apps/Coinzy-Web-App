@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useState } from "react";
 import { useModalDialog } from "@/components/ui/useModalDialog";
+import { PremiumSubscribeDialog } from "@/components/premium/PremiumSubscribeDialog";
 import { createCollectionViaApi } from "@/lib/identify/collectionClient";
 import { defaultNewCollectionName, MAX_COLLECTION_NAME_LENGTH } from "@/lib/identify/collections";
 
@@ -16,6 +17,7 @@ export function CollectionCreateCollectionCard({ privateCount }: { privateCount:
   const [name, setName] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [limitOpen, setLimitOpen] = useState(false);
   const ref = useModalDialog(open, (next) => !next && setOpen(false));
 
   useEffect(() => {
@@ -39,6 +41,7 @@ export function CollectionCreateCollectionCard({ privateCount }: { privateCount:
     const res = await createCollectionViaApi(trimmed);
     setSaving(false);
     if (res.error) {
+      if (res.code === "COLLECTION_LIMIT") { close(); setLimitOpen(true); return; }
       setError(res.reason ?? "Could not create collection.");
       return;
     }
@@ -119,6 +122,7 @@ export function CollectionCreateCollectionCard({ privateCount }: { privateCount:
           </button>
         </div>
       </dialog>
+      <PremiumSubscribeDialog open={limitOpen} onClose={() => setLimitOpen(false)} headerStyle collectionLimit />
     </>
   );
 }

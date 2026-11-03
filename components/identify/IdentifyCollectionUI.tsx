@@ -5,6 +5,7 @@ import { useEffect, useId, useState } from "react";
 import type { ArchetypeDetails } from "@/lib/api/coinzy";
 import { coinTitle, detailTabs, overviewRows } from "@/lib/catalogue/coinDetails";
 import { useModalDialog } from "@/components/ui/useModalDialog";
+import { PremiumSubscribeDialog } from "@/components/premium/PremiumSubscribeDialog";
 import { defaultNewCollectionName, MAX_COLLECTION_NAME_LENGTH, type UserCollectionOption } from "@/lib/identify/collections";
 
 function CollectionCheckbox({
@@ -318,7 +319,7 @@ export function IdentifySelectCollectionModal({
   onToggle: (id: string) => void;
   onClose: () => void;
   onDone: () => void;
-  onCreateCollection: (name: string) => Promise<{ error: true; reason?: string } | { error: false }>;
+  onCreateCollection: (name: string) => Promise<{ error: true; reason?: string; code?: string } | { error: false }>;
   saving?: boolean;
 }) {
   const titleId = useId();
@@ -328,6 +329,7 @@ export function IdentifySelectCollectionModal({
   const [newName, setNewName] = useState("");
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [limitOpen, setLimitOpen] = useState(false);
 
   const privateCount = collections.filter((o) => o.kind === "private").length;
 
@@ -353,6 +355,7 @@ export function IdentifySelectCollectionModal({
     const res = await onCreateCollection(name);
     setCreating(false);
     if (res.error) {
+      if (res.code === "COLLECTION_LIMIT") { onClose(); setLimitOpen(true); return false; }
       setCreateError(res.reason ?? "Could not create collection.");
       return false;
     }
@@ -365,7 +368,7 @@ export function IdentifySelectCollectionModal({
     onDone();
   };
 
-  return (
+  return (<>
     <dialog
       ref={ref}
       aria-labelledby={titleId}
@@ -504,5 +507,7 @@ export function IdentifySelectCollectionModal({
         </button>
       </div>
     </dialog>
+    <PremiumSubscribeDialog open={limitOpen} onClose={() => setLimitOpen(false)} headerStyle collectionLimit />
+    </>
   );
 }

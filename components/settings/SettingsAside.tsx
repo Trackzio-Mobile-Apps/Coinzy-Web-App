@@ -6,7 +6,7 @@ import { HOME_OTHER_APPS } from "@/lib/home";
 import { OtherAppDownloadButton } from "@/components/ui/OtherAppDownloadButton";
 
 /** Right rail on Settings — Figma `1368:256937` (Premium + other apps + QR). */
-export function SettingsAside({ premium }: { premium: boolean }) {
+export function SettingsAside({ premium, email }: { premium: boolean; email?: string }) {
   return (
     <aside className="hidden w-[268px] shrink-0 flex-col gap-4 xl:flex">
       {!premium && (
@@ -26,7 +26,7 @@ export function SettingsAside({ premium }: { premium: boolean }) {
               Unlock <span className="text-base font-bold text-white">200,000+</span> Coins from Around the World
             </p>
           </div>
-          <PremiumUpgradeButton className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-[#34228f]">
+          <PremiumUpgradeButton headerStyle email={email} className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-[#34228f]">
             Go Premium
             <Image src="/assets/home/icon-arrow-right.svg" alt="" width={16} height={12} className="opacity-80" />
           </PremiumUpgradeButton>
