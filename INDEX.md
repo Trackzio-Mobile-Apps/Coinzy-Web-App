@@ -1,5 +1,7 @@
 # Coinzy Web — Project Index
 
+- Identify collection selector: Done creates an open new collection and adds the coin to it and the selected collections; Enter performs the same action.
+
 Living map for humans and agents. **Agent rules:** `AGENTS.md` (shared), `CLAUDE.md` (Claude), `.cursor/rules/` (Cursor). Codex reads `AGENTS.md`. Update this file when routes, APIs, or hard-won gotchas change.
 
 - **Terminal API logs:** `instrumentation.ts` installs `lib/dev/apiLogger.ts` for Node server fetches in `npm run dev`, `dev:qa`, `build`, and `start`. Matched request/response IDs, method, URL, status, elapsed time and pretty JSON bodies; credentials are redacted, uploads show file metadata, streams/binary bodies are skipped. Bodies print in full unless `API_LOG_MAX=<chars>` is set; `API_LOG=0` disables logging. Browser-only Firebase calls stay in browser tools. Legacy Experts HTTP cards defer to this logger to avoid duplicates.

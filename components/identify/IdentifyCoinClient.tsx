@@ -140,14 +140,13 @@ export function IdentifyResultRail({
     setDrawerOpen(true);
   };
 
-  const finishAdd = useCallback(async () => {
+  const finishAdd = useCallback(async (created?: UserCollectionOption) => {
     if (!imagePair) {
       setError("Upload photos are missing — identify this coin again.");
       return;
     }
     // Add to each selected collection one by one (Owned first).
-    const picked = collections
-      .filter((o) => selectedIds.includes(o.id))
+    const picked = [...collections.filter((o) => selectedIds.includes(o.id)), ...(created ? [created] : [])]
       .sort((x, y) => Number(y.kind === "owned") - Number(x.kind === "owned"));
     if (!picked.length) {
       setError("Select a collection.");
@@ -180,7 +179,7 @@ export function IdentifyResultRail({
       const option = privateCollectionOption({ collectionId: res.collectionId, name: res.name });
       setCollections((prev) => [...prev, option]);
       setSelectedIds((prev) => [...prev, option.id]);
-      return { error: false as const };
+      return { error: false as const, option };
     },
     [],
   );
@@ -315,8 +314,8 @@ export function IdentifyResultRail({
           setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
         }
         onClose={() => setSelectOpen(false)}
-        onDone={() => {
-          if (!saving && !collectionsLoading) finishAdd();
+        onDone={(created) => {
+          if (!saving && !collectionsLoading) finishAdd(created);
         }}
         onCreateCollection={handleCreateCollection}
         saving={saving}
