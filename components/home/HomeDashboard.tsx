@@ -154,7 +154,7 @@ export function HomeDashboard({
                     <p className="text-sm leading-5 text-[#49494b]">Get your coin reviewed by a certified expert.</p>
                     <p className="flex items-center gap-1 text-xs leading-4 text-muted">
                       <Image src={`${A}/icon-clock.svg`} alt="" width={16} height={16} />
-                      24–48 hr delivery
+                      24–72 hr delivery
                     </p>
                   </div>
                   <Link

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState, useTransition } from "react";
+import { SubmittedEvaluation } from "@/components/experts/SubmittedEvaluation";
 import { ExpertsAside } from "@/components/experts/ExpertsAside";
 import { ExpertsBreadcrumb } from "@/components/experts/ExpertsBreadcrumb";
 import { creditBalanceFromData, parseCreditBalance } from "@/lib/experts/creditBalance";
@@ -28,19 +29,22 @@ export function ExpertStatusPanel({
   initial,
   creditBalance: initialCredits,
   experts,
+  preview = false,
 }: {
   initial: ExpertRequest;
   creditBalance: number;
   experts: ExpertsDirectoryItem[];
+  preview?: boolean;
 }) {
   const router = useRouter();
   const [request, setRequest] = useState(initial);
   const [credits, setCredits] = useState(initialCredits);
   useEffect(() => {
+    if (preview) return;
     void getExpertsCredits().then((res) => {
       if (!res.error) setCredits(creditBalanceFromData(res.data, initialCredits));
     });
-  }, [initialCredits]);
+  }, [initialCredits, preview]);
   const [error, setError] = useState("");
   const [extendOpen, setExtendOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -95,6 +99,7 @@ export function ExpertStatusPanel({
   useExpertsRealtime(onRealtime);
 
   useEffect(() => {
+    if (preview) return;
     if (status === "completed") {
       router.replace(`/experts/request/${id}/report`);
       return;
@@ -102,7 +107,7 @@ export function ExpertStatusPanel({
     if (status !== "offered" && status !== "accepted") return;
     const t = setInterval(() => refreshRequest(id), 12000);
     return () => clearInterval(t);
-  }, [id, status, router, refreshRequest]);
+  }, [id, status, router, refreshRequest, preview]);
 
   useEffect(() => {
     const el = dialogRef.current;
@@ -112,6 +117,10 @@ export function ExpertStatusPanel({
   }, [extendOpen]);
 
   const runRetry = () => {
+    if (preview) {
+      setExtendOpen(false);
+      return;
+    }
     startTransition(async () => {
       setError("");
       const res = await retryExpertRequest(id);
@@ -131,6 +140,16 @@ export function ExpertStatusPanel({
   const hoursLeft = hoursUntil(request.deadlineAt);
   const missed = status === "deadline_missed";
   const cancelled = status === "cancelled";
+
+  if (!cancelled) {
+    return <>
+      <SubmittedEvaluation request={request} creditBalance={credits} onCreditsPurchased={setCredits} onExtend={() => setExtendOpen(true)} error={error} preview={preview} />
+      <dialog ref={dialogRef} onClose={() => setExtendOpen(false)} aria-labelledby={titleId} className="m-auto w-[min(100%,532px)] rounded-[12px] border-0 bg-white p-0 shadow-xl backdrop:bg-black/40">
+        <div className="px-4 pt-4"><h2 id={titleId} className="text-base font-semibold text-ink">Give your expert more time?</h2><p className="mt-2 text-sm leading-5 text-[#737373]">Retry restarts allocation for this request. The new deadline is set by the Experts API.</p></div>
+        <div className="mt-4 flex justify-end gap-2 border-t border-[#f0f0f1] px-4 py-4"><button type="button" className="h-8 rounded-[8px] px-3 text-sm font-medium text-[#737373] hover:bg-[#f5f5f5]" onClick={() => setExtendOpen(false)}>Not now</button><button type="button" disabled={pending} onClick={runRetry} className="h-8 rounded-[8px] bg-primary-500 px-3 text-sm font-medium text-white disabled:opacity-50">{pending ? "Extending…" : "Extend deadline"}</button></div>
+      </dialog>
+    </>;
+  }
 
   return (
     <div className="mx-auto flex w-full max-w-[1122px] gap-4 px-8 py-6">
@@ -193,18 +212,6 @@ export function ExpertStatusPanel({
           ) : null}
 
           <ProgressSteps status={status} createdAt={request.createdAt} acceptedAt={request.acceptedAt} />
-
-          {status === "offered" && (
-            <p className="mt-4 text-sm leading-5 text-[#49494b]">
-              We&apos;re matching your coin with an available expert. This usually takes a few minutes.
-            </p>
-          )}
-          {status === "accepted" && (
-            <p className="mt-4 text-sm leading-5 text-[#49494b]">
-              An expert is reviewing your photos. You&apos;ll get a notification when the report is ready
-              (typically within 72 hours).
-            </p>
-          )}
 
           {missed && (
             <div className="mt-4 rounded-[12px] border border-[#fecaca] bg-[#fef2f2] p-4">
