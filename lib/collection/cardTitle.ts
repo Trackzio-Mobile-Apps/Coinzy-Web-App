@@ -1,7 +1,7 @@
 export function systemCollectionTitle(kind: "owned" | "identified" | "wishlist", count: number): string {
   const label = kind === "owned" ? "Owned" : kind === "identified" ? "Identified" : "Wishlist";
   const n =
-    (kind === "identified" || kind === "wishlist") && count < 100
+    (kind === "identified" || kind === "wishlist") && count > 0 && count < 100
       ? String(count).padStart(2, "0")
       : String(count);
   return `${label} (${n} coins)`;

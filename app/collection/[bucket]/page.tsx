@@ -61,6 +61,8 @@ async function BucketBody({
   const total = coins.error ? 0 : coins.totalCount;
   const pages = Math.max(1, Math.ceil(total / 16));
   const title = `${BUCKETS[kind].title} (${total})`;
+  const hasFilterOptions = FILTER_FIELDS.some((field) => (options[field]?.length ?? 0) > 0);
+  const hasSelectedFilters = Object.values(selected).some((values) => (values?.length ?? 0) > 0);
 
   const hrefFor = (nextPage: number) => {
     const p = new URLSearchParams();
@@ -92,6 +94,7 @@ async function BucketBody({
           {!coins.error && list.length === 0 && (query || Object.keys(selected).length > 0) && (
             <p className="mt-8 text-sm text-muted">No coins match these filters.</p>
           )}
+          {!hasFilterOptions && hasSelectedFilters && <Link href={query ? `/collection/${bucket}?q=${encodeURIComponent(query)}` : `/collection/${bucket}`} className="mt-3 inline-block text-xs text-primary-500">Clear all filters</Link>}
           <ul className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
             {list.map((coin) => {
               const href = withFrom(`/collection/coin/${coin.coinId}`, kind, page, query);
@@ -133,7 +136,7 @@ async function BucketBody({
             </div>
           )}
         </div>
-        <aside className="hidden w-[240px] shrink-0 rounded-xl border border-[#efefef] bg-white p-4 lg:block">
+        {hasFilterOptions && <aside className="hidden w-[240px] shrink-0 rounded-xl border border-[#efefef] bg-white p-4 lg:block">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-ink">Filter</p>
             <Link href={`/collection/${bucket}`} className="text-xs text-primary-500">
@@ -175,7 +178,7 @@ async function BucketBody({
               </div>
             );
           })}
-        </aside>
+        </aside>}
       </div>
     </>
   );
