@@ -51,3 +51,21 @@ export function buildSellPayload(
     },
   };
 }
+
+/** Only send edited fields so existing listing and seller metadata remain intact. */
+export function buildListingUpdate(payload: ReturnType<typeof buildSellPayload>, listing: import("@/lib/api/coinzy").ListingDetails): Record<string, unknown> {
+  const changes: Record<string, unknown> = {};
+  if (payload.price !== Number(listing.price)) changes.price = payload.price;
+  const fields = ["gradingScale", "gradeValue", "gradingAuthority", "certificationNumber", "strikerType", "coinCondition"] as const;
+  for (const field of fields) {
+    const next = payload[field] ?? "";
+    if (next !== (listing[field] ?? "")) changes[field] = next;
+  }
+  const cleaning = payload.cleaningAlterations ?? [];
+  if ((cleaning[0] ?? "") !== (listing.cleaningAlterations?.[0] ?? "")) changes.cleaningAlterations = cleaning;
+  const links = listing.sellerDetails?.externalLinks ?? [];
+  if (payload.sellerDetails.contactEmail !== (listing.sellerDetails?.contactEmail ?? "") || JSON.stringify(payload.sellerDetails.externalLinks) !== JSON.stringify(links)) {
+    changes.sellerDetails = { ...listing.sellerDetails, contactEmail: payload.sellerDetails.contactEmail, externalLinks: payload.sellerDetails.externalLinks };
+  }
+  return changes;
+}

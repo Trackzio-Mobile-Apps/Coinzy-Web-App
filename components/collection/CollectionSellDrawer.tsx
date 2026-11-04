@@ -84,6 +84,7 @@ function Select({
         <option value="" className="font-normal text-ink">
           {placeholder}
         </option>
+        {value && !options.includes(value) && <option value={value}>{value}</option>}
         {options.map((o) => (
           <option key={o} value={o} className="font-normal text-ink">
             {o}
@@ -146,6 +147,7 @@ export function CollectionSellDrawer({
   submitting,
   onClose,
   onSubmit,
+  editListing,
 }: {
   open: boolean;
   coinTitle: string;
@@ -155,6 +157,7 @@ export function CollectionSellDrawer({
   submitting: boolean;
   onClose: () => void;
   onSubmit: (payload: ReturnType<typeof buildSellPayload>) => void;
+  editListing?: import("@/lib/api/coinzy").ListingDetails;
 }) {
   const [values, setValues] = useState<SellFormState>(() => emptyForm(defaultEmail));
   const [errors, setErrors] = useState<SellFormErrors>({});
@@ -165,8 +168,20 @@ export function CollectionSellDrawer({
   useEffect(() => {
     if (!open) return;
     setErrors({});
-    setValues(emptyForm(defaultEmail));
-  }, [open, defaultEmail]);
+    setValues(editListing ? {
+      price: editListing.price == null ? "" : String(editListing.price),
+      contactEmail: editListing.sellerDetails?.contactEmail ?? "",
+      externalLinks: editListing.sellerDetails?.externalLinks ?? [],
+      linkDraft: "",
+      gradingScale: editListing.gradingScale ?? "",
+      gradeValue: editListing.gradeValue ?? "",
+      gradingAuthority: editListing.gradingAuthority ?? "",
+      certificationNumber: editListing.certificationNumber ?? "",
+      strikerType: editListing.strikerType ?? "",
+      cleaningAlterations: editListing.cleaningAlterations?.[0] ?? "",
+      coinCondition: editListing.coinCondition ?? "",
+    } : emptyForm(defaultEmail));
+  }, [open, defaultEmail, editListing]);
 
   if (!open) return null;
 
@@ -183,6 +198,7 @@ export function CollectionSellDrawer({
 
   const submit = () => {
     const nextErrors = validateSellForm(values);
+    if (editListing) { delete nextErrors.gradingScale; delete nextErrors.gradingAuthority; }
     if (values.gradingScale === fallbackScales[1] && values.gradeValue &&
         (!Number.isInteger(Number(values.gradeValue)) || Number(values.gradeValue) < 1 || Number(values.gradeValue) > 100)) {
       nextErrors.gradeValue = "Enter a whole number from 1 to 100";
@@ -211,7 +227,7 @@ export function CollectionSellDrawer({
             <Image src="/assets/auth/close.svg" alt="" width={12} height={12} />
           </button>
           <h2 id="sell-drawer-title" className="text-sm font-medium leading-5 text-[#1e1e1f]">
-            Add for Sale
+            {editListing ? "Edit details" : "Add for Sale"}
           </h2>
         </header>
 
@@ -284,9 +300,7 @@ export function CollectionSellDrawer({
                   {values.externalLinks.length > 0 && (
                     <ul className="flex flex-col gap-1 text-xs text-[#606062]">
                       {values.externalLinks.map((l) => (
-                        <li key={l} className="truncate">
-                          {l}
-                        </li>
+                        <li key={l} className="flex items-center gap-2"><span className="min-w-0 flex-1 truncate">{l}</span>{editListing && <button type="button" aria-label={`Remove link ${l}`} onClick={() => set("externalLinks", values.externalLinks.filter((link) => link !== l))} className="text-[#606062]">×</button>}</li>
                       ))}
                     </ul>
                   )}
@@ -298,7 +312,7 @@ export function CollectionSellDrawer({
           <hr className="border-t-[0.5px] border-[#dfdfe0]" />
 
           <section className="flex flex-col gap-3">
-            <SectionHeader title="Coin Grading details" open={gradingOpen} onToggle={() => setGradingOpen((v) => !v)} />
+            <SectionHeader title={editListing ? "Grading details" : "Coin Grading details"} open={gradingOpen} onToggle={() => setGradingOpen((v) => !v)} />
             {gradingOpen && (
               <div className="flex flex-col gap-3">
                 <Field id={`${priceId}-scale`} title="Grading scale (Select one)" error={errors.gradingScale}>
@@ -388,15 +402,15 @@ export function CollectionSellDrawer({
             onClick={submit}
             className="flex h-9 w-full items-center justify-center rounded-[10px] bg-primary-500 px-4 text-sm font-medium text-[#fafafa] hover:bg-primary-600 disabled:opacity-60"
           >
-            {submitting ? "Adding…" : "Add for Sale"}
+            {submitting ? (editListing ? "Updating…" : "Adding…") : (editListing ? "Update details" : "Add for Sale")}
           </button>
-          <button
+          {!editListing && <button
             type="button"
             onClick={onClose}
             className="flex h-9 w-full items-center justify-center rounded-[10px] px-4 text-sm font-medium text-[#1e1e1f] hover:bg-neutral-50"
           >
             Cancel
-          </button>
+          </button>}
         </footer>
       </aside>
     </>

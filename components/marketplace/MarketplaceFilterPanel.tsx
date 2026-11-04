@@ -268,7 +268,7 @@ export function MarketplaceFilterPanel({ options, wrapperClassName = "min-h-0 sh
       </button>
     )}
     <aside
-      className={`${collapsible && !mobileOpen ? "hidden lg:flex" : "flex"} w-[268px] shrink-0 flex-col gap-4 rounded-2xl border-[0.5px] border-[#c2c2c4] bg-white px-4 py-3 transition-opacity ${pending ? "pointer-events-none opacity-70" : ""}`}
+      className={`${collapsible && !mobileOpen ? "hidden lg:flex" : "flex"} ${collapsible ? "w-full lg:w-[268px]" : "w-[268px]"} shrink-0 flex-col gap-4 rounded-2xl border-[0.5px] border-[#c2c2c4] bg-white px-4 py-3 transition-opacity ${pending ? "pointer-events-none opacity-70" : ""}`}
       aria-busy={pending}
     >
       <div className="flex h-6 items-center justify-between">
