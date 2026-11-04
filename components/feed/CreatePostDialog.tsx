@@ -8,8 +8,7 @@ import type { CommunityUser, FeedPost } from "@/lib/feed/types";
 
 /**
  * Create / edit post — Figma Feed modal.
- * Enable rules match Android CreatePostBottomSheet:
- * title non-empty AND (content non-empty OR at least one image); max 2 images.
+ * Title and text are optional; require at least one text field or image, max 2 images.
  */
 export function CreatePostDialog({
   open,
@@ -36,7 +35,6 @@ export function CreatePostDialog({
 }) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [isBuySell, setIsBuySell] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [keepUrls, setKeepUrls] = useState<string[]>([]);
@@ -47,14 +45,12 @@ export function CreatePostDialog({
     if (editing) {
       setTitle(editing.title);
       setContent(editing.content);
-      setIsBuySell(editing.isBuySell);
       setKeepUrls(editing.imageList.slice(0, FEED_MAX_IMAGES));
       setFiles([]);
       setPreviews([]);
     } else {
       setTitle("");
       setContent("");
-      setIsBuySell(false);
       setKeepUrls([]);
       setFiles([]);
       setPreviews([]);
@@ -64,10 +60,7 @@ export function CreatePostDialog({
   if (!open) return null;
 
   const imageCount = keepUrls.length + files.length;
-  const canPost =
-    title.trim().length > 0 &&
-    (content.trim().length > 0 || imageCount > 0) &&
-    !busy;
+  const canPost = (title.trim().length > 0 || content.trim().length > 0 || imageCount > 0) && !busy;
 
   const close = () => {
     if (busy) return;
@@ -89,9 +82,9 @@ export function CreatePostDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal>
-      <div className="w-full max-w-[520px] rounded-2xl bg-white p-5 shadow-xl">
-        <div className="flex items-start gap-3">
-          <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary-50 text-sm font-medium text-primary-500">
+      <div className="flex max-h-[90vh] w-full max-w-[572px] flex-col overflow-hidden rounded-[14px] bg-white shadow-xl">
+        <div className="flex items-start gap-2 p-4">
+          <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary-50 text-sm font-medium text-primary-500">
             {me.profilePictureUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={me.profilePictureUrl} alt="" className="size-full object-cover" />
@@ -100,25 +93,26 @@ export function CreatePostDialog({
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink">{me.name || "Collector"}</p>
-            <p className="text-xs text-muted">Post to Anyone</p>
+            <p className="text-base font-medium leading-6 text-ink">{me.name || "Collector"}</p>
+            <p className="mt-1 text-sm leading-5 text-[#777]">Post to Anyone</p>
           </div>
           <button
             type="button"
             onClick={close}
             disabled={busy}
-            className="flex size-8 items-center justify-center rounded-full text-muted hover:bg-[#f3f4f6]"
+            className="flex size-4 items-center justify-center text-muted hover:text-ink"
             aria-label="Close"
           >
             ✕
           </button>
         </div>
 
+        <div className="min-h-0 overflow-y-auto px-4 pb-4">
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="mt-4 w-full rounded-xl border border-[#e5e7eb] px-3 py-2.5 text-sm font-medium outline-none focus:border-primary-500"
-          placeholder="Title"
+          className="h-9 w-full rounded-lg border border-[#e5e5e5] px-2.5 text-sm font-medium outline-none placeholder:font-normal placeholder:text-[#a4a4a7] focus:border-primary-500"
+          placeholder="Title (optional)"
           maxLength={120}
           disabled={busy}
         />
@@ -126,33 +120,10 @@ export function CreatePostDialog({
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          className="mt-3 min-h-[120px] w-full resize-y rounded-xl border border-[#e5e7eb] px-3 py-2.5 text-sm outline-none focus:border-primary-500"
-          placeholder="What’s on your mind?"
+          className="mt-2 h-[76px] min-h-[76px] w-full resize-y rounded-lg border border-[#e5e5e5] px-2.5 py-2 text-sm leading-5 outline-none placeholder:text-[#a4a4a7] focus:border-primary-500"
+          placeholder="Small Bio (optional)"
           disabled={busy}
         />
-
-        <div className="mt-3 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setIsBuySell(false)}
-            className={`rounded-full px-3 py-1.5 text-xs font-medium ${
-              !isBuySell ? "bg-primary-50 text-primary-500" : "bg-[#f3f4f6] text-muted"
-            }`}
-            disabled={busy}
-          >
-            Discussion
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsBuySell(true)}
-            className={`rounded-full px-3 py-1.5 text-xs font-medium ${
-              isBuySell ? "bg-[#eef2ff] text-[#4338ca]" : "bg-[#f3f4f6] text-muted"
-            }`}
-            disabled={busy}
-          >
-            Buy / Sell
-          </button>
-        </div>
 
         {(keepUrls.length > 0 || previews.length > 0) && (
           <div className="mt-3 grid grid-cols-2 gap-2">
@@ -193,7 +164,9 @@ export function CreatePostDialog({
           </div>
         )}
 
-        <div className="mt-4 flex items-center justify-between gap-3">
+        {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
+        </div>
+        <div className="flex min-h-[68px] items-center justify-between gap-3 border-t border-[#e5e5e5] bg-[#fafafa] p-4">
           <div className="flex items-center gap-1">
             <input
               ref={inputRef}
@@ -233,18 +206,17 @@ export function CreatePostDialog({
               await onSubmit({
                 title: title.trim(),
                 content: content.trim(),
-                isBuySell,
+                isBuySell: editing?.isBuySell ?? false,
                 files,
                 keepImageUrls: keepUrls,
               });
             }}
-            className="rounded-lg bg-primary-500 px-5 py-2.5 text-sm font-medium text-white disabled:opacity-50"
+            className="h-8 rounded-[10px] bg-primary-500 px-3 text-sm font-medium text-white disabled:opacity-50"
           >
             {busy ? "Posting…" : editing ? "Save" : "Post"}
           </button>
         </div>
 
-        {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
       </div>
     </div>
   );

@@ -15,18 +15,18 @@ import type { CommunityUser, FeedComment, FeedPost } from "@/lib/feed/types";
 
 const COMMENT_MAX_LENGTH = 500;
 
-/** Comments / replies modal — Figma Feed replies frame. */
+/** Inline comments and replies for a feed post. */
 export function CommentsPanel({
   open,
   post,
   me,
-  onClose,
+  onOpen,
   onCommentCountDelta,
 }: {
   open: boolean;
-  post: FeedPost | null;
+  post: FeedPost;
   me: CommunityUser;
-  onClose: () => void;
+  onOpen: () => void;
   onCommentCountDelta: (postId: string, delta: number) => void;
 }) {
   const [comments, setComments] = useState<FeedComment[]>([]);
@@ -35,6 +35,7 @@ export function CommentsPanel({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [emojiOpen, setEmojiOpen] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useLayoutEffect(() => {
@@ -65,9 +66,8 @@ export function CommentsPanel({
     return () => {
       cancelled = true;
     };
-  }, [open, post, me.userId]);
+  }, [open, post.id, me.userId]);
 
-  if (!open || !post) return null;
 
   const submit = async () => {
     const body = text.trim();
@@ -120,18 +120,8 @@ export function CommentsPanel({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal>
-      <div className="flex max-h-[min(720px,90dvh)] w-full max-w-[480px] flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b border-[#e5e7eb] px-5 py-4">
-          <h2 className="text-lg font-semibold text-ink">
-            Comments ({post.commentCount})
-          </h2>
-          <button type="button" onClick={onClose} className="text-sm text-muted hover:text-ink" aria-label="Close">
-            ✕
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto px-5 py-4">
+    <div className="flex flex-col gap-3" aria-label="Post comments">
+        {open && <div className="flex flex-col gap-3">
           {loading ? <p className="text-sm text-muted">Loading…</p> : null}
           {!loading && comments.length === 0 ? (
             <p className="text-sm text-muted">No comments yet. Start the discussion.</p>
@@ -169,7 +159,7 @@ export function CommentsPanel({
                       >
                         {c.isLikedByCurrentUser ? "Unlike" : "Like"} · {c.likeCount}
                       </button>
-                      <button type="button" onClick={() => setReplyTo(c.id)}>
+                      <button type="button" onClick={() => { setReplyTo(c.id); inputRef.current?.focus(); }}>
                         Reply
                       </button>
                     </div>
@@ -227,9 +217,9 @@ export function CommentsPanel({
               </li>
             ))}
           </ul>
-        </div>
+        </div>}
 
-        <div className="border-t border-[#e5e7eb] p-4">
+        <div>
           {replyTo ? (
             <div className="mb-2 flex items-center justify-between text-xs text-muted">
               <span>Replying to comment</span>
@@ -240,8 +230,8 @@ export function CommentsPanel({
           ) : null}
           {error ? <p className="mb-2 text-sm text-red-600">{error}</p> : null}
           <div className="flex items-center gap-2">
-            <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary-50 text-[10px] font-medium text-primary-500">
-              {initials(me.name || "?")}
+            <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#e5e5e5] bg-primary-50 text-xs font-medium text-primary-500">
+              {me.profilePictureUrl ? <img src={me.profilePictureUrl} alt="" className="size-full object-cover" onError={(event) => { event.currentTarget.style.display = "none"; event.currentTarget.nextElementSibling?.classList.remove("hidden"); }} /> : null}<span className={me.profilePictureUrl ? "hidden" : undefined}>{initials(me.name || "?")}</span>
             </div>
             <textarea
               ref={inputRef}
@@ -249,8 +239,10 @@ export function CommentsPanel({
               value={text}
               maxLength={COMMENT_MAX_LENGTH}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Add a comment..."
-              className="min-h-[42px] max-h-[82px] min-w-0 flex-1 resize-none overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden rounded-xl border border-[#e5e7eb] px-4 py-2.5 text-sm leading-5 outline-none focus:border-primary-500"
+              placeholder="Add a comment"
+              aria-label="Add a comment"
+              onFocus={onOpen}
+              className="min-h-10 max-h-[82px] min-w-0 flex-1 resize-none overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden rounded-xl border border-[#e5e7eb] px-4 py-2.5 text-sm leading-5 outline-none focus:border-primary-500"
               disabled={busy}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
@@ -259,7 +251,8 @@ export function CommentsPanel({
                 }
               }}
             />
-            <button
+            <div className="relative"><button type="button" aria-label="Choose emoji" aria-expanded={emojiOpen} onClick={() => setEmojiOpen((value) => !value)} className="flex size-8 items-center justify-center text-[#141b34]"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c.8 1.2 2 1.8 3.5 1.8s2.7-.6 3.5-1.8M8.5 9.5h.01M15.5 9.5h.01"/></svg></button>{emojiOpen && <div className="absolute bottom-full right-0 z-10 mb-2 flex gap-1 rounded-lg border border-[#e5e5e5] bg-white p-2 shadow-lg">{["😀", "😊", "❤️", "👍", "🎉"].map((emoji) => <button key={emoji} type="button" aria-label={`Add ${emoji}`} onClick={() => { setText((value) => (value + emoji).slice(0, COMMENT_MAX_LENGTH)); setEmojiOpen(false); inputRef.current?.focus(); }} className="rounded p-1 hover:bg-[#f5f5f5]">{emoji}</button>)}</div>}</div>
+            {text.trim() && <button
               type="button"
               onClick={() => void submit()}
               disabled={busy || !text.trim()}
@@ -267,13 +260,12 @@ export function CommentsPanel({
               aria-label="Send"
             >
               <Image src="/assets/home/icon-arrow-right.svg" alt="" width={14} height={12} className="brightness-0 invert" />
-            </button>
+            </button>}
           </div>
-          <p className="mt-1 text-right text-xs text-muted" aria-live="polite">
+          {text.length > 0 && <p className="mt-1 text-right text-xs text-muted" aria-live="polite">
             {text.length >= COMMENT_MAX_LENGTH ? `Character limit reached (${COMMENT_MAX_LENGTH}).` : `${text.length}/${COMMENT_MAX_LENGTH}`}
-          </p>
+          </p>}
         </div>
-      </div>
     </div>
   );
 }
