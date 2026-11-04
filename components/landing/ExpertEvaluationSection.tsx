@@ -32,7 +32,7 @@ export function ExpertEvaluationSection() {
                 </h2>
                 <p className="max-w-[407px] text-sm leading-5 text-muted">
                   Upload your coin and get expert guidance on value, rarity, and
-                  condition. Detailed reports in 24–48 hours.
+                  condition. Detailed reports in 24–72 hours.
                 </p>
               </div>
             </div>

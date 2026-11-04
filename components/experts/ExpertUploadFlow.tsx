@@ -2,11 +2,12 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useId, useMemo, useRef, useState, useTransition, type DragEvent } from "react";
+import { useCallback, useEffect, useId, useRef, useState, useTransition, type DragEvent } from "react";
 import { ExpertDebugBar, type ExpertsDebugMedia } from "@/components/experts/ExpertDebugBar";
 import { ExpertsAside } from "@/components/experts/ExpertsAside";
 import { ExpertsBreadcrumb } from "@/components/experts/ExpertsBreadcrumb";
 import { ExpertsBuyCreditsDialog } from "@/components/experts/ExpertsBuyCreditsDialog";
+import { IdentifyCropModal } from "@/components/identify/IdentifyCropModal";
 import { creditBalanceFromData, parseCreditBalance } from "@/lib/experts/creditBalance";
 import { createExpertRequest, getExpertsCredits } from "@/lib/experts/client";
 import type { ExpertsRealtimeMessage } from "@/lib/experts/realtime";
@@ -14,11 +15,11 @@ import { useExpertsRealtime } from "@/lib/experts/useExpertsRealtime";
 import {
   hasRequiredHttpsSlots,
   isInsufficientCreditsError,
-  MAX_SLOT_IMAGES,
   MAX_VIDEO_DURATION_MS,
   resolveCountryIso,
   sanitizeMediaForApi,
 } from "@/lib/experts/mediaRules";
+import { photoSlotValues, replacePhotoSlot, type PhotoSlots } from "@/lib/experts/photoSlots";
 import type { ExpertsDirectoryItem } from "@/lib/experts/types";
 import { ensureExpertsFirebaseAuth, uploadExpertRequestMedia } from "@/lib/experts/uploadMedia";
 
@@ -44,14 +45,26 @@ export function ExpertUploadFlow({
 }) {
   const router = useRouter();
   const [credits, setCredits] = useState(initialCredits);
-  const [obverse, setObverse] = useState<LocalSlot[]>([]);
-  const [reverse, setReverse] = useState<LocalSlot[]>([]);
-  const [edge, setEdge] = useState<LocalSlot[]>([]);
+  const [obverse, setObverse] = useState<PhotoSlots<LocalSlot>>([null, null]);
+  const [reverse, setReverse] = useState<PhotoSlots<LocalSlot>>([null, null]);
+  const [edge, setEdge] = useState<PhotoSlots<LocalSlot>>([null, null]);
   const [video, setVideo] = useState<LocalSlot | null>(null);
+  const [crop, setCrop] = useState<{ slot: Slot; atIndex: 0 | 1; file: File } | null>(null);
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
   const [buyOpen, setBuyOpen] = useState(false);
   const [pending, startTransition] = useTransition();
+  const [navigating, setNavigating] = useState(false);
+  const submittingRef = useRef(false);
+  const loaderRef = useRef<HTMLDialogElement>(null);
+  const submitting = pending || navigating;
+
+  useEffect(() => {
+    const dialog = loaderRef.current;
+    if (!dialog) return;
+    if (submitting && !dialog.open) dialog.showModal();
+    if (!submitting && dialog.open) dialog.close();
+  }, [submitting]);
 
   useEffect(() => {
     void getExpertsCredits().then((res) => {
@@ -75,16 +88,7 @@ export function ExpertUploadFlow({
   }, []);
   useExpertsRealtime(onRealtime);
 
-  const draftId = useMemo(() => {
-    const d = new Date();
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    const seq = String(Math.floor(Math.random() * 9000) + 1000);
-    return `EV${y}${m}${day}${seq}`;
-  }, []);
-
-  const setSlot = (slot: Slot, next: LocalSlot[]) => {
+  const setSlot = (slot: Slot, next: PhotoSlots<LocalSlot>) => {
     if (slot === "obverse") setObverse(next);
     else if (slot === "reverse") setReverse(next);
     else setEdge(next);
@@ -97,32 +101,21 @@ export function ExpertUploadFlow({
     const list = Array.isArray(files) ? files : [...files];
     const picked = list.find((f) => f.type.startsWith("image/"));
     if (!picked) return;
-    const current = [...getSlot(slot)];
-    const next: LocalSlot = { file: picked, preview: URL.createObjectURL(picked) };
-    if (atIndex === 0) {
-      if (current[0]) URL.revokeObjectURL(current[0].preview);
-      current[0] = next;
-    } else if (current.length === 0) {
-      // Optional used first — treat as the required primary so submit stays valid.
-      current.push(next);
-    } else if (current.length === 1) {
-      current.push(next);
-    } else {
-      URL.revokeObjectURL(current[1].preview);
-      current[1] = next;
-    }
-    setSlot(slot, current.slice(0, MAX_SLOT_IMAGES));
+    setCrop({ slot, atIndex, file: picked });
+  };
+
+  const saveCroppedFile = (slot: Slot, atIndex: 0 | 1, file: File) => {
+    const current = getSlot(slot);
+    const previous = current[atIndex];
+    if (previous) URL.revokeObjectURL(previous.preview);
+    setSlot(slot, replacePhotoSlot(current, atIndex, { file, preview: URL.createObjectURL(file) }));
     setError("");
   };
 
-  const removeAt = (slot: Slot, index: number) => {
+  const removeAt = (slot: Slot, index: 0 | 1) => {
     const current = getSlot(slot);
-    const victim = current[index];
-    if (victim) URL.revokeObjectURL(victim.preview);
-    setSlot(
-      slot,
-      current.filter((_, i) => i !== index),
-    );
+    if (current[index]) URL.revokeObjectURL(current[index]!.preview);
+    setSlot(slot, replacePhotoSlot(current, index, null));
   };
 
   const setVideoFile = (file: File | null) => {
@@ -157,10 +150,10 @@ export function ExpertUploadFlow({
     el.src = preview;
   };
 
-  const canSubmit = obverse.length >= 1 && reverse.length >= 1 && edge.length >= 1 && !pending;
+  const canSubmit = Boolean(obverse[0] && reverse[0] && edge[0]) && !submitting;
 
-  const revokeAll = (slots: LocalSlot[]) => {
-    slots.forEach((s) => URL.revokeObjectURL(s.preview));
+  const revokeAll = (slots: PhotoSlots<LocalSlot>) => {
+    slots.forEach((s) => { if (s) URL.revokeObjectURL(s.preview); });
   };
 
   const toSlot = (file: File): LocalSlot => ({ file, preview: URL.createObjectURL(file) });
@@ -170,9 +163,9 @@ export function ExpertUploadFlow({
     revokeAll(reverse);
     revokeAll(edge);
     if (video) URL.revokeObjectURL(video.preview);
-    setObverse([toSlot(media.obverse)]);
-    setReverse([toSlot(media.reverse)]);
-    setEdge([toSlot(media.edge)]);
+    setObverse([toSlot(media.obverse), toSlot(media.obverse)]);
+    setReverse([toSlot(media.reverse), toSlot(media.reverse)]);
+    setEdge([toSlot(media.edge), toSlot(media.edge)]);
     if (media.video) {
       setVideo(toSlot(media.video));
     } else {
@@ -183,20 +176,21 @@ export function ExpertUploadFlow({
   };
 
   const submit = () => {
-    if (!canSubmit) return;
+    if (!canSubmit || submittingRef.current) return;
     if (credits < 1) {
       setBuyOpen(true);
       return;
     }
+    submittingRef.current = true;
     startTransition(async () => {
       setError("");
       try {
         // Android: Firebase Auth first, then Storage upload, then POST users/requests.
         await ensureExpertsFirebaseAuth({ email, isGuest });
         const rawMedia = await uploadExpertRequestMedia({
-          obverse: obverse.map((s) => s.file),
-          reverse: reverse.map((s) => s.file),
-          edge: edge.map((s) => s.file),
+          obverse: photoSlotValues(obverse).map((s) => s.file),
+          reverse: photoSlotValues(reverse).map((s) => s.file),
+          edge: photoSlotValues(edge).map((s) => s.file),
           video: video?.file ?? null,
         });
         const media = sanitizeMediaForApi(rawMedia);
@@ -222,13 +216,17 @@ export function ExpertUploadFlow({
         const id = created.data.request._id || created.data.request.id;
         if (!id) {
           setError("Created without an id. Check Expert analysis history.");
+          setNavigating(true);
           router.push("/experts");
           return;
         }
+        setNavigating(true);
         router.replace(`/experts/request/${id}`);
       } catch (err) {
         const msg = err instanceof Error ? err.message : "";
         setError(msg || "Something went wrong. Please try again.");
+      } finally {
+        submittingRef.current = false;
       }
     });
   };
@@ -240,7 +238,7 @@ export function ExpertUploadFlow({
       onClick={submit}
       className="inline-flex h-9 items-center justify-center rounded-[10px] bg-primary-500 px-4 text-sm font-medium text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
     >
-      {pending ? "Submitting…" : "Submit"}
+      {submitting ? "Submitting…" : "Submit"}
     </button>
   );
 
@@ -261,8 +259,7 @@ export function ExpertUploadFlow({
           <div className="flex items-center gap-3">
             <div className="min-w-0 flex-1 space-y-3">
               <h1 className="flex flex-wrap items-baseline gap-1 text-lg leading-7">
-                <span className="font-semibold text-[#1e1e1f]">New evaluation request:</span>
-                <span className="font-normal text-[#606062]">Request ID #{draftId}</span>
+                <span className="font-semibold text-[#1e1e1f]">New evaluation request</span>
               </h1>
               <p className="text-sm leading-5 text-[#5c5557]">
                 Upload the front, back, and rim of one coin only. Multiple coins may cause the evaluation
@@ -328,6 +325,22 @@ export function ExpertUploadFlow({
         onCreditsPurchased={setCredits}
       />
 
+      {crop && (
+        <IdentifyCropModal
+          file={crop.file}
+          side={crop.slot}
+          onClose={() => setCrop(null)}
+          onConfirm={(file) => {
+            saveCroppedFile(crop.slot, crop.atIndex, file);
+            setCrop(null);
+          }}
+        />
+      )}
+
+      <dialog ref={loaderRef} onCancel={(event) => event.preventDefault()} aria-label="Submitting evaluation" className="m-auto max-h-none max-w-none border-0 bg-transparent p-0 text-white backdrop:bg-black/60">
+        <div role="status" aria-live="polite" className="flex flex-col items-center gap-4 text-center"><span aria-hidden="true" className="size-12 animate-spin rounded-full border-4 border-white/40 border-t-white"/><p className="text-base font-medium">Submitting your evaluation…</p><p className="text-sm text-white/80">Please keep this page open.</p></div>
+      </dialog>
+
       <ExpertsBuyCreditsDialog
         open={buyOpen}
         onClose={() => setBuyOpen(false)}
@@ -346,9 +359,9 @@ function PhotoSideCard({
   onRemove,
 }: {
   title: string;
-  slots: LocalSlot[];
+  slots: PhotoSlots<LocalSlot>;
   onAdd: (files: FileList | File[] | null, atIndex: 0 | 1) => void;
-  onRemove: (index: number) => void;
+  onRemove: (index: 0 | 1) => void;
 }) {
   return (
     <section className="rounded-xl border-[0.5px] border-[#dfdfe0] bg-white p-4">

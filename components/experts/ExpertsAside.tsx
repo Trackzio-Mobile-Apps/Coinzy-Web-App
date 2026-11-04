@@ -6,7 +6,7 @@ const A = "/assets/experts";
 const TRUST = [
   {
     title: "Secure Payment",
-    body: "Credits added to your wallet Instantly",
+    body: "Credits added to your wallet instantly",
     // Inline SVG — Figma export is drawn upside-down (+ -rotate-180); file cache kept serving wrong art.
     icon: "shield" as const,
   },
@@ -49,8 +49,12 @@ function TrustShieldIcon({ className }: { className?: string }) {
 export function ExpertsAside({
   creditBalance,
   onCreditsPurchased,
+  requestSummary,
+  creditTotal,
 }: {
   creditBalance: number;
+  creditTotal?: number;
+  requestSummary?: React.ReactNode;
   experts?: unknown;
   onCreditsPurchased?: (creditBalance: number) => void;
 }) {
@@ -68,10 +72,11 @@ export function ExpertsAside({
               alt=""
               width={40}
               height={40}
-              className="absolute inset-0 size-10 object-contain"
+              className="absolute inset-0 size-10 scale-150 object-contain"
             />
           </div>
         </div>
+        {creditTotal != null && creditTotal > 0 && <div className="mt-3"><div className="h-1.5 overflow-hidden rounded-full bg-[#dfdfe0]"><div className="h-full rounded-full bg-primary-500" style={{ width: `${Math.min(100, Math.max(0, creditBalance / creditTotal * 100))}%` }} /></div><p className="mt-2 text-xs text-[#606062]">{creditBalance} of {creditTotal} remaining</p></div>}
         <BuyCreditsButton
           variant="outline"
           className="mt-3 flex h-9 w-full items-center justify-center rounded-[10px] border border-primary-500 bg-white text-sm font-medium text-primary-500 hover:bg-primary-50"
@@ -80,6 +85,8 @@ export function ExpertsAside({
           onPurchased={onCreditsPurchased}
         />
       </div>
+
+      {requestSummary}
 
       <div className="flex flex-col gap-3 rounded-2xl border-[0.5px] border-[#dfdfe0] bg-white px-[16.5px] py-[12.5px]">
         {TRUST.map((item, i) => (

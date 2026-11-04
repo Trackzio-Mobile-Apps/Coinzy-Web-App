@@ -1,9 +1,10 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { BuyCreditsButton } from "@/components/experts/BuyCreditsButton";
 import { ExpertsAside } from "@/components/experts/ExpertsAside";
 import {
-  expertDisplayTitle,
   expertRequestId,
   type ExpertRequest,
   type ExpertsDirectoryItem,
@@ -114,88 +115,29 @@ function statusLabel(status: string | null | undefined) {
   }
 }
 
-function statusTone(status: string | null | undefined) {
-  switch ((status || "").toLowerCase()) {
-    case "completed":
-      return "bg-[#dcfce7] text-[#0d542b]";
-    case "deadline_missed":
-    case "cancelled":
-      return "bg-[#ffd5d4] text-[#660901]";
-    case "accepted":
-      return "bg-[#ffedd4] text-[#ca3500]";
-    case "offered":
-      return "bg-[#f3f5f7] text-[#6a7282]";
-    default:
-      return "bg-[#f5f5f5] text-[#525252]";
-  }
-}
-
 /** Hub — Figma Copy `1312:115253` pixel layout. */
 export function ExpertsHub({
   requests,
   creditBalance,
+  preview = false,
 }: {
   requests: ExpertRequest[];
   creditBalance: number;
   experts: ExpertsDirectoryItem[];
+  preview?: boolean;
 }) {
-  const active = requests.filter((r) => {
-    const s = (r.status || "").toLowerCase();
-    return s === "offered" || s === "accepted" || s === "deadline_missed";
-  });
-  const past = requests.filter((r) => !active.includes(r));
-
+  const evaluations = requests.length > 0 ? <EvaluationsPanel requests={requests} preview={preview} /> : null;
   return (
-    <div className="mx-auto flex w-full max-w-[1122px] items-start gap-4 px-8 py-4">
+    <div className="mx-auto flex w-full max-w-[1184px] items-start gap-4 px-4 py-4 sm:px-8">
       <div className="flex min-w-0 flex-1 flex-col gap-4">
         <h1 className="text-2xl font-semibold leading-8 text-[#1e1e1f]">Expert analysis</h1>
-
-        {requests.length > 0 ? (
-          <div className="flex flex-col gap-4">
-            <CreditsCard creditBalance={creditBalance} />
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm leading-5 text-[#737373]">Your evaluations</p>
-              <Link
-                href="/experts/new"
-                className="inline-flex h-9 items-center justify-center gap-1.5 rounded-[10px] bg-primary-500 px-4 text-sm font-medium text-white hover:bg-primary-700"
-              >
-                Start evaluation
-                <ArrowRight stroke="#fff" />
-              </Link>
-            </div>
-            {active.length > 0 && (
-              <section>
-                <h2 className="text-lg font-medium leading-7 text-ink">In progress</h2>
-                <ul className="mt-3 space-y-3">
-                  {active.map((r) => (
-                    <RequestRow key={expertRequestId(r)} request={r} />
-                  ))}
-                </ul>
-              </section>
-            )}
-            {past.length > 0 && (
-              <section>
-                <h2 className="text-lg font-medium leading-7 text-ink">Past evaluations</h2>
-                <ul className="mt-3 space-y-3">
-                  {past.map((r) => (
-                    <RequestRow key={expertRequestId(r)} request={r} />
-                  ))}
-                </ul>
-              </section>
-            )}
-            <HeroBanner />
-            <MeetExperts />
-          </div>
-        ) : (
-          <>
-            <HeroBanner />
-            <CreditsCard creditBalance={creditBalance} />
-            <ReportIncludes />
-            <MeetExperts />
-          </>
-        )}
+        <HeroBanner />
+        <CreditsCard creditBalance={creditBalance} />
+        <div className="lg:hidden">{evaluations}</div>
+        <ReportIncludes />
+        <MeetExperts />
       </div>
-      <ExpertsAside creditBalance={creditBalance} />
+      <div className="mt-12 hidden shrink-0 lg:block"><ExpertsAside creditBalance={creditBalance} creditTotal={preview && creditBalance > 0 ? 10 : undefined} requestSummary={evaluations} /></div>
     </div>
   );
 }
@@ -258,13 +200,13 @@ function CreditsCard({ creditBalance }: { creditBalance: number }) {
             </div>
           </div>
         </div>
-        <div className="flex w-[120px] shrink-0 flex-col items-center justify-center gap-4">
+        <div className="flex w-[160px] max-w-[45%] shrink-0 flex-col items-center justify-center gap-4">
           <Image src={`${A}/wallet.webp`} alt="" width={84} height={68} className="h-auto w-[84px] opacity-80" />
-          <BuyCreditsButton
+          {creditBalance > 0 ? <Link href="/experts/new" className="inline-flex h-9 w-full items-center justify-center whitespace-nowrap rounded-[10px] bg-primary-500 px-4 text-sm font-medium text-white hover:bg-primary-700">Request evaluation</Link> : <BuyCreditsButton
             className="inline-flex h-9 w-full items-center justify-center rounded-[10px] bg-primary-500 px-4 text-sm font-medium text-white hover:bg-primary-700"
             title="Buy credits"
             subtitle="Explore our packs to get the experts evaluation"
-          />
+          />}
         </div>
       </div>
     </section>
@@ -275,7 +217,7 @@ function ReportIncludes() {
   return (
     <section className="rounded-xl bg-white p-4">
       <h2 className="text-lg font-medium leading-7 text-[#0a0a0a]">Evaluation Report Includes</h2>
-      <div className="mt-3 grid grid-cols-2 gap-4">
+      <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
         {REPORT_FEATURES.map((f) => (
           <div
             key={f.title}
@@ -307,7 +249,7 @@ function MeetExperts() {
           <ChevronRight />
         </span>
       </div>
-      <div className="mt-3 flex gap-3.5">
+      <div className="mt-3 grid grid-cols-1 gap-3.5 sm:grid-cols-3">
         {FIGMA_EXPERTS.map((e, i) => (
           <article
             key={`${e.name}-${i}`}
@@ -339,45 +281,22 @@ function MeetExperts() {
   );
 }
 
-function RequestRow({ request }: { request: ExpertRequest }) {
-  const id = expertRequestId(request);
-  const title = expertDisplayTitle(request);
-  const done = (request.status || "").toLowerCase() === "completed";
-  const href = done ? `/experts/request/${id}/report` : `/experts/request/${id}`;
-  const thumb =
-    request.payload?.media?.obverse?.[0] || request.payload?.media?.reverse?.[0] || null;
+function EvaluationsPanel({ requests, preview }: { requests: ExpertRequest[]; preview: boolean }) {
+  return <section className="rounded-2xl border border-[#dfdfe0] bg-white p-4"><div className="flex items-center justify-between gap-2"><h2 className="text-lg font-medium text-ink">Your Evaluations</h2><Link href={preview ? "/evaluation-all-preview" : "/experts/evaluations"} className="flex items-center gap-1 text-xs font-medium text-ink">View all<ChevronRight /></Link></div><ul className="mt-4 divide-y divide-[#e5e5e5]">{requests.slice(0, 2).map((request) => <EvaluationItem key={expertRequestId(request)} request={request} preview={preview} />)}</ul></section>;
+}
 
-  return (
-    <li>
-      <Link
-        href={href}
-        className="flex items-center gap-4 rounded-[12px] border border-[#e5e7eb] bg-white p-3 hover:border-primary-500/40"
-      >
-        <div className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-[#f7f7f8]">
-          {thumb ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={thumb} alt="" className="size-full object-cover" />
-          ) : (
-            <div className="flex size-full items-center justify-center text-[10px] text-muted">Coin</div>
-          )}
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-ink">{title}</p>
-          <p className="mt-0.5 text-xs text-[#737373]">
-            {request.displayId || id.slice(-8)}
-            {request.createdAt ? ` · ${formatDate(request.createdAt)}` : ""}
-          </p>
-        </div>
-        <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusTone(request.status)}`}>
-          {statusLabel(request.status)}
-        </span>
-      </Link>
-    </li>
-  );
+function EvaluationItem({ request, preview }: { request: ExpertRequest; preview: boolean }) {
+  const id = expertRequestId(request);
+  const media = request.payload?.media;
+  const photos = [...(media?.obverse || []), ...(media?.reverse || []), ...(media?.edge || [])];
+  const status = (request.status || "").toLowerCase();
+  const href = preview ? status === "completed" ? "/evaluation-report-ready" : status === "deadline_missed" ? "/evaluation-deadline-exceeded" : "/evaluation-in-progress" : status === "completed" ? `/experts/request/${id}/report` : `/experts/request/${id}`;
+  const tone = status === "completed" ? "border-[#16a34a] text-[#16a34a]" : status === "cancelled" || status === "deadline_missed" ? "border-[#e51b23] text-[#e51b23]" : "border-[#e47700] text-[#e47700]";
+  return <li className="py-4 first:pt-0 last:pb-0"><Link href={href} className="block rounded-md focus-visible:outline-2 focus-visible:outline-primary-500"><p className="text-base font-medium text-[#39393b]">Request ID #{(request.displayId || id).replace(/^#/, "")}</p><div className="mt-2 flex flex-wrap items-center justify-between gap-1 text-xs text-[#606062]"><span>{photos.length} photo{photos.length === 1 ? "" : "s"}{media?.video ? " • 1 video" : ""}</span>{request.createdAt && <span>◷ &nbsp;Received {formatDate(request.createdAt)}</span>}</div><div className="mt-4 flex items-center justify-between gap-2"><div className="flex min-w-0 items-center">{photos.slice(0, 6).map((url, i) => <img key={`${url}-${i}`} src={url} alt="" className={`${i ? "-ml-6" : ""} size-[50px] shrink-0 rounded-full border-2 border-[#dfdfe0] bg-[#f5f5f5] object-cover`} />)}</div>{media?.video && <span className="relative size-[50px] shrink-0 rounded-full border-2 border-[#dfdfe0]"><video src={media.video} preload="metadata" muted playsInline className="size-full rounded-full object-cover"/><span className="absolute bottom-0 right-0 rounded-full border border-[#dfdfe0] bg-white px-1 text-[10px] text-[#606062]">▶</span></span>}</div><span className={`mt-4 inline-flex rounded-md border px-2 py-0.5 text-xs font-medium ${tone}`}>{status === "completed" ? "✓  Report ready" : status === "cancelled" ? "⊘  Cancelled" : statusLabel(request.status)}</span></Link></li>;
 }
 
 function formatDate(iso: string) {
-  const d = Date.parse(iso);
-  if (!Number.isFinite(d)) return "";
-  return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" }).format(d);
+  const date = Date.parse(iso);
+  if (!Number.isFinite(date)) return "";
+  return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" }).format(date);
 }

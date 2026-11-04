@@ -23,7 +23,7 @@ export function ExpertsShell({
       <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-[#faf7f5]">
         <MarketplaceAppHeader user={user} premium={premium} />
         <div className="min-h-0 flex-1 overflow-y-auto">
-          <ExpertsDummyPayProvider allow={allowDummyPay}>
+          <ExpertsDummyPayProvider allow={allowDummyPay} email={user.email}>
             <ExpertsRealtimeBridge />
             {children}
           </ExpertsDummyPayProvider>

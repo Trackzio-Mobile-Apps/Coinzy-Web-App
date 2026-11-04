@@ -9,7 +9,7 @@ import { useModalDialog } from "@/components/ui/useModalDialog";
 /** The guide uses a 540×420 viewport with a centred 240px crop. */
 export function IdentifyCropModal({ file, side, onClose, onConfirm }: {
   file: File;
-  side: "obverse" | "reverse";
+  side: "obverse" | "reverse" | "edge";
   onClose: () => void;
   onConfirm: (file: File) => void;
 }) {
