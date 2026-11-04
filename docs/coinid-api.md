@@ -779,6 +779,10 @@ All endpoints require JWT authentication. Include the JWT token in the `Authoriz
 
 Web proxy: `POST /api/collections/add` (session cookie).
 
+#### `PATCH /collections/update/:id`
+
+Update a custom collection with `{ "name": "..." }`. Web proxy: `PATCH /api/collections/[id]`. The catalogue API accepts this under `/api/collections/update/:id`; verified by creating, renaming, and deleting a temporary guest collection on 4 Nov 2026.
+
 #### `GET /collections/fetchAll`
 
 - **Description**: List custom collections plus aggregate counts (`ownedCount`, `identifiedCount`, `wishlistedCount`). Supports `pageNo` and `pageSize` query params.
@@ -1795,23 +1799,9 @@ The Marketplace API allows users to list coins for sale, browse and filter listi
 
 ---
 
-#### `PATCH /marketplace/markSold/:id`
+#### Mark as sold
 
-- **Description**: Mark a marketplace listing as sold (owner only). Sets `isSold` and `isArchived` to `true`. Same contract as [antiques-api docs](https://antiques-api.trackzio.com/docs#/core-module?id=patch-marketplacemarksoldid); Coinzy web proxies via `PATCH /api/marketplace/markSold/[id]` on the **catalogue/auth** session host.
-- **Request**:
-  - **Headers**:
-    - `Authorization`: Bearer token
-  - **Path Parameters**:
-    - `id`: Listing ID
-  - **Body** (all optional):
-
-    | Field         | Type   | Description              |
-    |---------------|--------|--------------------------|
-    | `soldDate`    | Date   | When the item was sold   |
-    | `soldCurrency`| String | Sale currency            |
-    | `soldPrice`   | Number | Final selling price      |
-
-- **Notes**: Already-sold or expired listings cannot be updated. Web UI currently posts `{}` (no sold-price form yet).
+Android removes the listing with `DELETE /api/marketplace/listing/delete/:id`, then updates its linked coin with `PATCH /api/coin/update/:coinId` and `{ "isOwned": false }`. The web proxy follows this sequence and warns if the listing was removed but the coin update failed. This flow does not create a separate sold record.
 
 ---
 

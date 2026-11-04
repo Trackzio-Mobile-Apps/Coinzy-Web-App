@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useId } from "react";
+import { useEffect, useId, useState } from "react";
 import { useModalDialog } from "@/components/ui/useModalDialog";
 
 export interface ContactDetailsDialogProps {
@@ -39,8 +39,22 @@ function Row({ label, href, value }: { label: string; href: string; value: strin
  */
 export function ContactDetailsDialog({ open, onClose, phone, email, subject }: ContactDetailsDialogProps) {
   const titleId = useId();
+  const [copyStatus, setCopyStatus] = useState<"copied" | "failed" | null>(null);
+  useEffect(() => { if (!open) setCopyStatus(null); }, [open, email]);
   const ref = useModalDialog(open, (next) => !next && onClose());
   const telHref = phone ? `tel:${phone.replace(/[^\d+]/g, "")}` : null;
+  const mailHref = email ? `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}` : null;
+  const gmailHref = email ? `https://mail.google.com/mail/?${new URLSearchParams({ view: "cm", fs: "1", to: email, su: subject })}` : null;
+
+  const copyEmail = async () => {
+    if (!email) return;
+    try {
+      await navigator.clipboard.writeText(email);
+      setCopyStatus("copied");
+    } catch {
+      setCopyStatus("failed");
+    }
+  };
 
   return (
     <dialog
@@ -57,7 +71,9 @@ export function ContactDetailsDialog({ open, onClose, phone, email, subject }: C
           Contact details
         </h2>
         {phone && telHref && <Row label="Phone number:" href={telHref} value={phone} />}
-        {email && <Row label="Email address:" href={`mailto:${email}?subject=${encodeURIComponent(subject)}`} value={email} />}
+        {email && mailHref && <Row label="Email address:" href={mailHref} value={email} />}
+        {email && <p className="mt-2 pr-3 text-xs leading-5 text-[#737373]">If your email app doesn’t open, copy the address and use your preferred email service.</p>}
+        {copyStatus && <p role="status" className="text-xs leading-5 text-[#737373]">{copyStatus === "copied" ? "Email address copied." : "Couldn’t copy. Select the email address above to copy it."}</p>}
         <button
           type="button"
           aria-label="Close"
@@ -67,11 +83,13 @@ export function ContactDetailsDialog({ open, onClose, phone, email, subject }: C
           <Image src="/assets/home/icon-close-dark.svg" alt="" width={16} height={16} />
         </button>
       </div>
-      <div className="flex items-center justify-end gap-2 border-t border-[#e5e5e5] bg-[linear-gradient(rgba(255,255,255,0.5),rgba(255,255,255,0.5)),linear-gradient(#f5f5f5,#f5f5f5)] px-4 pb-4 pt-[15px]">
-        {email ? (
-          <a href={`mailto:${email}?subject=${encodeURIComponent(subject)}`} className={outlineButton}>
-            Send email
-          </a>
+      <div className="flex flex-wrap items-center justify-end gap-2 border-t border-[#e5e5e5] bg-[linear-gradient(rgba(255,255,255,0.5),rgba(255,255,255,0.5)),linear-gradient(#f5f5f5,#f5f5f5)] px-4 pb-4 pt-[15px]">
+        {mailHref && gmailHref ? (
+          <>
+            <button type="button" onClick={() => void copyEmail()} className={outlineButton}>Copy email</button>
+            <a href={mailHref} className={outlineButton}>Email app</a>
+            <a href={gmailHref} target="_blank" rel="noopener noreferrer" className={outlineButton}>Open Gmail</a>
+          </>
         ) : (
           telHref && (
             <a href={telHref} className={outlineButton}>

@@ -1,14 +1,13 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
-import { markListingSold, type MarkListingSoldBody } from "@/lib/api/marketplace-session";
+import { markListingSold } from "@/lib/api/marketplace-session";
 import { isAllowedAuthOrigin } from "@/lib/auth/origin";
 
 const reply = (body: object, status = 200) =>
   NextResponse.json(body, { status, headers: { "Cache-Control": "no-store" } });
 
 /**
- * Session proxy — `PATCH /marketplace/markSold/:id` on the catalogue/auth host.
- * Docs: https://antiques-api.trackzio.com/docs#/core-module?id=patch-marketplacemarksoldid
+ * Session proxy for Android's delete-listing then update-coin sold flow.
  */
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   if (!isAllowedAuthOrigin(request)) return reply({ error: true, reason: "Invalid request origin." }, 403);
@@ -21,24 +20,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     return reply({ error: true, reason: "Invalid listing id." }, 400);
   }
 
-  let body: MarkListingSoldBody = {};
-  const raw = await request.text();
-  if (raw.trim()) {
-    try {
-      const parsed = JSON.parse(raw) as Record<string, unknown>;
-      const next: MarkListingSoldBody = {};
-      if (typeof parsed.soldDate === "string") next.soldDate = parsed.soldDate;
-      if (typeof parsed.soldCurrency === "string") next.soldCurrency = parsed.soldCurrency;
-      if (typeof parsed.soldPrice === "number" && Number.isFinite(parsed.soldPrice)) {
-        next.soldPrice = parsed.soldPrice;
-      }
-      body = next;
-    } catch {
-      return reply({ error: true, reason: "Invalid JSON body." }, 400);
-    }
-  }
-
-  const result = await markListingSold(token, id, body);
+  let result;
+  try { result = await markListingSold(token, id); }
+  catch { return reply({ error: true, reason: "Could not mark listing as sold. Please try again." }, 502); }
   if (result.error) {
     const status = result._status >= 500 ? 502 : result._status;
     return reply({ error: true, reason: result.reason ?? "Could not mark listing as sold." }, status);
@@ -47,5 +31,6 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   revalidatePath("/marketplace");
   revalidatePath("/marketplace/my-listings");
   revalidatePath("/marketplace/all");
-  return reply({ error: false });
+  revalidatePath("/collection");
+  return reply({ error: false, warning: result.data.warning });
 }

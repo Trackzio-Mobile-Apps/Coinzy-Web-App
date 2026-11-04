@@ -7,6 +7,7 @@ import { CoinGridSkeleton } from "@/components/catalogue/CoinGridSkeleton";
 import { Pagination } from "@/components/catalogue/CoinGrid";
 import { ListingGrid } from "@/components/marketplace/ListingGrid";
 import { MarketplaceAppHeader } from "@/components/marketplace/MarketplaceAppHeader";
+import { AppliedFilterChips } from "@/components/marketplace/AppliedFilterChips";
 import { MarketplaceFilterPanel } from "@/components/marketplace/MarketplaceFilterPanel";
 import { YourListingsPanel } from "@/components/marketplace/YourListingsPanel";
 import { fetchListingFilterValues } from "@/lib/api/coinzy";
@@ -76,8 +77,7 @@ async function MarketplaceBrowse({
       <div data-listing-loader className="absolute inset-x-0 top-24 z-10 justify-center" role="status" aria-label="Updating results">
         <span className="size-8 animate-spin rounded-full border-[3px] border-[#e5e5e5] border-t-primary-500" />
       </div>
-      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="text-lg font-medium leading-7 text-ink">Browse all coins</h3>
+      <div className="mb-4 flex flex-wrap items-baseline justify-end gap-2">
         <p className="text-sm leading-5 text-[#737373]">
           Showing {browse.cards.length} of {browse.totalCount.toLocaleString("en-US")} results
         </p>
@@ -113,7 +113,7 @@ async function MarketplaceFilters() {
         rarity: filterRaw.rarity ?? [],
       }
     : emptyOptions();
-  return <MarketplaceFilterPanel options={filterOptions} />;
+  return <MarketplaceFilterPanel options={filterOptions} collapsible wrapperClassName="max-h-[50%] shrink-0 overflow-y-auto px-4 pt-3 lg:max-h-none lg:min-h-0 lg:py-6 lg:pl-0 lg:pr-8" />;
 }
 
 function YourListingsFallback() {
@@ -155,8 +155,8 @@ export function MarketplaceSignedInPage({
       <AppSidebar user={user} active="marketplace" />
       <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-[#f7f7f8]">
         <MarketplaceAppHeader user={user} premium={premium} />
-        <div className="flex min-h-0 flex-1">
-          <main className="min-w-0 flex-1 overflow-y-auto px-8 py-6">
+        <div className="flex min-h-0 flex-1 flex-col-reverse lg:flex-row">
+          <main className="min-w-0 flex-1 overflow-y-auto px-4 py-6 sm:px-8">
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-[28px] font-semibold leading-9 text-ink">Marketplace</h2>
               <CatalogueSearch
@@ -172,37 +172,37 @@ export function MarketplaceSignedInPage({
               <YourListingsPanel />
             </Suspense>
 
-            <section className="mb-8">
+            <section className="@container mb-8">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-lg font-medium leading-7 text-ink">Explore by categories</h3>
                 <Link href="/marketplace" className="text-sm font-medium leading-5 text-primary-500 hover:underline">
                   See more
                 </Link>
               </div>
-              <div className="grid gap-4 sm:grid-cols-3">
+              <div className="grid gap-4 @min-[460px]:grid-cols-2 @min-[750px]:grid-cols-3">
                 {MARKETPLACE_PAGE_CATEGORIES.slice(0, 3).map((cat, i) => (
                   <Link
                     key={cat.title}
                     href={`/marketplace?category=${EXPLORE_SLUGS[i] ?? "all"}`}
-                    className="relative flex h-[120px] overflow-hidden rounded-[12px] px-4 py-3"
+                    className="flex min-h-[120px] min-w-0 items-end overflow-hidden rounded-[12px] pl-4 pt-3"
                     style={{ backgroundColor: cat.wellBg }}
                   >
-                    <div className="relative z-10 flex flex-col justify-end">
+                    <div className="min-w-0 flex-1 pb-3">
                       <p className="text-sm font-medium leading-5 text-ink">{cat.title}</p>
                       <p className="text-xs leading-4 text-[#737373]">{cat.subtitle}</p>
                     </div>
-                    <Image src={cat.coin} alt="" width={80} height={80} className="absolute bottom-0 right-2 object-contain" />
+                    <Image src={cat.coin} alt="" width={80} height={80} className="w-[64px] shrink-0 object-contain @min-[750px]:w-[80px]" />
                   </Link>
                 ))}
               </div>
             </section>
 
+            <div><h3 className="text-lg font-medium leading-7 text-ink">Browse all coins</h3><AppliedFilterChips /></div>
             <Suspense
               key={browseKey}
               fallback={
                 <section>
                   <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-                    <h3 className="text-lg font-medium leading-7 text-ink">Browse all coins</h3>
                     <p className="text-sm leading-5 text-[#737373]">Loading results…</p>
                   </div>
                   <CoinGridSkeleton count={PAGE_SIZE} />
@@ -219,7 +219,7 @@ export function MarketplaceSignedInPage({
             </Suspense>
           </main>
 
-          <Suspense fallback={<div className="w-[300px] shrink-0" />}>
+          <Suspense fallback={<div className="shrink-0 lg:w-[300px]" />}>
             <MarketplaceFilters />
           </Suspense>
         </div>

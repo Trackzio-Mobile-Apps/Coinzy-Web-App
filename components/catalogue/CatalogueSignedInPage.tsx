@@ -10,6 +10,7 @@ import { parsePageParam, parseQueryParam } from "@/lib/backNav";
 import { CATALOGUE_CATEGORIES, buildFilters, getCategory } from "@/lib/catalogue/categories";
 
 import { CatalogueCategoryBand } from "@/components/catalogue/CatalogueCategoryBand";
+import { AppliedFilterChips } from "@/components/marketplace/AppliedFilterChips";
 import { MarketplaceFilterPanel } from "@/components/marketplace/MarketplaceFilterPanel";
 import { fetchFilterValues } from "@/lib/api/coinzy";
 import { LISTING_FILTER_FIELDS, parseListingFilterParams, type ListingFilterSelection, type ListingFilterValues } from "@/lib/marketplace/listingFilters";
@@ -96,8 +97,7 @@ async function SignedInResults({
 
   return (
     <>
-      <div className="mb-5 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-lg font-medium leading-7 text-ink">Browse all coins</h2>
+      <div className="mb-5 flex flex-wrap items-baseline justify-end gap-2">
         <p role="status" className="text-xs leading-4 text-[#9e9ea1]">
           Showing <span className="font-medium text-ink">{coins.length}</span> of{" "}
           {totalCount.toLocaleString("en-US")} results
@@ -171,6 +171,8 @@ export function CatalogueSignedInPage({
             <div className="flex w-full min-w-0 flex-1 flex-col gap-10">
               <CatalogueCategoryBand category={category} query={query} />
               <section className="w-full" aria-label="Catalogue results" data-listing-results>
+                <h2 className="text-lg font-medium leading-7 text-ink">Browse all coins</h2>
+                <AppliedFilterChips />
                 <Suspense key={`${category ?? "all"}|${query}|${page}|${filterKey}`} fallback={<CoinGridSkeleton compact count={PAGE_SIZE} />}>
                   <SignedInResults categorySlug={category} page={page} query={query} selected={selected} />
                 </Suspense>

@@ -14,6 +14,7 @@ export function ListingCard({
   from,
   fromPage,
   fromQuery,
+  fluid = false,
 }: {
   card: ListingCardData;
   priority?: boolean;
@@ -22,9 +23,10 @@ export function ListingCard({
   fromPage?: number;
   /** Search term of that list (round-trips as `?fromQ=`). */
   fromQuery?: string;
+  fluid?: boolean;
 }) {
   return (
-    <article className="relative flex w-full min-w-[164px] flex-col items-center gap-6 rounded-[12px] border-[0.5px] border-border-neutral bg-white px-2 pb-4 pt-2 transition-shadow hover:shadow-md xl:w-[211px]">
+    <article className={`relative flex w-full min-w-0 flex-col items-center gap-6 rounded-[12px] border-[0.5px] border-border-neutral bg-white px-2 pb-4 pt-2 transition-shadow hover:shadow-md ${fluid ? "" : "xl:w-[211px]"}`}>
       <div className="flex w-full items-center justify-center rounded-lg bg-coin-well py-5">
         <div className="size-[136px] overflow-hidden rounded-full">
           {card.images[0] ? (
@@ -72,13 +74,13 @@ export function ListingGrid({
 }) {
   const gridClass =
     columns === 4
-      ? "grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-4"
+      ? "grid grid-cols-1 gap-x-4 gap-y-6 @min-[344px]:grid-cols-2 @min-[524px]:grid-cols-3 @min-[704px]:grid-cols-4"
       : "grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-[repeat(5,211px)] xl:justify-between";
   return (
-    <div className={gridClass}>
+    <div className={columns === 4 ? "@container" : undefined}><div className={gridClass}>
       {cards.map((card, i) => (
-        <ListingCard key={card.id} card={card} priority={i < 5} from={from} fromPage={fromPage} fromQuery={fromQuery} />
+        <ListingCard key={card.id} card={card} priority={i < 5} from={from} fromPage={fromPage} fromQuery={fromQuery} fluid={columns === 4} />
       ))}
-    </div>
+    </div></div>
   );
 }

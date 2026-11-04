@@ -176,33 +176,42 @@ export async function deleteListing(
   return { error: false, data: null };
 }
 
-export type MarkListingSoldBody = {
-  soldDate?: string;
-  soldCurrency?: string;
-  soldPrice?: number;
-};
-
-/**
- * `PATCH /marketplace/markSold/:id` — owner marks listing sold (archives it).
- * Contract mirrored from antiques-api docs; same path on the catalogue session host.
- */
+/** Android marks a sale by deleting the listing, then marking its coin unowned. */
 export async function markListingSold(
   token: string,
   listingId: string,
-  body: MarkListingSoldBody = {},
-): Promise<ApiResult<null>> {
-  const res = await fetch(
-    `${getSessionOrigin()}/api/marketplace/markSold/${encodeURIComponent(listingId)}`,
-    {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify(body),
-      cache: "no-store",
-    },
-  );
-  const json = (await res.json()) as { error?: boolean; reason?: string };
-  if (!res.ok || json.error) {
-    return { error: true, reason: json.reason, _status: res.status };
+): Promise<ApiResult<{ warning?: string }>> {
+  const listing = await fetchListingDetailsForSession(token, listingId);
+  if (!listing?.isMyListing) return { error: true, reason: "Listing not found or you do not own it.", _status: 404 };
+  const coinId = listing.coinId ?? (listing.coinDetails as (typeof listing.coinDetails & { coinId?: string | null }))?.coinId;
+  const removed = await deleteListing(token, listingId);
+  if (removed.error) return removed;
+  if (coinId) {
+    try {
+      const response = await fetch(`${getSessionOrigin()}/api/coin/update/${encodeURIComponent(coinId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ isOwned: false }),
+        cache: "no-store",
+      });
+      const json = await response.json().catch(() => ({})) as { error?: boolean };
+      if (!response.ok || json.error) throw new Error("Coin update failed");
+    } catch {
+      return { error: false, data: { warning: "The listing was removed, but the coin's owned status could not be updated. Please update it in your collection." } };
+    }
   }
-  return { error: false, data: null };
+  return { error: false, data: {} };
+}
+
+/** Update an owned listing on the same backend as the user's session. */
+export async function updateListing(token: string, id: string, body: Record<string, unknown>): Promise<ApiResult<unknown>> {
+  const response = await fetch(`${getSessionOrigin()}/api/marketplace/listing/update/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify(body),
+    cache: "no-store",
+  });
+  const json = await response.json().catch(() => ({})) as { error?: boolean; reason?: string; message?: string; data?: unknown };
+  if (!response.ok || json.error) return { error: true, reason: json.reason || json.message, _status: response.ok ? 502 : response.status };
+  return { error: false, data: json.data };
 }
