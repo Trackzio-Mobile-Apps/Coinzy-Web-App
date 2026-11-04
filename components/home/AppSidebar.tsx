@@ -2,10 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { LogoMark } from "@/components/landing/TopNav";
 import type { SessionUser } from "@/lib/auth/session";
-import { getSessionToken } from "@/lib/auth/session";
 import { type HomeNavIcon } from "@/lib/home";
 import { collectionLinks as buildCollectionLinks, type CollectionNavLink } from "@/components/collection/collectionNav";
-import { fetchCollectionsForSession } from "@/lib/api/coinzy-session";
 import { sidebarNav, type SidebarActive } from "@/lib/sidebarNav";
 
 const A = "/assets/home";
@@ -31,14 +29,9 @@ export async function AppSidebar({
   collectionLinks?: CollectionNavLink[];
 }) {
   const items = sidebarNav(active);
-  let nestedCollections = collectionLinks;
-  if (active === "collection" && nestedCollections.length === 0) {
-    const token = await getSessionToken();
-    if (token) {
-      const res = await fetchCollectionsForSession(token);
-      nestedCollections = buildCollectionLinks(res.error ? [] : res.data, "");
-    }
-  }
+  const nestedCollections = collectionLinks.length
+    ? collectionLinks.filter((link) => link.icon !== "private")
+    : buildCollectionLinks([], "");
   return (
     <aside className="flex h-full w-[254px] shrink-0 flex-col border-r border-[#e5e7eb] bg-white">
       <div className={`flex h-[76px] items-center gap-2 border-b border-[#e5e7eb] ${active === "identify" ? "px-8" : "px-4"}`}>
