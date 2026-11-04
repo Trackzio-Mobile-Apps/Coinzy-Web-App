@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Coinzy Reopened Bug Tracker</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--mut:#666;--bd:#ddd;--card:#f6f6f8;--ac:#c0392b;--ok:#1e7a3a}
+@media(prefers-color-scheme:dark){:root{--bg:#141416;--fg:#eee;--mut:#999;--bd:#333;--card:#1e1e22;--ok:#6dcea0}}
+*{box-sizing:border-box}body{font:14px/1.4 system-ui,sans-serif;background:var(--bg);color:var(--fg);margin:0;padding:16px;max-width:1280px;margin-inline:auto}
+h1{margin:0 0 4px;font-size:22px}.sum{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+.k{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:8px 12px;min-width:110px}.k b{display:block;font-size:20px;margin-top:2px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;align-items:center}
+select,input,button{font:inherit;padding:5px 8px;border:1px solid var(--bd);border-radius:6px;background:var(--bg);color:var(--fg)}
+button{cursor:pointer}button:hover{border-color:var(--fg)}
+table{width:100%;border-collapse:collapse;min-width:960px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd);vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.03em;color:var(--mut);position:sticky;top:0;background:var(--bg)}
+.g td{background:var(--card);font-weight:600}.P1{color:var(--ac);font-weight:700}.P2{font-weight:600}
+.fixed td:nth-child(2){text-decoration:line-through;color:var(--mut)}.fixed td:nth-child(2) .badge{background:var(--ok);color:#fff}
+.nb td{color:var(--mut)}.tbl{overflow-x:auto;max-height:70vh;overflow-y:auto;border:1px solid var(--bd);border-radius:8px}
+a{color:inherit}.m{color:var(--mut);font-size:12px;margin-top:2px}
+.badge{display:inline-block;font-size:11px;padding:1px 6px;border-radius:999px;border:1px solid var(--bd)}
+.hint{color:var(--mut);font-size:12px;margin:0 0 8px}
+</style>
+</head>
+<body>
+<h1>Coinzy Reopened Bug Tracker</h1>
+<p class="hint">Status edits persist in <code>localStorage</code> · Use Export to bake edits into the repo · ETA = open effort points ÷ fix velocity (P1=3, P2=2, P3=1, +1 if Figma). UI work grouping is provisional, based on issue titles. Group by UI work / priority / screen / area / figma.</p>
+<p class="hint"><strong>ClickUp snapshot:</strong> Statuses supplied as Open on 2026-11-04; local progress is separate. Priorities default to P2 and classifications are provisional.</p>
+<div class="sum" id="sum"></div>
+<div class="bar">
+<label>Group by <select id="grp"><option value="uiWork">UI work</option><option>priority</option><option>screen</option><option>area</option><option>figma</option><option>none</option></select></label>
+<label>Local status <select id="fs"><option value="">all</option><option>open</option><option>fixed</option><option value="testiing">testing</option><option>not-a-bug</option></select></label>
+<label>Figma <select id="ff"><option value="">any</option><option value="Y">required</option><option value="N">not required</option></select></label>
+<input id="q" placeholder="Search title, screen, id…" style="min-width:220px">
+<button type="button" id="exp">Export JSON</button>
+<button type="button" id="imp">Import JSON</button>
+<button type="button" id="rst">Reset local edits</button>
+<input type="file" id="file" accept="application/json,.json" hidden>
+</div>
+<div class="tbl"><table>
+<thead><tr><th>Pri</th><th>Issue</th><th>Screen</th><th>Area</th><th>Figma</th><th>Local status</th><th>ClickUp status</th><th>ETA</th><th>Note</th></tr></thead>
+<tbody id="tb"></tbody>
+</table></div>
+<script>
+const BASE=[{"id":"14yn59xrkjk","title":"Coinzy Webapp Crop Screen Is Skipped When Uploading Coin Images in the Expert Evaluation Flow","screen":"Expert evaluation","area":"Functional","figma":false,"priority":"P2","status":"fixed","note":"Marked done locally: expert evaluation image uploads open the crop screen.","fixedAt":"2026-11-04","uiWork":true},{"id":"14yn59xrkjx","title":"Coinzy webapp Optional Images Are Not Uploaded in the Expert Evaluation Flow","screen":"Expert evaluation","area":"Functional","figma":false,"priority":"P2","status":"fixed","note":"Marked done locally: required and optional expert photos remain independent, and sample loader fills all six photo slots.","fixedAt":"2026-11-04","uiWork":false},{"id":"14yn59xrkm2","title":"Coinzy Webapp Evaluation Submitted Page UI Does Not Match the Figma Design","screen":"Expert evaluation","area":"UI","figma":true,"priority":"P2","status":"fixed","note":"Marked done locally: submitted evaluation page and media viewer updated to supplied design.","fixedAt":"2026-11-04","uiWork":true},{"id":"14yn59xrknx","title":"Coinzy Webapp Deadline Exceeded Screen UI Does Not Match the Figma Design in the Expert Evaluation Flow","screen":"Expert evaluation","area":"UI","figma":true,"priority":"P2","status":"fixed","note":"Marked done locally: deadline-exceeded screen updated to supplied design.","fixedAt":"2026-11-04","uiWork":true},{"id":"14yn59xrkpe","title":"Coinzy Webapp In-Progress Screen UI Does Not Match the Figma Design in the Expert Evaluation Flow","screen":"Expert evaluation","area":"UI","figma":true,"priority":"P2","status":"fixed","note":"Marked done locally per user confirmation after reviewing the in-progress preview.","fixedAt":"2026-11-04","uiWork":true},{"id":"14yn59xrkqz","title":"Coinzy Webapp Report Ready Page UI Does Not Match the Figma Design After Expert Completes the Evaluation","screen":"Expert evaluation","area":"UI","figma":true,"priority":"P2","status":"fixed","note":"Marked done locally per user confirmation: report-ready UI and PDF viewer updated.","fixedAt":"2026-11-04","uiWork":true},{"id":"14yn59xrkt0","title":"Coinzy Webapp Your Evaluation Screen UI Does Not Match the Figma Design","screen":"Expert evaluation","area":"UI","figma":true,"priority":"P2","status":"fixed","note":"Marked done locally per user confirmation: evaluation hub and View all page updated to supplied design.","fixedAt":"2026-11-04","uiWork":true},{"id":"14yn59xrku4","title":"Coinzy Webapp View All Button Is Not Functional in the Expert Evaluation Flow","screen":"Expert evaluation","area":"Functional","figma":false,"priority":"P2","status":"fixed","note":"Marked done locally: Your Evaluations View all opens the complete evaluations list at /experts/evaluations.","fixedAt":"2026-11-04","uiWork":false},{"id":"14yn59xrm8c","title":"Coinzy Webapp Request ID Is Displayed Before Submitting the Expert Evaluation Request","screen":"Expert evaluation","area":"UI","figma":false,"priority":"P2","status":"fixed","note":"Marked done locally: removed the generated request ID from the form before submission.","fixedAt":"2026-11-04","uiWork":true},{"id":"14yn59xrmhz","title":"Coinzy Webapp User-Created Collections Are Incorrectly Displayed in the Left Navigation Bar","screen":"Collections","area":"UI","figma":false,"priority":"P2","status":"fixed","note":"Marked done locally: sidebar shows only the default Owned, Identified and Wishlist collections.","fixedAt":"2026-11-04","uiWork":true},{"id":"14yn59xrmk0","title":"Coinzy Webapp Edit Collection Option Is Not Displayed in the Collection and Alomg with UI","screen":"Collections","area":"Functional","figma":false,"priority":"P2","status":"fixed","note":"Marked done locally: private collection edit menu, rename and delete dialogs and empty state implemented; rename API verified with a temporary collection.","fixedAt":"2026-11-04","uiWork":true},{"id":"14yn59xrmpz","title":"Coinzy Webapp Edit Listing Does Not Navigate to the Edit Details Page in Marketplace","screen":"Marketplace","area":"Navigation","figma":false,"priority":"P2","status":"fixed","note":"Marked done locally: edit listing opens the prefilled edit drawer and saves changes through the listing update API.","fixedAt":"2026-11-04","uiWork":true},{"id":"14yn59xrmrp","title":"Coinzy Webapp Unable to Mark the Listing as Sold \u2013 \"Not Found\" Error","screen":"Marketplace","area":"Functional","figma":false,"priority":"P2","status":"fixed","note":"Marked done locally: Mark as sold now confirms the action, removes the marketplace listing and marks the linked coin as no longer owned, matching Android. Verified with a temporary listing; partial coin update failures are shown to the user.","fixedAt":"2026-11-04","uiWork":false},{"id":"14yn59xrmuk","title":"Coinzy Webapp Send Mail Button Is Not Responding in the Contact Seller Flow","screen":"Marketplace","area":"Functional","figma":false,"priority":"P2","status":"fixed","note":"Marked done locally: contact seller offers Gmail compose and a default email app with the seller and listing subject prefilled.","fixedAt":"2026-11-04","uiWork":false},{"id":"14yn59xrmva","title":"Coinzy Webapp Incorrect Turnaround Time Displayed in the Human Evaluation Container","screen":"Expert evaluation","area":"Content","figma":false,"priority":"P2","status":"fixed","note":"Marked done locally: homepage human evaluation turnaround updated to 24\u201372 hours on signed-in dashboard and public landing.","fixedAt":"2026-11-04","uiWork":true},{"id":"14yn59xrmwy","title":"Coinzy Webapp Applied Filter Selection Is Not Displayed on the Page","screen":"Filters","area":"UI","figma":false,"priority":"P2","status":"fixed","note":"Marked done locally: removable applied filter chips added to catalogue and marketplace; preserve remaining browse state.","fixedAt":"2026-11-04","uiWork":true},{"id":"14yn59xrnjy","title":"Coinzy Webapp Remove \"Discussion\" and \"Buy/Sell\" Tags from the Feed Post Screen","screen":"Feed","area":"UI","figma":false,"priority":"P2","status":"fixed","note":"Marked done locally: removed Discussion and Buy / Sell controls from Feed post dialog and updated its layout.","fixedAt":"2026-11-04","uiWork":true},{"id":"14yn59xrnv6","title":"Coinzy webapp Feed Comment Dialog Box UI Does Not Match the Figma Design","screen":"Feed","area":"UI","figma":true,"priority":"P2","status":"fixed","note":"Marked done locally: Feed comments and replies now open inline with the supplied composer.","fixedAt":"2026-11-04","uiWork":true}];
+const CLICKUP_SYNCED_AT="2026-11-04";
+const KEY="coinzy-reopened-bug-tracker-v2";
+const W={P1:3,P2:2,P3:1}, DEF_VELOCITY=8;
+const AS_OF="2026-11-04";
+let S={}; try{S=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){}
+try {
+  const migrationKey=KEY+"-mark-sold-fixed-2026-11-04";
+  if (!localStorage.getItem(migrationKey)) {
+    if (S["14yn59xrmrp"]) Object.assign(S["14yn59xrmrp"], {status:"fixed", fixedAt:"2026-11-04", note:"Marked done locally: Mark as sold now confirms the action, removes the marketplace listing and marks the linked coin as no longer owned, matching Android. Verified with a temporary listing; partial coin update failures are shown to the user."});
+    localStorage.setItem(KEY, JSON.stringify(S));
+    localStorage.setItem(migrationKey, "1");
+  }
+} catch(e) {}
+try {
+  const migrationKey=KEY+"-seller-email-fixed-2026-11-04";
+  if (!localStorage.getItem(migrationKey)) {
+    if (S["14yn59xrmuk"]) Object.assign(S["14yn59xrmuk"], {status:"fixed", fixedAt:"2026-11-04", note:"Marked done locally: contact seller offers Gmail compose and a default email app with the seller and listing subject prefilled."});
+    localStorage.setItem(KEY, JSON.stringify(S));
+    localStorage.setItem(migrationKey, "1");
+  }
+} catch(e) {}
+try {
+  const migrationKey=KEY+"-listing-edit-fixed-2026-11-04";
+  if (!localStorage.getItem(migrationKey)) {
+    if (S["14yn59xrmpz"]) Object.assign(S["14yn59xrmpz"], {status:"fixed", fixedAt:"2026-11-04", uiWork:true, note:"Marked done locally: edit listing opens the prefilled edit drawer and saves changes through the listing update API."});
+    localStorage.setItem(KEY, JSON.stringify(S));
+    localStorage.setItem(migrationKey, "1");
+  }
+} catch {}
+try {
+  const migrationKey=KEY+"-crop-fixed-2026-11-04";
+  if (!localStorage.getItem(migrationKey)) {
+    if (S["14yn59xrkjk"]) Object.assign(S["14yn59xrkjk"], {status:"fixed", fixedAt:"2026-11-04", note:"Marked done locally: expert evaluation image uploads open the crop screen."});
+    localStorage.setItem(KEY, JSON.stringify(S));
+    localStorage.setItem(migrationKey, "1");
+  }
+} catch(e) {}
+try {
+  const migrationKey=KEY+"-submitted-ui-fixed-2026-11-04";
+  if (!localStorage.getItem(migrationKey)) {
+    if (S["14yn59xrkm2"]) Object.assign(S["14yn59xrkm2"], {status:"fixed", fixedAt:"2026-11-04", note:"Marked done locally: submitted evaluation page and media viewer updated to supplied design."});
+    localStorage.setItem(KEY, JSON.stringify(S));
+    localStorage.setItem(migrationKey, "1");
+  }
+} catch(e) {}
+try {
+  const migrationKey=KEY+"-deadline-ui-fixed-2026-11-04";
+  if (!localStorage.getItem(migrationKey)) {
+    if (S["14yn59xrknx"]) Object.assign(S["14yn59xrknx"], {status:"fixed", fixedAt:"2026-11-04", note:"Marked done locally: deadline-exceeded screen updated to supplied design."});
+    localStorage.setItem(KEY, JSON.stringify(S));
+    localStorage.setItem(migrationKey, "1");
+  }
+} catch(e) {}
+try {
+  const migrationKey=KEY+"-in-progress-ui-fixed-2026-11-04";
+  if (!localStorage.getItem(migrationKey)) {
+    if (S["14yn59xrkpe"]) Object.assign(S["14yn59xrkpe"], {status:"fixed", fixedAt:"2026-11-04", note:"Marked done locally per user confirmation after reviewing the in-progress preview."});
+    localStorage.setItem(KEY, JSON.stringify(S));
+    localStorage.setItem(migrationKey, "1");
+  }
+} catch(e) {}
+try {
+  const migrationKey=KEY+"-report-ready-ui-fixed-2026-11-04";
+  if (!localStorage.getItem(migrationKey)) {
+    if (S["14yn59xrkqz"]) Object.assign(S["14yn59xrkqz"], {status:"fixed", fixedAt:"2026-11-04", note:"Marked done locally per user confirmation: report-ready UI and PDF viewer updated."});
+    localStorage.setItem(KEY, JSON.stringify(S));
+    localStorage.setItem(migrationKey, "1");
+  }
+} catch(e) {}
+try {
+  const migrationKey=KEY+"-evaluations-ui-fixed-2026-11-04";
+  if (!localStorage.getItem(migrationKey)) {
+    if (S["14yn59xrkt0"]) Object.assign(S["14yn59xrkt0"], {status:"fixed", fixedAt:"2026-11-04", note:"Marked done locally per user confirmation: evaluation hub and View all page updated to supplied design."});
+    localStorage.setItem(KEY, JSON.stringify(S));
+    localStorage.setItem(migrationKey, "1");
+  }
+} catch(e) {}
+try {
+  const migrationKey=KEY+"-draft-request-id-fixed-2026-11-04";
+  if (!localStorage.getItem(migrationKey)) {
+    if (S["14yn59xrm8c"]) Object.assign(S["14yn59xrm8c"], {status:"fixed", fixedAt:"2026-11-04", note:"Marked done locally: removed the generated request ID from the form before submission."});
+    localStorage.setItem(KEY, JSON.stringify(S));
+    localStorage.setItem(migrationKey, "1");
+  }
+} catch(e) {}
+try {
+  const migrationKey=KEY+"-collection-sidebar-fixed-2026-11-04";
+  if (!localStorage.getItem(migrationKey)) {
+    if (S["14yn59xrmhz"]) Object.assign(S["14yn59xrmhz"], {status:"fixed", fixedAt:"2026-11-04", note:"Marked done locally: sidebar shows only the default Owned, Identified and Wishlist collections."});
+    localStorage.setItem(KEY, JSON.stringify(S));
+    localStorage.setItem(migrationKey, "1");
+  }
+} catch(e) {}
+try {
+  const migrationKey=KEY+"-collection-edit-fixed-2026-11-04";
+  if (!localStorage.getItem(migrationKey)) {
+    if (S["14yn59xrmk0"]) Object.assign(S["14yn59xrmk0"], {status:"fixed", fixedAt:"2026-11-04", note:"Marked done locally: private collection edit menu, rename and delete dialogs and empty state implemented; rename API verified with a temporary collection."});
+    localStorage.setItem(KEY, JSON.stringify(S));
+    localStorage.setItem(migrationKey, "1");
+  }
+} catch(e) {}
+try {
+  const migrationKey=KEY+"-evaluation-turnaround-fixed-2026-11-04";
+  if (!localStorage.getItem(migrationKey)) {
+    if (S["14yn59xrmva"]) Object.assign(S["14yn59xrmva"], {status:"fixed", fixedAt:"2026-11-04", note:"Marked done locally: homepage human evaluation turnaround updated to 24–72 hours on signed-in dashboard and public landing."});
+    localStorage.setItem(KEY, JSON.stringify(S));
+    localStorage.setItem(migrationKey, "1");
+  }
+} catch(e) {}
+try {
+  const migrationKey=KEY+"-applied-filter-chips-fixed-2026-11-04";
+  if (!localStorage.getItem(migrationKey)) {
+    if (S["14yn59xrmwy"]) Object.assign(S["14yn59xrmwy"], {status:"fixed", fixedAt:"2026-11-04", note:"Marked done locally: removable applied filter chips added to catalogue and marketplace; preserve remaining browse state."});
+    localStorage.setItem(KEY, JSON.stringify(S));
+    localStorage.setItem(migrationKey, "1");
+  }
+} catch(e) {}
+try {
+  const migrationKey=KEY+"-feed-post-tags-fixed-2026-11-04";
+  if (!localStorage.getItem(migrationKey)) {
+    if (S["14yn59xrnjy"]) Object.assign(S["14yn59xrnjy"], {status:"fixed", fixedAt:"2026-11-04", note:"Marked done locally: removed Discussion and Buy / Sell controls from Feed post dialog and updated its layout."});
+    localStorage.setItem(KEY, JSON.stringify(S));
+    localStorage.setItem(migrationKey, "1");
+  }
+} catch(e) {}
+try {
+  const migrationKey=KEY+"-inline-feed-comments-fixed-2026-11-04";
+  if (!localStorage.getItem(migrationKey)) {
+    if (S["14yn59xrnv6"]) Object.assign(S["14yn59xrnv6"], {status:"fixed", fixedAt:"2026-11-04", note:"Marked done locally: Feed comments and replies now open inline with the supplied composer."});
+    localStorage.setItem(KEY, JSON.stringify(S));
+    localStorage.setItem(migrationKey, "1");
+  }
+} catch(e) {}
+try {
+  const migrationKey=KEY+"-expert-optional-images-fixed-2026-11-04";
+  if (!localStorage.getItem(migrationKey)) {
+    if (S["14yn59xrkjx"]) Object.assign(S["14yn59xrkjx"], {status:"fixed", fixedAt:"2026-11-04", note:"Marked done locally: required and optional expert photos remain independent, and sample loader fills all six photo slots."});
+    localStorage.setItem(KEY, JSON.stringify(S));
+    localStorage.setItem(migrationKey, "1");
+  }
+} catch(e) {}
+try {
+  const migrationKey=KEY+"-evaluations-view-all-fixed-2026-11-04";
+  if (!localStorage.getItem(migrationKey)) {
+    if (S["14yn59xrku4"]) Object.assign(S["14yn59xrku4"], {status:"fixed", fixedAt:"2026-11-04", note:"Marked done locally: Your Evaluations View all opens the complete evaluations list at /experts/evaluations."});
+    localStorage.setItem(KEY, JSON.stringify(S));
+    localStorage.setItem(migrationKey, "1");
+  }
+} catch(e) {}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const rows=()=>BASE.map(r=>({...r,...(S[r.id]||{}),clickupStatus:"Open",clickupSyncedAt:CLICKUP_SYNCED_AT}));
+const pts=r=>W[r.priority]+(r.figma?1:0);
+const day=d=>new Date(d+"T00:00:00");
+const isoDay=d=>{const x=d instanceof Date?d:day(d);return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,"0")}-${String(x.getDate()).padStart(2,"0")}`};
+function velocity(rs){
+  const f=rs.filter(r=>r.status==="fixed"&&r.fixedAt);
+  if(f.length<3) return DEF_VELOCITY;
+  const t0=Math.min(...f.map(r=>+day(r.fixedAt)));
+  const t1=Math.max(+day(AS_OF),...f.map(r=>+day(r.fixedAt)));
+  // Inclusive calendar days (same-day burst ⇒ 1 day), not fractional wall-clock.
+  const days=Math.max(1, Math.round((t1-t0)/864e5)+1);
+  return f.reduce((a,r)=>a+pts(r),0)/days;
+}
+function etaDate(openPts,v){
+  if(!openPts) return {label:"done", iso:null, days:0};
+  const days=Math.ceil(openPts/v);
+  const d=new Date(+day(AS_OF)+days*864e5);
+  return {label:isoDay(d)+" (~"+days+"d)", iso:isoDay(d), days};
+}
+function cumulativeEta(items,v){
+  // FIFO by priority weight then original order — ETA for each open row as when it would finish
+  const open=items.filter(r=>r.status==="open");
+  const order=[...open].sort((a,b)=>pts(b)-pts(a));
+  let cum=0; const map={};
+  for(const r of order){ cum+=pts(r); map[r.id]=etaDate(cum,v).label; }
+  return map;
+}
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function gkey(r,g){return g==="uiWork"?(r.uiWork?"Fixable with UI work":"Fixable without UI work"):g==="figma"?(r.figma?"Figma required":"No Figma needed"):g==="none"?"All":r[g]}
+function render(){
+  const all=rows(), v=velocity(all), open=all.filter(r=>r.status==="open");
+  const openPts=open.reduce((a,r)=>a+pts(r),0);
+  const overall=etaDate(openPts,v);
+  const n=s=>all.filter(r=>r.status===s).length;
+  sum.innerHTML=[["Total",all.length],["Open",n("open")],["Fixed locally",n("fixed")],["Local testing",n("testiing")],["ClickUp Testing",all.filter(r=>r.clickupStatus==="testiing").length],["Not a bug",n("not-a-bug")],
+    ["Figma-blocked open",open.filter(r=>r.figma).length],["P1 open",open.filter(r=>r.priority==="P1").length],
+    ["Velocity pts/day",v.toFixed(1)],["Overall ETA",overall.label]].map(([a,b])=>`<div class="k">${a}<b>${b}</b></div>`).join("");
+  const g=grp.value, q=(document.getElementById("q").value||"").toLowerCase();
+  let l=all.filter(r=>(!fs.value||r.status===fs.value)&&(!ff.value||(r.figma?"Y":"N")===ff.value)&&(!q||(r.title+r.screen+r.area+r.id+r.note+(r.retest||"")).toLowerCase().includes(q)));
+  const completed=l.filter(r=>r.status==="fixed");
+  const gs={}; l.filter(r=>r.status!=="fixed").forEach(r=>(gs[gkey(r,g)]??=[]).push(r));
+  const keys=Object.keys(gs).sort((a,b)=>{
+    if(g==="priority") return a.localeCompare(b);
+    return a.localeCompare(b);
+  });
+  let h="";
+  for(const k of keys){
+    const items=gs[k], o=items.filter(r=>r.status==="open");
+    const oPts=o.reduce((a,r)=>a+pts(r),0);
+    const etas=cumulativeEta(items,v);
+    if(g!=="none") h+=`<tr class="g"><td colspan="9">${esc(k)} — ${items.length} issues, ${o.length} open · group ETA ${etaDate(oPts,v).label}</td></tr>`;
+    for(const r of items) h+=row(r,etas);
+  }
+  if(completed.length){
+    h+=`<tr class="g"><td colspan="9">Done locally — ${completed.length} issues</td></tr>`;
+    for(const r of completed) h+=row(r,{});
+  }
+  tb.innerHTML=h||'<tr><td colspan="9">No matches</td></tr>';
+}
+function row(r,etas){
+  {
+    {
+      const stBadge=r.status==="fixed"?' <span class="badge">fixed</span>':r.status==="not-a-bug"?' <span class="badge">n/a</span>':'';
+      return `<tr class="${r.status==="fixed"?"fixed":r.status==="not-a-bug"?"nb":""}">
+        <td class="${r.priority}">${r.priority}</td>
+        <td><a href="https://app.clickup.com/t/90161574019/${r.id}" target="_blank" rel="noopener">${esc(r.title)}</a>${stBadge}<div class="m">${r.id}</div></td>
+        <td>${esc(r.screen)}</td><td>${esc(r.area)}</td><td>${r.figma?"Yes":"No"}</td>
+        <td><select data-id="${r.id}" class="st">${["open","fixed","testiing","not-a-bug"].map(s=>`<option value="${s}"${s===r.status?" selected":""}>${s==="testiing"?"testing":s}</option>`).join("")}</select>${r.fixedAt?`<div class="m">${r.fixedAt}</div>`:""}</td>
+        <td><span class="badge" title="${esc(r.clickupStatus)}">${esc(r.clickupStatus==="testiing"?"TESTING":r.clickupStatus.toUpperCase())}</span><div class="m">Provided ${esc(r.clickupSyncedAt)}</div></td>
+        <td class="m">${r.status==="open"?esc(etas[r.id]||"—"):"—"}</td>
+        <td>${r.retest?`<div class="m">${esc(r.retest)}</div>`:""}<input data-id="${r.id}" class="nt" value="${esc(r.note||"")}" style="width:100%;min-width:160px"></td>
+      </tr>`;
+    }
+  }
+}
+document.addEventListener("change",e=>{
+  const t=e.target, id=t.dataset&&t.dataset.id;
+  if(!id){ render(); return; }
+  const s=S[id]=S[id]||{};
+  if(t.classList.contains("st")){ s.status=t.value; s.fixedAt=t.value==="fixed"?new Date().toISOString().slice(0,10):null; }
+  else if(t.classList.contains("nt")) s.note=t.value;
+  save(); render();
+});
+document.addEventListener("input",e=>{
+  const t=e.target; if(!t.classList||!t.classList.contains("nt")) return;
+  const id=t.dataset.id; if(!id) return;
+  (S[id]=S[id]||{}).note=t.value; save();
+});
+q.oninput=render;
+exp.onclick=()=>{
+  const blob=new Blob([JSON.stringify(rows(),null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="reopened-bug-tracker.json"; a.click();
+};
+imp.onclick=()=>file.click();
+file.onchange=async()=>{
+  const f=file.files&&file.files[0]; if(!f) return;
+  try{
+    const arr=JSON.parse(await f.text());
+    if(!Array.isArray(arr)) throw new Error("expected array");
+    for(const r of arr){ if(!r.id) continue; S[r.id]={status:r.status, note:r.note||"", fixedAt:r.fixedAt||null}; }
+    save(); render();
+  }catch(err){ alert("Import failed: "+err.message); }
+  file.value="";
+};
+rst.onclick=()=>{ if(confirm("Discard local edits?")){ S={}; save(); render(); } };
+render();
+</script>
+</body>
+</html>
