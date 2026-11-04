@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { CommentsPanel } from "@/components/feed/CommentsPanel";
 import { formatFeedTime, initials } from "@/lib/feed/format";
-import type { FeedPost } from "@/lib/feed/types";
+import type { CommunityUser, FeedPost } from "@/lib/feed/types";
 
 const THUMB = "/assets/feed/icon-like-outline.svg";
 const THUMB_FILLED = "/assets/feed/icon-like-round.svg";
@@ -17,6 +18,9 @@ export function FeedPostCard({
   onLike,
   onBookmark,
   onOpenComments,
+  commentsOpen,
+  me,
+  onCommentCountDelta,
   onEdit,
   onDelete,
   onReport,
@@ -26,6 +30,9 @@ export function FeedPostCard({
   onLike: () => void;
   onBookmark: () => void;
   onOpenComments: () => void;
+  commentsOpen: boolean;
+  me: CommunityUser;
+  onCommentCountDelta: (postId: string, delta: number) => void;
   onEdit?: () => void;
   onDelete?: () => void;
   onReport?: () => void;
@@ -45,7 +52,7 @@ export function FeedPostCard({
   }, [menuOpen]);
 
   return (
-    <article className="flex flex-col gap-3 rounded-2xl bg-white p-4">
+    <article id={`feed-post-${post.id}`} className="flex flex-col gap-3 rounded-2xl bg-white p-4">
       <div className="flex items-center gap-2.5">
         <div className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary-50 text-sm font-medium text-primary-500">
           {post.user?.profilePictureUrl ? (
@@ -188,6 +195,7 @@ export function FeedPostCard({
           </span>
         </button>
       </div>
+      <CommentsPanel open={commentsOpen} post={post} me={me} onOpen={onOpenComments} onCommentCountDelta={onCommentCountDelta} />
     </article>
   );
 }

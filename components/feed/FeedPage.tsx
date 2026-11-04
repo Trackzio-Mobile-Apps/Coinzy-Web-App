@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CommentsPanel } from "@/components/feed/CommentsPanel";
 import { CreatePostDialog } from "@/components/feed/CreatePostDialog";
 import { FeedAside } from "@/components/feed/FeedAside";
 import { FeedPostCard } from "@/components/feed/FeedPostCard";
@@ -264,7 +263,10 @@ export function FeedPage({
                   );
                 }
               }}
-              onOpenComments={() => setCommentsPost(post)}
+              me={communityUser}
+              commentsOpen={commentsPost?.id === post.id}
+              onOpenComments={() => setCommentsPost((current) => current?.id === post.id ? current : post)}
+              onCommentCountDelta={(postId, delta) => setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, commentCount: Math.max(0, p.commentCount + delta) } : p))}
               onEdit={
                 post.user?.userId === me.userId
                   ? () => {
@@ -317,7 +319,11 @@ export function FeedPage({
           }
           if (n.postId) {
             const post = await fetchPostById(n.postId, me.userId);
-            if (post) setCommentsPost(post);
+            if (post) {
+              setPosts((current) => current.some((item) => item.id === post.id) ? current : [post, ...current]);
+              setCommentsPost(post);
+              requestAnimationFrame(() => document.getElementById(`feed-post-${post.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" }));
+            }
           }
         }}
       />
@@ -339,9 +345,8 @@ export function FeedPage({
             setCreateError("Missing user id — refresh and try again.");
             return;
           }
-          // Android enable rule
-          if (!title.trim() || (!content.trim() && files.length === 0 && keepImageUrls.length === 0)) {
-            setCreateError("Enter a title and add details or an image.");
+          if (!title.trim() && !content.trim() && files.length === 0 && keepImageUrls.length === 0) {
+            setCreateError("Add a title, details or an image.");
             return;
           }
           setCreateBusy(true);
@@ -385,25 +390,6 @@ export function FeedPage({
           } finally {
             setCreateBusy(false);
           }
-        }}
-      />
-
-      <CommentsPanel
-        open={Boolean(commentsPost)}
-        post={commentsPost}
-        me={communityUser}
-        onClose={() => setCommentsPost(null)}
-        onCommentCountDelta={(postId, delta) => {
-          setPosts((prev) =>
-            prev.map((p) =>
-              p.id === postId ? { ...p, commentCount: Math.max(0, p.commentCount + delta) } : p,
-            ),
-          );
-          setCommentsPost((cur) =>
-            cur && cur.id === postId
-              ? { ...cur, commentCount: Math.max(0, cur.commentCount + delta) }
-              : cur,
-          );
         }}
       />
 
