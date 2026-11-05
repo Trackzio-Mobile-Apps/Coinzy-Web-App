@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { absoluteUrl, SAME_AS, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import { OfflineBanner } from "@/components/ui/OfflineBanner";
 import "./globals.css";
 
-const plusJakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
+const plusJakarta = localFont({
+  src: "./fonts/PlusJakartaSans-Variable.ttf",
   variable: "--font-plus-jakarta",
-  weight: ["400", "600", "700"],
+  weight: "200 800",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
