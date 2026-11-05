@@ -194,9 +194,9 @@ export function ExpertStatusPanel({
           {photos.length > 0 || media?.video ? (
             <div className="mt-4">
               <div className="flex flex-wrap gap-2">
-                {photos.slice(0, 6).map((url) => (
+                {photos.slice(0, 6).map((url, index) => (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img key={url} src={url} alt="" className="size-16 rounded-lg object-cover" />
+                  <img key={`${url}-${index}`} src={url} alt="" className="size-16 rounded-lg object-cover" />
                 ))}
                 {media?.video ? (
                   <div className="flex size-16 items-center justify-center rounded-lg bg-[#f5f5f5] text-[10px] text-muted">

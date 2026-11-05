@@ -24,6 +24,7 @@ export function SubmittedEvaluation({ request, creditBalance, onCreditsPurchased
   const hours = request.deadlineAt ? Math.max(0, Math.ceil((Date.parse(request.deadlineAt) - Date.now()) / 3600000)) : null;
   const missed = (request.status || "").toLowerCase() === "deadline_missed";
   const assigned = (request.status || "").toLowerCase() === "accepted";
+  const offered = (request.status || "").toLowerCase() === "offered";
   const created = request.createdAt ? new Date(request.createdAt) : null;
   const updated = request.updatedAt ? new Date(request.updatedAt) : null;
   const updatedDate = updated && !Number.isNaN(updated.getTime()) ? new Intl.DateTimeFormat(undefined, { day: "numeric", month: "long", year: "numeric", hour: "numeric", minute: "2-digit" }).format(updated) : null;
@@ -42,7 +43,7 @@ export function SubmittedEvaluation({ request, creditBalance, onCreditsPurchased
             <div className="p-3">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div><h1 className="text-base font-medium leading-6 text-ink">{missed ? "A new evaluation request has been created!" : "Evaluation request submitted!"}</h1><p className="mt-1 text-sm leading-5 text-[#606062]">{missed ? "You have resubmitted your request with a new expert." : assigned ? "An expert is reviewing your evaluation request." : "You’ve submitted your evaluation request. We will be assigning an expert soon."}</p></div>
-                <div className="text-right"><span className={`inline-flex rounded-md border px-2 py-0.5 text-xs font-medium ${missed ? "border-[#e51b23] text-[#e51b23]" : "border-[#e47700] text-[#e47700]"}`}>{missed ? "⊘  Cancelled" : "ⓘ  In progress"}</span>{(missed || hours !== null) && <p className="mt-2 text-xs text-[#606062]">◷ &nbsp;Est. time: <strong className={missed ? "text-[#e51b23]" : "text-ink"}>{missed ? "Overdue" : hours && hours > 0 ? `${hours}hr left` : "Due soon"}</strong></p>}</div>
+                <div className="text-right"><span className={`inline-flex rounded-md border px-2 py-0.5 text-xs font-medium ${missed ? "border-[#e51b23] text-[#e51b23]" : offered ? "border-[#aaa] text-[#777]" : "border-[#e47700] text-[#e47700]"}`}>{missed ? "⊘  Cancelled" : offered ? "ⓘ  Pending" : "ⓘ  In progress"}</span>{(missed || hours !== null) && <p className="mt-2 text-xs text-[#606062]">◷ &nbsp;Est. time: <strong className={missed ? "text-[#e51b23]" : "text-ink"}>{missed ? "Overdue" : hours && hours > 0 ? `${hours}hr left` : "Due soon"}</strong></p>}</div>
               </div>
               <div className="flex min-h-[142px] items-center justify-between gap-4 py-5 sm:px-5">
                 <div className="flex flex-wrap items-center pl-0 sm:pl-1">{photos.slice(0, 6).map((url, i) => <button key={`${url}-${i}`} type="button" onClick={() => openViewer(i)} aria-label={`View submitted photo ${i + 1}`} className={`${i ? "-ml-5" : ""} size-[72px] shrink-0 overflow-hidden rounded-full border-2 border-[#dfdfe0] bg-[#f5f5f5] sm:size-[90px]`}><img src={url} alt="" className="size-full object-cover" /></button>)}{photos.length === 0 && <span className="text-sm text-[#737373]">No photos available</span>}</div>
@@ -53,7 +54,7 @@ export function SubmittedEvaluation({ request, creditBalance, onCreditsPurchased
           </section>
           <section className="rounded-xl border border-[#dfdfe0] bg-white p-4"><h2 className="text-base font-medium text-ink">Evaluation progress</h2><ol className="mt-5 space-y-0 px-2 sm:px-8">
             <Step title="Coin Uploaded" detail={missed ? "Photos are uploading" : "Photos uploaded"} date={date} state="done" line />
-            <Step title="Evaluation Status" detail={missed ? "Experts received your coin request" : assigned ? "Expert assigned" : "Expert has not been assigned yet"} state={missed ? "failed" : "active"} date={missed ? updatedDate : undefined} line />
+            <Step title="Evaluation Status" detail={missed ? "Experts received your coin request" : assigned ? "Experts Received your request" : "Expert has not been assigned yet"} state={missed ? "failed" : offered ? "pending" : "active"} date={missed ? updatedDate : undefined} line />
             <Step title="Report Ready" detail={missed ? "Received detailed evaluation" : "Receive detailed evaluation"} state={missed ? "failed" : "pending"} />
           </ol></section>
           <div className={`flex items-center gap-2 rounded-xl border p-3 text-sm ${missed ? "border-[#fecaca] bg-[#fce8e8] text-[#e51b23]" : "border-[#bfdbfe] bg-[#eff6ff] text-[#193cb8]"}`}><span className={`flex size-7 shrink-0 items-center justify-center rounded-lg text-lg text-white ${missed ? "bg-[#e51b23]" : "bg-[#2b7fff]"}`}>ⓘ</span>{missed ? "Your evaluation was cancelled. You can either book a new evaluation or apply for a refund." : assigned ? "You’ll receive a notification when your report is ready" : "You’ll receive a notification when an expert is assigned for your request"}</div>{error && <p role="alert" className="text-sm text-[#b91c1c]">{error}</p>}
