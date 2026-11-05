@@ -116,6 +116,7 @@ export function IdentifyApp({
   }, [autoLoadDebug, obverse, reverse, loadBoth]);
 
   const clearSlot = useCallback((side: "obverse" | "reverse") => {
+    setFlipDismissed(true);
     if (side === "obverse") {
       setObverse((prev) => {
         if (prev?.preview) URL.revokeObjectURL(prev.preview);
@@ -128,12 +129,6 @@ export function IdentifyApp({
       });
     }
   }, []);
-
-  useEffect(() => {
-    if ((obverse && reverse) || (!obverse && !reverse)) {
-      setFlipDismissed(false);
-    }
-  }, [obverse, reverse]);
 
   const flipNeedSide: "obverse" | "reverse" | null =
     obverse && !reverse ? "reverse" : reverse && !obverse ? "obverse" : null;
@@ -164,6 +159,7 @@ export function IdentifyApp({
     if (clearPhotos) {
       clearSlot("obverse");
       clearSlot("reverse");
+      setFlipDismissed(false);
     }
   };
 
