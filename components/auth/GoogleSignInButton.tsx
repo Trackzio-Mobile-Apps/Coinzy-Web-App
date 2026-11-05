@@ -30,6 +30,7 @@ export function GoogleSignInButton({
       goHome(next);
     } catch (error) {
       onError(error instanceof Error ? error.message : "Google sign-in failed. Please try again.");
+    } finally {
       onPendingChange(false);
     }
   }
