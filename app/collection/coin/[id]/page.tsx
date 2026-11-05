@@ -137,7 +137,7 @@ async function CollectionCoinDetailsContent({
                 <h1 className="text-2xl font-semibold leading-8 text-ink">{title}</h1>
                 <CollectionCoinStatusBadge status={status} />
               </div>
-              <CollectionCoinOverflowMenu coinId={coinId} coinTitle={title} returnHref={listHref} />
+              <CollectionCoinOverflowMenu coinId={coinId} coinTitle={title} returnHref={listHref} listingId={listingId} />
             </div>
 
             <div className="flex flex-col gap-8 sm:flex-row sm:items-start">

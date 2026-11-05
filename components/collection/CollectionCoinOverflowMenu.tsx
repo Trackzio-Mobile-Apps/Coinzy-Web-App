@@ -12,11 +12,14 @@ export function CollectionCoinOverflowMenu({
   coinId,
   coinTitle,
   returnHref,
+  listingId,
 }: {
   coinId: string;
   coinTitle: string;
   /** Where to go after a successful delete (bucket / private collection / `/collection`). */
   returnHref: string;
+  /** Active marketplace listing for this coin; removed together with the coin. */
+  listingId?: string | null;
 }) {
   const router = useRouter();
   const menuId = useId();
@@ -66,7 +69,7 @@ export function CollectionCoinOverflowMenu({
     setDeleting(true);
     setError(null);
     try {
-      const res = await fetch(`/api/coin/delete/${encodeURIComponent(coinId)}`, {
+      const res = await fetch(`/api/coin/delete/${encodeURIComponent(coinId)}${listingId ? `?listingId=${encodeURIComponent(listingId)}` : ""}`, {
         method: "DELETE",
         credentials: "same-origin",
         cache: "no-store",
@@ -142,9 +145,15 @@ export function CollectionCoinOverflowMenu({
               Delete from collection?
             </h2>
             <p className="text-sm leading-5 text-muted">
-              Are you sure you want to remove{" "}
-              <span className="font-medium text-ink">{coinTitle}</span> from your collection? This
-              can’t be undone.
+              {listingId ? (
+                "Deleting this coin from owned collection will remove it from marketplace listing"
+              ) : (
+                <>
+                  Are you sure you want to remove{" "}
+                  <span className="font-medium text-ink">{coinTitle}</span> from your collection? This
+                  can’t be undone.
+                </>
+              )}
             </p>
             {error ? (
               <p className="text-xs text-[#dc2626]" role="alert">
