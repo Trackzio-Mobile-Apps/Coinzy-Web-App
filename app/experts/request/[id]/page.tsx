@@ -33,6 +33,8 @@ export default async function ExpertRequestStatusPage({
     fetchExpertsDirectory(token, { available: true }),
   ]);
 
+  if (reqRes.status === 404) redirect("/home");
+
   const request = reqRes.body?.data?.request;
   if (reqRes.body?.error || !request || !expertRequestId(request)) notFound();
 

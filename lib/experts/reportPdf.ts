@@ -1,3 +1,4 @@
+import { authenticityStyle } from "./authenticity";
 import { expertDisplayTitle, expertRequestId, type ExpertReport, type ExpertRequest } from "./types";
 
 type FieldGroup = Record<string, string | number | boolean | null>;
@@ -33,7 +34,9 @@ export async function makeReportPdf(request: ExpertRequest, report: ExpertReport
   const images = await Promise.all(photoUrls.map((src) => new Promise<HTMLImageElement | null>((resolve) => { const img = new Image(); const timer = window.setTimeout(() => resolve(null), 8000); img.crossOrigin = "anonymous"; img.onload = () => { window.clearTimeout(timer); resolve(img); }; img.onerror = () => { window.clearTimeout(timer); resolve(null); }; img.src = src; })));
   images.forEach((img, i) => { if (!img) return; const x = 525 + i * 76; ctx.save(); ctx.beginPath(); ctx.arc(x + 44, 437, 44, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(img, x, 393, 88, 88); ctx.restore(); ctx.beginPath(); ctx.arc(x + 44, 437, 44, 0, Math.PI * 2); ctx.strokeStyle = "#dfdfe0"; ctx.stroke(); });
   const summary: [string, unknown][] = [["Authenticity", groups.expertAssessment?.authenticity ?? report.authenticity], ["Condition", groups.expertAssessment?.conditionOrGrade], ["Est. Value", groups.valueAndRarity?.estimatedPriceRange]];
-  rounded(ctx, 525, 497, 615, 102, "#e8f7ed", "#e8f7ed"); summary.filter(([, v]) => v != null && v !== "").forEach(([key, v], i) => { text(ctx, key, 546, 525 + i * 29, 19, "#606062"); text(ctx, String(v), 725, 525 + i * 29, 20, "#00875a", true); });
+  const authenticity = authenticityStyle(summary[0][1]);
+  if (authenticity?.label === "Doubtful" || authenticity?.label === "Fake") { summary[1][1] = null; summary[2][1] = null; }
+  rounded(ctx, 525, 497, 615, 102, authenticity?.summary ?? "#f4f5f6", "#8bd5a5"); summary.forEach(([key, v], i) => { text(ctx, key, 546, 525 + i * 29, 19, "#606062"); text(ctx, v == null || v === "" ? "–" : String(v), 725, 525 + i * 29, 20, authenticity?.color ?? "#606062", true); });
   let x = margin, y = 665, rowHeight = 0; const cardWidth = 526, gap = 36;
   const ordered = [...Object.keys(titles).filter((key) => groups[key]), ...Object.keys(groups).filter((key) => !titles[key])];
   for (const key of ordered) {
@@ -43,17 +46,17 @@ export async function makeReportPdf(request: ExpertRequest, report: ExpertReport
     while (offset < entries.length) {
       if (y > 1510) { ctx = createPage(); x = margin; y = 80; rowHeight = 0; }
       ctx.font = "22px Arial, sans-serif";
-      const available = height - 80 - y; let cardHeight = 80; const rows: { name: string; lines: string[] }[] = [];
+      const available = height - 80 - y; let cardHeight = 80; const rows: { name: string; lines: string[]; authenticity: boolean }[] = [];
       while (offset < entries.length) {
-        const [field, value] = entries[offset]; const lines = wrap(ctx, String(value), cardWidth - 48);
+        const [field, value] = entries[offset]; const display = key === "expertAssessment" && field === "authenticity" && authenticity ? `${authenticity.label}\n${authenticity.description}` : String(value); const lines = wrap(ctx, display, cardWidth - 48);
         const row = 34 + lines.length * 28;
         if (rows.length && cardHeight + row + 20 > available) break;
-        rows.push({ name: label(field), lines }); cardHeight += row; offset++;
+        rows.push({ name: label(field), lines, authenticity: key === "expertAssessment" && field === "authenticity" && !!authenticity }); cardHeight += row; offset++;
       }
       if (!rows.length) break;
       rounded(ctx, x, y, cardWidth, cardHeight, "#fff"); text(ctx, titles[key] || label(key), x + 24, y + 41, 25, "#7c3c3f", true);
       let rowY = y + 75;
-      for (const row of rows) { text(ctx, row.name, x + 24, rowY, 20, "#606062"); rowY += 27; for (const line of row.lines) { text(ctx, line, x + 24, rowY, 22, "#1e1e1f", true); rowY += 28; } rowY += 7; }
+      for (const row of rows) { if (row.authenticity && authenticity) rounded(ctx, x + 12, rowY - 22, cardWidth - 24, 34 + row.lines.length * 28, authenticity.background, authenticity.background); text(ctx, row.name, x + 24, rowY, 20, "#606062"); rowY += 27; for (const [i, line] of row.lines.entries()) { text(ctx, line, x + 24, rowY, 22, row.authenticity && i === 0 ? authenticity!.color : "#1e1e1f", row.authenticity ? i === 0 : true); rowY += 28; } rowY += 7; }
       rowHeight = Math.max(rowHeight, cardHeight);
       if (x === margin) x = margin + cardWidth + gap; else { x = margin; y += rowHeight + 30; rowHeight = 0; }
       if (offset < entries.length && x !== margin) { x = margin; y += rowHeight + 30; rowHeight = 0; }

@@ -36,8 +36,10 @@ export default async function ExpertReportPage({
     fetchExpertRequest(token, id),
     fetchExpertReport(token, id),
     fetchExpertsCredits(token),
-    fetchExpertsDirectory(token, { available: true }),
+    fetchExpertsDirectory(token, { includeInternal: true }),
   ]);
+
+  if (reqRes.status === 404 || reportRes.status === 404) redirect("/home");
 
   const request = reqRes.body?.data?.request;
   const report = reportRes.body?.data?.report;
