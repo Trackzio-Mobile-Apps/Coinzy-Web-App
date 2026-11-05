@@ -17,4 +17,6 @@ assert.equal(update.sellerDetails.phoneNumber, '12345');
 assert.equal(update.sellerDetails.location, 'Delhi');
 assert.equal(update.sellerDetails.bio, 'Collector');
 assert.equal(update.cleaningAlterations, undefined, 'unchanged multi-value cleaning details are preserved');
-console.log('PASS: listing edits preserve unchanged metadata and seller details.');
+const choices = target.mergeSaleOptions(['Sheldon', 'British', 'Other (please specify)'], ['British', ' PCGS ', '']);
+assert.equal(JSON.stringify(choices), JSON.stringify(['Sheldon', 'British', 'Other (please specify)', 'PCGS']), 'partial listing filters must not hide the sale form choices');
+console.log('PASS: listing edits preserve metadata and sale options retain all default choices.');

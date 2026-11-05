@@ -65,9 +65,11 @@ function userUploadUrls(): [string, string] | null {
 export function IdentifyResultRail({
   archetypeId,
   coin,
+  fromMarketplace = false,
 }: {
   archetypeId: string;
   coin: ArchetypeDetails;
+  fromMarketplace?: boolean;
 }) {
   const router = useRouter();
   const [uploads, setUploads] = useState<[string, string] | null>(null);
@@ -84,6 +86,7 @@ export function IdentifyResultRail({
   const [feedbackToast, setFeedbackToast] = useState(false);
   const [saving, setSaving] = useState(false);
   const [collectionAdded, setCollectionAdded] = useState(false);
+  const [saleCoinAdded, setSaleCoinAdded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -172,6 +175,33 @@ export function IdentifyResultRail({
     setCollectionAdded(true);
   }, [archetypeId, coin, selectedIds, collections, imagePair, userOwnsCoin]);
 
+  const addForSale = async () => {
+    if (saving || saleCoinAdded) return;
+    if (!imagePair) {
+      setError("Upload photos are missing — identify this coin again.");
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      const result = await addCoinViaApi(buildAddCoinPayload(coin, archetypeId, imagePair, { isOwned: true }));
+      if (result.error) {
+        setError(result.reason ?? "Could not add the coin to Owned.");
+        return;
+      }
+      setSaleCoinAdded(true);
+      if (!result.coinId) {
+        setError("The coin was added to Owned, but its details could not be opened. Find it in your collection to list it for sale.");
+        return;
+      }
+      router.push(`/collection/coin/${encodeURIComponent(result.coinId)}?from=marketplace&list=1`);
+    } catch {
+      setError("Could not add the coin to Owned. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleCreateCollection = useCallback(
     async (name: string) => {
       const res = await createCollectionViaApi(name);
@@ -207,6 +237,11 @@ export function IdentifyResultRail({
             </div>
           ) : (
             <p className="mt-2 text-xs text-muted">No upload previews in this session.</p>
+          )}
+          {fromMarketplace && (
+            <button type="button" onClick={() => void addForSale()} disabled={saving || saleCoinAdded} className="mt-4 flex h-10 w-full items-center justify-center rounded-[10px] bg-primary-500 text-sm font-medium text-white disabled:opacity-50">
+              {saving ? "Adding to Owned…" : saleCoinAdded ? "Added to Owned" : "Add for Sale"}
+            </button>
           )}
           <button
             type="button"

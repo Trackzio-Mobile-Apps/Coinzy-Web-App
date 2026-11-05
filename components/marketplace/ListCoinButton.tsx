@@ -20,7 +20,7 @@ const defaultTriggerClass =
  * - **Select from owned collection** → owned picker → Set Seller Profile popup on THIS page if the profile is
  *   incomplete (ClickUp 14yn59xp2yf) → only after it is saved does it navigate to
  *   `/collection/coin/[id]?from=marketplace&list=1` (opens sell drawer). Override with `onSelectOwned`.
- * - **Add new coin** → `onAddNewCoin` if provided; else `/identify` interim until Self-listing ships.
+ * - **Add new coin** → `onAddNewCoin` if provided; else `/identify?from=marketplace`.
  */
 export function ListCoinButton({
   className = "",
@@ -36,7 +36,7 @@ export function ListCoinButton({
   onSelectOwned?: (coin: OwnedCoinPick) => void;
   /**
    * Handoff for "Add new coin" (Self-listing / identify agents).
-   * Default: navigate to `/identify`.
+   * Default: navigate to `/identify?from=marketplace`.
    */
   onAddNewCoin?: () => void;
 }) {
@@ -75,8 +75,8 @@ export function ListCoinButton({
       onAddNewCoin();
       return;
     }
-    // Interim until Self-listing / Add-to-sale agents wire identify → list.
-    router.push("/identify");
+    // Keep the selling intent through identification.
+    router.push("/identify?from=marketplace");
   };
 
   const confirmOwned = async (coin: OwnedCoinPick) => {

@@ -103,7 +103,7 @@ export type ExpertReport = {
   requestId?: string;
   authenticity?: string | null;
   contentFields?: ExpertReportContentField[] | Record<string, Record<string, string | number | boolean | null>> | null;
-  attachments?: { url?: string; type?: string; label?: string }[];
+  attachments?: { url?: string; type?: string; kind?: string; label?: string }[];
   coinTitle?: string | null;
   expertDisplayName?: string | null;
   submittedAt?: string | null;

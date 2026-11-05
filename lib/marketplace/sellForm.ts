@@ -1,3 +1,14 @@
+/** Keep every sale-form choice even when marketplace filters contain only a subset. */
+export function mergeSaleOptions(defaults: string[], existing: string[] = []): string[] {
+  const seen = new Set<string>();
+  return [...defaults, ...existing].map((value) => value.trim()).filter((value) => {
+    const key = value.toLocaleLowerCase();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 export type SellFormState = {
   price: string;
   contactEmail: string;

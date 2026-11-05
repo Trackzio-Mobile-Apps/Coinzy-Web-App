@@ -2,65 +2,144 @@ import { authenticityStyle } from "./authenticity";
 import { expertDisplayTitle, expertRequestId, type ExpertReport, type ExpertRequest } from "./types";
 
 type FieldGroup = Record<string, string | number | boolean | null>;
-const titles: Record<string, string> = { generalInfo: "General Information", physicalSpecs: "Physical Specifications", valueAndRarity: "Market Value and Rarity", designDetails: "Design Details", expertAssessment: "Expert Assessment" };
-const names: Record<string, string> = { currencyAndDenomination: "Currency & Denomination", rulerOrGovt: "Ruler / Govt", estimatedPriceRange: "Est. Market Value", obverseDescription: "Front (Obverse)", reverseDescription: "Back (Reverse)", conditionOrGrade: "Condition Grade" };
-const label = (key: string) => names[key] || key.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, (c) => c.toUpperCase());
 
-/** Render report pages locally, then embed the same pages in a downloadable PDF. */
+/** Draw the Android expert report at A4 proportions and package the same pages as a PDF. */
 export async function makeReportPdf(request: ExpertRequest, report: ExpertReport): Promise<{ pages: string[]; pdf: Blob }> {
-  const width = 1240, height = 1754, margin = 76;
+  const width = 1190, height = 1684, margin = 36, contentWidth = 523, columnWidth = 253.5, gap = 16;
   const pages: HTMLCanvasElement[] = [];
   const raw = report.contentFields;
-  const groups: Record<string, FieldGroup> = Array.isArray(raw) ? { generalInfo: Object.fromEntries(raw.map((f, i) => [f.label || f.key || `Field ${i + 1}`, f.value ?? null])) } : raw || {};
-  const title = report.coinTitle || expertDisplayTitle(request);
-  const id = request.displayId || expertRequestId(request);
-  const createPage = () => {
-    const canvas = document.createElement("canvas"); canvas.width = width; canvas.height = height;
-    const ctx = canvas.getContext("2d"); if (!ctx) throw new Error("Could not create report page.");
-    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, width, height); ctx.strokeStyle = "#e7e2df"; ctx.lineWidth = 2; ctx.strokeRect(24, 24, width - 48, height - 48); ctx.strokeRect(32, 32, width - 64, height - 64);
-    pages.push(canvas); return ctx;
-  };
-  const text = (ctx: CanvasRenderingContext2D, str: string, x: number, y: number, size = 24, color = "#1e1e1f", bold = false) => { ctx.fillStyle = color; ctx.font = `${bold ? 600 : 400} ${size}px Arial, sans-serif`; ctx.fillText(str, x, y); };
-  const wrap = (ctx: CanvasRenderingContext2D, input: string, max: number) => { const lines: string[] = []; for (const paragraph of input.split("\n")) { let line = ""; for (const word of paragraph.split(/\s+/)) { const candidate = line ? `${line} ${word}` : word; if (line && ctx.measureText(candidate).width > max) { lines.push(line); line = word; } else line = candidate; } lines.push(line); } return lines; };
-  const rounded = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, fill: string, stroke = "#e3e3e3") => { ctx.beginPath(); ctx.roundRect(x, y, w, h, 16); ctx.fillStyle = fill; ctx.fill(); ctx.strokeStyle = stroke; ctx.lineWidth = 2; ctx.stroke(); };
-  let ctx = createPage();
-  text(ctx, "COINZY AI", margin, 145, 40, "#1e1e1f", true); text(ctx, "EXPERT COIN EVALUATION", margin, 179, 20, "#606062");
-  text(ctx, "EVALUATION REPORT", 790, 145, 28, "#7c3c3f", true); text(ctx, `Request ID: #${id.replace(/^#/, "")}`, 790, 179, 19, "#606062");
-  if (report.submittedAt && !Number.isNaN(Date.parse(report.submittedAt))) text(ctx, `Date: ${new Date(report.submittedAt).toLocaleDateString()}`, 790, 208, 19, "#606062");
-  ctx.fillStyle = "#e5e5e5"; ctx.fillRect(margin, 236, width - margin * 2, 2);
-  rounded(ctx, margin, 270, 395, 350, "#faf8f6"); text(ctx, "EVALUATED BY EXPERT", margin + 24, 315, 18, "#7c3c3f", true); text(ctx, report.expertDisplayName || "Expert evaluation", margin + 24, 360, 27, "#1e1e1f", true);
-  rounded(ctx, 500, 270, 664, 350, "#faf8f6"); ctx.font = "600 27px Arial, sans-serif"; wrap(ctx, title, 600).slice(0, 3).forEach((line, i) => text(ctx, line, 525, 312 + i * 34, 27, "#1e1e1f", true));
-  const photoUrls = [...(request.payload?.media?.obverse || []), ...(request.payload?.media?.reverse || []), ...(request.payload?.media?.edge || [])].slice(0, 6);
-  const images = await Promise.all(photoUrls.map((src) => new Promise<HTMLImageElement | null>((resolve) => { const img = new Image(); const timer = window.setTimeout(() => resolve(null), 8000); img.crossOrigin = "anonymous"; img.onload = () => { window.clearTimeout(timer); resolve(img); }; img.onerror = () => { window.clearTimeout(timer); resolve(null); }; img.src = src; })));
-  images.forEach((img, i) => { if (!img) return; const x = 525 + i * 76; ctx.save(); ctx.beginPath(); ctx.arc(x + 44, 437, 44, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(img, x, 393, 88, 88); ctx.restore(); ctx.beginPath(); ctx.arc(x + 44, 437, 44, 0, Math.PI * 2); ctx.strokeStyle = "#dfdfe0"; ctx.stroke(); });
-  const summary: [string, unknown][] = [["Authenticity", groups.expertAssessment?.authenticity ?? report.authenticity], ["Condition", groups.expertAssessment?.conditionOrGrade], ["Est. Value", groups.valueAndRarity?.estimatedPriceRange]];
-  const authenticity = authenticityStyle(summary[0][1]);
-  if (authenticity?.label === "Doubtful" || authenticity?.label === "Fake") { summary[1][1] = null; summary[2][1] = null; }
-  rounded(ctx, 525, 497, 615, 102, authenticity?.summary ?? "#f4f5f6", "#8bd5a5"); summary.forEach(([key, v], i) => { text(ctx, key, 546, 525 + i * 29, 19, "#606062"); text(ctx, v == null || v === "" ? "–" : String(v), 725, 525 + i * 29, 20, authenticity?.color ?? "#606062", true); });
-  let x = margin, y = 665, rowHeight = 0; const cardWidth = 526, gap = 36;
-  const ordered = [...Object.keys(titles).filter((key) => groups[key]), ...Object.keys(groups).filter((key) => !titles[key])];
-  for (const key of ordered) {
-    const entries = Object.entries(groups[key] || {}).filter(([, v]) => v !== null && v !== "" && v !== undefined);
-    if (!entries.length) continue;
-    let offset = 0;
-    while (offset < entries.length) {
-      if (y > 1510) { ctx = createPage(); x = margin; y = 80; rowHeight = 0; }
-      ctx.font = "22px Arial, sans-serif";
-      const available = height - 80 - y; let cardHeight = 80; const rows: { name: string; lines: string[]; authenticity: boolean }[] = [];
-      while (offset < entries.length) {
-        const [field, value] = entries[offset]; const display = key === "expertAssessment" && field === "authenticity" && authenticity ? `${authenticity.label}\n${authenticity.description}` : String(value); const lines = wrap(ctx, display, cardWidth - 48);
-        const row = 34 + lines.length * 28;
-        if (rows.length && cardHeight + row + 20 > available) break;
-        rows.push({ name: label(field), lines, authenticity: key === "expertAssessment" && field === "authenticity" && !!authenticity }); cardHeight += row; offset++;
+  const groups: Record<string, FieldGroup> = Array.isArray(raw) ? { generalInfo: Object.fromEntries(raw.map((f, i) => [f.key || f.label || `Field ${i + 1}`, f.value ?? null])) } : raw || {};
+  const general = groups.generalInfo || {}, physical = groups.physicalSpecs || {}, market = groups.valueAndRarity || {}, design = groups.designDetails || {}, assessment = groups.expertAssessment || {};
+  const val = (value: unknown) => value == null || String(value).trim() === "" ? "—" : String(value).trim();
+  const title = report.coinTitle || String(general.coinName || "") || expertDisplayTitle(request);
+  const id = (request.displayId || expertRequestId(request)).replace(/^#/, "");
+  const date = report.submittedAt && !Number.isNaN(Date.parse(report.submittedAt)) ? new Date(report.submittedAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+  const estimatedValue = [market.currency, market.estimatedPriceRange].filter((v) => v != null && String(v).trim()).join(" ");
+  const authenticity = assessment.authenticity || report.authenticity;
+  const style = authenticityStyle(authenticity);
+  const ink = "#1e1e1f", muted = "#606062", wine = "#7c3c3f";
+  const requestPhotos = [...(request.payload?.media?.obverse || []), ...(request.payload?.media?.reverse || []), ...(request.payload?.media?.edge || [])];
+  const attachmentPhotos = report.attachments?.filter((a) => a.url && !String(a.type || a.kind || "").toLowerCase().includes("video")).map((a) => a.url!) || [];
+  // The request media is the complete submitted set shown on the report screen.
+  const photoUrls = requestPhotos.length ? requestPhotos : attachmentPhotos;
+  const loadImage = (src: string) => new Promise<HTMLImageElement | null>((resolve) => {
+    const img = new Image();
+    const timer = window.setTimeout(() => resolve(null), 8000);
+    const remote = /^https?:\/\//i.test(src);
+    let triedOriginal = !remote;
+    img.crossOrigin = "anonymous";
+    img.onload = () => { window.clearTimeout(timer); resolve(img); };
+    img.onerror = () => {
+      if (!triedOriginal) { triedOriginal = true; img.src = src; return; }
+      window.clearTimeout(timer); resolve(null);
+    };
+    // Same-origin optimized images can be drawn into the PDF canvas even when the
+    // original storage server does not send browser CORS headers.
+    img.src = remote ? `/_next/image?url=${encodeURIComponent(src)}&w=256&q=75` : src;
+  });
+  const videoUrl = request.payload?.media?.video || report.attachments?.find((a) => a.url && (/video/i.test(a.kind || a.type || "") || /(?:\/video\/|\.(?:mp4|mov)(?:\?|$))/i.test(a.url)))?.url;
+  const loadVideo = (src: string) => new Promise<HTMLVideoElement | null>((resolve) => {
+    const video = document.createElement("video"); let finished = false;
+    const finish = (result: HTMLVideoElement | null) => { if (finished) return; finished = true; window.clearTimeout(timer); resolve(result); };
+    const timer = window.setTimeout(() => finish(video.readyState >= 2 ? video : null), 8000);
+    video.crossOrigin = "anonymous"; video.preload = "auto"; video.muted = true;
+    video.onloadeddata = () => {
+      if (Number.isFinite(video.duration) && video.duration > 0.2) {
+        try { video.currentTime = Math.min(0.25, video.duration / 2); return; } catch { /* Use the first decoded frame. */ }
       }
-      if (!rows.length) break;
-      rounded(ctx, x, y, cardWidth, cardHeight, "#fff"); text(ctx, titles[key] || label(key), x + 24, y + 41, 25, "#7c3c3f", true);
-      let rowY = y + 75;
-      for (const row of rows) { if (row.authenticity && authenticity) rounded(ctx, x + 12, rowY - 22, cardWidth - 24, 34 + row.lines.length * 28, authenticity.background, authenticity.background); text(ctx, row.name, x + 24, rowY, 20, "#606062"); rowY += 27; for (const [i, line] of row.lines.entries()) { text(ctx, line, x + 24, rowY, 22, row.authenticity && i === 0 ? authenticity!.color : "#1e1e1f", row.authenticity ? i === 0 : true); rowY += 28; } rowY += 7; }
-      rowHeight = Math.max(rowHeight, cardHeight);
-      if (x === margin) x = margin + cardWidth + gap; else { x = margin; y += rowHeight + 30; rowHeight = 0; }
-      if (offset < entries.length && x !== margin) { x = margin; y += rowHeight + 30; rowHeight = 0; }
+      finish(video);
+    };
+    video.onseeked = () => finish(video); video.onerror = () => finish(null);
+    // Read the authorized request's video through our origin so canvas export is not blocked by storage CORS.
+    video.src = /^https?:\/\//i.test(src) ? `/api/experts/report-video/${encodeURIComponent(expertRequestId(request))}` : src;
+  });
+  await document.fonts.ready;
+  const [[logo, ...photos], video] = await Promise.all([Promise.all([loadImage("/icon.png"), ...photoUrls.slice(0, 6).map(loadImage)]), videoUrl ? loadVideo(videoUrl) : Promise.resolve(null)]);
+  let ctx!: CanvasRenderingContext2D;
+  let y = 0;
+  const font = (size: number, bold = false) => `${bold ? 700 : 400} ${size}px ${getComputedStyle(document.documentElement).getPropertyValue("--font-plus-jakarta") || "sans-serif"}`;
+  const text = (str: string, x: number, top: number, size = 12, color = ink, bold = false, align: CanvasTextAlign = "left") => { ctx.fillStyle = color; ctx.font = font(size, bold); ctx.textAlign = align; ctx.textBaseline = "top"; ctx.fillText(str, x, top); ctx.textAlign = "left"; };
+  const box = (x: number, top: number, w: number, h: number, fill: string | null, stroke: string | null = null, radius = 8) => { ctx.beginPath(); ctx.roundRect(x, top, w, h, radius); if (fill) { ctx.fillStyle = fill; ctx.fill(); } if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke(); } };
+  const wrap = (input: string, maxWidth: number, size = 12, bold = false) => { ctx.font = font(size, bold); const lines: string[] = []; for (const paragraph of input.split("\n")) { let line = ""; for (const word of paragraph.split(/\s+/)) { const next = line ? `${line} ${word}` : word; if (line && ctx.measureText(next).width > maxWidth) { lines.push(line); line = word; } else line = next; } lines.push(line); } return lines; };
+  const createPage = () => { const canvas = document.createElement("canvas"); canvas.width = width; canvas.height = height; const context = canvas.getContext("2d"); if (!context) throw new Error("Could not create report page."); ctx = context; ctx.scale(2, 2); pages.push(canvas); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, 595, 842); ctx.strokeStyle = "#e7e5e4"; ctx.strokeRect(12.5, 12.5, 570, 817); ctx.strokeStyle = "#f4efea"; ctx.strokeRect(16.5, 16.5, 562, 809); if (logo) ctx.drawImage(logo, 36, 60, 40, 40); text("COINZY AI", 84, 61, 18, ink, true); text("EXPERT COIN EVALUATION", 84, 82, 10, muted); text("EVALUATION REPORT", 559, 62, 14, wine, true, "right"); text(`Request ID: #${id}   |   Date: ${date}`, 559, 83, 10, muted, false, "right"); ctx.fillStyle = "#e7e5e4"; ctx.fillRect(36, 123, 523, 1); y = 124; };
+  const ensure = (h: number) => { if (y + h > 806 && y > 156) { createPage(); y += 32; } };
+  const heading = (x: number, top: number, titleText: string, symbol: string) => { box(x, top, 24, 24, wine, null, 12); text(symbol, x + 12, top + 4, 13, "#fff", true, "center"); text(titleText, x + 36, top + 4, 14, ink, true); };
+  const dataCard = (x: number, top: number, headingText: string, symbol: string, rows: [string, string][]) => { heading(x, top, headingText, symbol); let rowY = top + 48; const cardTop = top + 36, cell = (columnWidth - 24) / 2; const layouts = rows.map(([key, value]) => ({ key: wrap(key, cell), value: wrap(value, cell, 12, true) })); const cardHeight = 24 + layouts.reduce((sum, row, i) => sum + Math.max(row.key.length, row.value.length) * 18 + (i < rows.length - 1 ? 12 : 0), 0); box(x, cardTop, columnWidth, cardHeight, null, "#dfdfe0", 12); layouts.forEach((row) => { row.key.forEach((line, i) => text(line, x + 12, rowY + i * 18, 12, muted)); row.value.forEach((line, i) => text(line, x + columnWidth - 12, rowY + i * 18, 12, ink, true, "right")); rowY += Math.max(row.key.length, row.value.length) * 18 + 12; }); return cardTop + cardHeight; };
+  createPage(); y += 28;
+  const titleLines = wrap(title, 241.5, 14, true).slice(0, 2); const heroHeight = 136 + Math.max(0, titleLines.length * 17 - 34); box(margin, y, contentWidth, heroHeight, "#faf8f5", "#e7e5e4"); titleLines.forEach((line, i) => text(line, 48, y + 12 + i * 17, 14, ink, true));
+  const loadedPhotos = photos.filter((p): p is HTMLImageElement => !!p);
+  const thumbTop = y + 65;
+  const mediaCount = loadedPhotos.length + (videoUrl ? 1 : 0);
+  const thumbSize = Math.min(70, (241.5 - Math.max(0, mediaCount - 1) * 4) / Math.max(mediaCount, 1));
+  loadedPhotos.forEach((img, i) => { const x = 48 + i * (thumbSize + 4); ctx.save(); ctx.beginPath(); ctx.arc(x + thumbSize / 2, thumbTop + thumbSize / 2, thumbSize / 2, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(img, x, thumbTop, thumbSize, thumbSize); ctx.restore(); });
+  if (videoUrl) { const videoX = 48 + loadedPhotos.length * (thumbSize + 4); box(videoX, thumbTop, thumbSize, thumbSize, "#dedbd8", null, 6); if (video) { ctx.save(); ctx.beginPath(); ctx.roundRect(videoX, thumbTop, thumbSize, thumbSize, 6); ctx.clip(); ctx.drawImage(video, videoX, thumbTop, thumbSize, thumbSize); ctx.restore(); } box(videoX + thumbSize / 2 - 12, thumbTop + thumbSize / 2 - 12, 24, 24, "rgba(0,0,0,0.55)", null, 12); text("▶", videoX + thumbSize / 2, thumbTop + thumbSize / 2 - 7, 12, "#fff", false, "center"); }
+  const summaryX = 305.5; box(summaryX, y + 12, 241.5, 100, style?.background || "#f4f5f6"); const summary: [string, unknown][] = [["Authenticity", authenticity], ["Condition", assessment.conditionOrGrade], ["Est. Value", estimatedValue]]; summary.forEach(([name, value], i) => { const rowY = y + 20 + i * 32; box(summaryX + 16, rowY, 20, 20, "#ffffff", null, 10); text(["◇", "☆", "▤"][i], summaryX + 26, rowY + 3, 12, style?.color || muted, true, "center"); text(name, summaryX + 44, rowY + 4, 12); text(val(value), summaryX + 225, rowY + 4, 12, style?.color || muted, true, "right"); });
+  y += heroHeight + 28;
+  const measureCard = (rows: [string, string][]) => 60 + rows.reduce((sum, [key, value], i) => sum + Math.max(wrap(key, (columnWidth - 24) / 2).length, wrap(value, (columnWidth - 24) / 2, 12, true).length) * 18 + (i < rows.length - 1 ? 12 : 0), 0);
+  const generalRows: [string, string][] = [["Coin Name", val(title)], ["Currency & Denomination", val(general.currencyAndDenomination)], ["Issuer", val(general.issuer)], ["Period", val(general.period)], ["Ruler /Govt", val(general.rulerOrGovt)], ["Year of minting", val(general.yearOfMinting)], ["Mint location", val(general.mintLocation)]];
+  const physicalRows: [string, string][] = [["Material", val(physical.material)], ["Weight", val(physical.weight)], ["Dominant Color", val(physical.dominantColor)], ["Minting method", val(physical.mintingMethod)]];
+  const marketRows: [string, string][] = [["Rarity", val(market.rarity)], ["Est. Market Value", val(estimatedValue)]];
+  ensure(Math.max(measureCard(generalRows), measureCard(physicalRows) + 24 + measureCard(marketRows)));
+  const leftEnd = dataCard(36, y, "General Information", "▤", generalRows);
+  let rightEnd = dataCard(305.5, y, "Physical Specifications", "◉", physicalRows);
+  rightEnd = dataCard(305.5, rightEnd + 24, "Market Value and Rarity", "▥", marketRows); y = Math.max(leftEnd, rightEnd) + 28;
+  const narrative = (section: string, rows: [string, string][]) => {
+    let rowIndex = 0, lineIndex = 0, continued = false;
+    while (rowIndex < rows.length) {
+      ensure(96);
+      heading(36, y, section + (continued ? " (continued)" : ""), "◇");
+      const cardTop = y + 36;
+      let innerY = cardTop + 12;
+      const drawn: { name: string; lines: string[]; y: number }[] = [];
+      while (rowIndex < rows.length) {
+        const [name, value] = rows[rowIndex];
+        const lines = wrap(value, contentWidth - 24, 12, true);
+        const room = Math.floor((806 - innerY - 16 - 12) / 18);
+        if (room < 1) break;
+        const selected = lines.slice(lineIndex, lineIndex + room);
+        drawn.push({ name: name + (lineIndex ? " (continued)" : ""), lines: selected, y: innerY });
+        innerY += 16 + selected.length * 18 + 12;
+        lineIndex += selected.length;
+        if (lineIndex < lines.length) break;
+        rowIndex++; lineIndex = 0;
+      }
+      box(36, cardTop, contentWidth, innerY - cardTop, null, "#dfdfe0", 12);
+      for (const row of drawn) { text(row.name, 48, row.y, 12, muted); row.lines.forEach((line, i) => text(line, 48, row.y + 16 + i * 18, 12, ink, true)); }
+      y = innerY; continued = true;
+      if (rowIndex < rows.length) { createPage(); y += 32; }
     }
+  };
+  narrative("Design Details", [["Front (Obverse)", val(design.obverseDescription)], ["Back (Reverse)", val(design.reverseDescription)], ["History", val(design.history)]]);
+  createPage(); y += 32;
+  const assessmentRows: [string, string][] = [["Authenticity", val(assessment.errorsOrSpecialFeatures)], ["Condition Grade", val(assessment.conditionOrGrade)], ["Expert Recommendation", val(assessment.recommendation)]];
+  let rowIndex = 0, lineIndex = 0, continued = false;
+  while (rowIndex < assessmentRows.length) {
+    ensure(115);
+    heading(36, y, "Expert Assessment" + (continued ? " (continued)" : ""), "▤");
+    const top = y + 36;
+    let inner = top + 12;
+    const rendered: { name: string; lines: string[]; y: number; height: number; part: boolean }[] = [];
+    while (rowIndex < assessmentRows.length) {
+      const [name, value] = assessmentRows[rowIndex];
+      const lines = wrap(value, contentWidth - 64, 12, true);
+      const room = Math.floor((806 - inner - 38 - 20) / 18);
+      if (room < 1) break;
+      const selected = lines.slice(lineIndex, lineIndex + room);
+      const innerHeight = Math.max(name === "Condition Grade" ? 60 : 82, 38 + selected.length * 18 + 8);
+      rendered.push({ name, lines: selected, y: inner, height: innerHeight, part: lineIndex > 0 });
+      inner += innerHeight + 12; lineIndex += selected.length;
+      if (lineIndex < lines.length) break;
+      rowIndex++; lineIndex = 0;
+    }
+    box(36, top, contentWidth, inner - top, null, "#dfdfe0", 12);
+    for (const row of rendered) {
+      if (row.name !== "Expert Recommendation") box(48, row.y, contentWidth - 24, row.height, row.name === "Authenticity" ? (style?.background || "#f4f5f6") : "#f7f1eb");
+      text(row.name + (row.part ? " (continued)" : ""), 56, row.y + 8, 12, muted);
+      if (row.name === "Authenticity") { const auth = val(authenticity); ctx.font = font(12, true); const pillWidth = ctx.measureText(auth).width + 24; box(539 - pillWidth, row.y + 8, pillWidth, 22, style?.color || muted, null, 11); text(auth, 539 - pillWidth / 2, row.y + 12, 12, "#fff", true, "center"); }
+      row.lines.forEach((line, i) => text(line, 56, row.y + 38 + i * 18, 12, ink, true));
+    }
+    y = inner; continued = true;
+    if (rowIndex < assessmentRows.length) { createPage(); y += 32; }
   }
   const pageImages = pages.map((canvas) => canvas.toDataURL("image/jpeg", 0.92));
   const encoder = new TextEncoder(); const chunks: Uint8Array[] = []; let length = 0; const offsets: number[] = [];
