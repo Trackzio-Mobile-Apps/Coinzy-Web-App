@@ -306,6 +306,25 @@ export type ListingSummary = {
   imageUrls: string[];
 };
 
+/** Paginated public listings for sitemap discovery; never reads a browser session. */
+export const fetchPublicListingPage = unstable_cache(
+  async (pageNo = 0, pageSize = 1000): Promise<{ items: ListingSummary[]; pageNo: number; pageSize: number; totalCount: number }> => {
+    const qs = new URLSearchParams({ pageNo: String(pageNo), pageSize: String(pageSize) });
+    const json = await apiFetch<{
+      data: ListingSummary[];
+      pagination: { pageNo: number; pageSize: number; totalCount: number };
+    }>(`/marketplace/listing/fetchAll?${qs}`, {
+      method: "POST",
+      body: "{}",
+      backend: "marketplace",
+      revalidate: 0,
+    });
+    return { items: json.data, ...json.pagination };
+  },
+  ["public-listing-pages"],
+  { revalidate: 300, tags: ["marketplace-listings"] },
+);
+
 /**
  * Every listing matching `filters`/`search`, newest first. The API can only sort by title/price, and the
  * marketplace is small (~200 listings), so we fetch all matches in one request and sort/paginate locally.
