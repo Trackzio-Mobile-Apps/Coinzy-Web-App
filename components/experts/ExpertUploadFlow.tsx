@@ -329,6 +329,7 @@ export function ExpertUploadFlow({
         <IdentifyCropModal
           file={crop.file}
           side={crop.slot}
+          circular
           onClose={() => setCrop(null)}
           onConfirm={(file) => {
             saveCroppedFile(crop.slot, crop.atIndex, file);

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { LogoMark } from "@/components/landing/TopNav";
 import { sidebarNav, type SidebarActive } from "@/lib/sidebarNav";
+import { SidebarLink } from "@/components/home/SidebarLink";
 
 const A = "/assets/home";
 
@@ -51,15 +52,19 @@ export function SignedInRouteLoading({
           {items.map((item) => {
             const isActive = Boolean(item.active);
             return (
-              <div
+              <SidebarLink
                 key={item.label}
+                href={item.href ?? "/home"}
+                active={item.icon}
+                title={item.label}
+                current={isActive}
                 className={`flex h-9 items-center gap-2 rounded-[10px] px-3 text-sm font-medium leading-5 ${
                   isActive ? "bg-primary-50 text-primary-500" : "text-ink opacity-70"
                 }`}
               >
                 <Image src={ICONS[item.icon] ?? ICONS.home} alt="" width={16} height={16} />
                 <span className="flex-1 truncate">{item.label}</span>
-              </div>
+              </SidebarLink>
             );
           })}
         </nav>

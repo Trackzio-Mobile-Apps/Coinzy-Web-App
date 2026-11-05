@@ -84,8 +84,11 @@ async function uploadBlob(
 async function uploadImageSlot(sessionId: string, slot: Slot, files: File[]): Promise<string[]> {
   const urls: string[] = [];
   for (let i = 0; i < files.length; i++) {
-    const compressed = await compressImageToJpeg(files[i]!);
-    urls.push(await uploadBlob(sessionId, slot, `${i}.jpg`, compressed, "image/jpeg"));
+    const file = files[i]!;
+    // Circular crops have transparent corners, which JPEG cannot preserve.
+    const image = file.type === "image/png" ? file : await compressImageToJpeg(file);
+    const isPng = image.type === "image/png";
+    urls.push(await uploadBlob(sessionId, slot, `${i}.${isPng ? "png" : "jpg"}`, image, image.type));
   }
   return urls;
 }
