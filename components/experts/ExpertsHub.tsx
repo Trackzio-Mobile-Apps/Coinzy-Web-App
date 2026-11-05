@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BuyCreditsButton } from "@/components/experts/BuyCreditsButton";
+import { ExpertCard, FIGMA_EXPERTS, toExpertCard, type ExpertCardData } from "@/components/experts/ExpertCard";
 import { ExpertsAside } from "@/components/experts/ExpertsAside";
 import {
   expertRequestId,
@@ -43,30 +44,6 @@ const REPORT_FEATURES = [
   },
 ] as const;
 
-/** Figma `1312:115253` Meet Our Experts — design assets (not API QA names). */
-const FIGMA_EXPERTS = [
-  {
-    name: "David Richardson",
-    rating: "4.9",
-    reviews: "1,240",
-    specialty: "Ancient Coins ● Indian Princely States",
-    pic: `${A}/expert-david.webp`,
-  },
-  {
-    name: "Priya Sharma",
-    rating: "4.8",
-    reviews: "129",
-    specialty: "Mughal Era ● US Coins",
-    pic: `${A}/expert-priya.webp`,
-  },
-  {
-    name: "David Richardson",
-    rating: "4.9",
-    reviews: "1,240",
-    specialty: "Ancient Banknotes ● Indian Princely States",
-    pic: `${A}/expert-david.webp`,
-  },
-] as const;
 
 function ArrowRight({ className, stroke = "#0A0A0A" }: { className?: string; stroke?: string }) {
   return (
@@ -119,6 +96,7 @@ function statusLabel(status: string | null | undefined) {
 export function ExpertsHub({
   requests,
   creditBalance,
+  experts,
   preview = false,
 }: {
   requests: ExpertRequest[];
@@ -135,7 +113,7 @@ export function ExpertsHub({
         <CreditsCard creditBalance={creditBalance} />
         <div className="lg:hidden">{evaluations}</div>
         <ReportIncludes />
-        <MeetExperts />
+        <MeetExperts experts={experts} preview={preview} />
       </div>
       <div className="mt-12 hidden shrink-0 lg:block"><ExpertsAside creditBalance={creditBalance} creditTotal={preview && creditBalance > 0 ? 10 : undefined} requestSummary={evaluations} /></div>
     </div>
@@ -239,42 +217,21 @@ function ReportIncludes() {
   );
 }
 
-function MeetExperts() {
+function MeetExperts({ experts, preview }: { experts: ExpertsDirectoryItem[]; preview: boolean }) {
+  const cards: ExpertCardData[] = preview ? [...FIGMA_EXPERTS] : experts.slice(0, 3).map(toExpertCard);
+  if (cards.length === 0) return null;
   return (
     <section className="rounded-xl bg-white p-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-medium leading-7 text-[#0a0a0a]">Meet Our Experts</h2>
-        <span className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium leading-4 text-[#1e1e1f]">
+        <Link href={preview ? "/experts-directory-preview" : "/experts/directory"} className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium leading-4 text-[#1e1e1f]">
           View all
           <ChevronRight />
-        </span>
+        </Link>
       </div>
       <div className="mt-3 grid grid-cols-1 gap-3.5 sm:grid-cols-3">
-        {FIGMA_EXPERTS.map((e, i) => (
-          <article
-            key={`${e.name}-${i}`}
-            className="min-w-0 flex-1 rounded-[14px] border border-[#e5e5e5] bg-white p-[13px] shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
-          >
-            <div className="flex items-start justify-between gap-2">
-              <div className="relative size-[52px] shrink-0">
-                <div className="relative size-[52px] overflow-hidden rounded-[26px] border-2 border-primary-50">
-                  <Image src={e.pic} alt="" width={52} height={52} className="size-full object-cover" />
-                </div>
-                <span className="absolute bottom-0 right-0 size-3.5 rounded-[7px] border-2 border-white bg-[#22c55e]" />
-              </div>
-              <div className="flex flex-col items-end gap-1">
-                <div className="flex items-center gap-1.5">
-                  <Image src={`${A}/icon-star.svg`} alt="" width={13} height={13} unoptimized />
-                  <span className="text-xs font-semibold leading-4 text-[#1e1e1f]">{e.rating}</span>
-                </div>
-                <p className="text-xs font-light leading-4 text-[#606062]">({e.reviews} reviews)</p>
-              </div>
-            </div>
-            <div className="mt-3 flex flex-col gap-1">
-              <p className="truncate text-sm font-medium leading-5 text-[#1e1a1a]">{e.name}</p>
-              <p className="text-xs leading-4 text-[#606062]">{e.specialty}</p>
-            </div>
-          </article>
+        {cards.map((e, i) => (
+          <ExpertCard key={`${e.name}-${i}`} expert={e} />
         ))}
       </div>
     </section>
