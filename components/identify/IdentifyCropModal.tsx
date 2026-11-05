@@ -7,11 +7,12 @@ import { IdentifyZoomSlider, zoomScaleFromSlider } from "@/components/identify/I
 import { useModalDialog } from "@/components/ui/useModalDialog";
 
 /** The guide uses a 540×420 viewport with a centred 240px crop. */
-export function IdentifyCropModal({ file, side, onClose, onConfirm }: {
+export function IdentifyCropModal({ file, side, onClose, onConfirm, circular = false }: {
   file: File;
   side: "obverse" | "reverse" | "edge";
   onClose: () => void;
   onConfirm: (file: File) => void;
+  circular?: boolean;
 }) {
   const titleId = useId();
   const ref = useModalDialog(true, (open) => !open && onClose());
@@ -58,13 +59,19 @@ export function IdentifyCropModal({ file, side, onClose, onConfirm }: {
       canvas.width = canvas.height = 1024;
       const context = canvas.getContext("2d");
       if (!context) throw new Error();
+      if (circular) {
+        context.beginPath();
+        context.arc(512, 512, 512, 0, Math.PI * 2);
+        context.clip();
+      }
       context.fillStyle = "black";
       context.fillRect(0, 0, 1024, 1024);
       context.drawImage(imageRef.current, (width / 2 - 120 - x) / scale, (height / 2 - 120 - y) / scale, 240 / scale, 240 / scale, 0, 0, 1024, 1024);
-      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.92));
+      const type = circular ? "image/png" : "image/jpeg";
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, 0.92));
       if (!active.current) return;
       if (!blob) throw new Error();
-      onConfirm(new File([blob], `${side}.jpg`, { type: "image/jpeg" }));
+      onConfirm(new File([blob], `${side}.${circular ? "png" : "jpg"}`, { type }));
     } catch {
       setError("Could not crop this image. Try another photo.");
     } finally {

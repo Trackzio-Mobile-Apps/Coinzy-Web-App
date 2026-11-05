@@ -161,7 +161,7 @@ export function FeedPostCard({
           {post.imageList.slice(0, 2).map((src) => (
             <div key={src} className="relative h-[348px] overflow-hidden rounded-md border border-border-neutral bg-[#f3f4f6] max-sm:h-[240px]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={src} alt="" className="size-full object-cover" />
+              <img src={src} alt="" className="size-full object-contain" />
             </div>
           ))}
         </div>

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import { SidebarLink } from "@/components/home/SidebarLink";
 import { LogoMark } from "@/components/landing/TopNav";
 import type { SessionUser } from "@/lib/auth/session";
 import { type HomeNavIcon } from "@/lib/home";
@@ -75,9 +75,9 @@ export async function AppSidebar({
           );
           const row =
             item.href && !item.soon ? (
-              <Link key={item.label} href={item.href} aria-current={isActive ? "page" : undefined} className={className}>
+              <SidebarLink key={item.label} href={item.href} active={item.icon} title={item.label} current={isActive} className={className}>
                 {content}
-              </Link>
+              </SidebarLink>
             ) : (
               <span key={item.label} aria-disabled="true" title="Coming soon" className={className}>
                 {content}
@@ -91,15 +91,17 @@ export async function AppSidebar({
                 {active === "collection" && nestedCollections.length > 0 && (
                   <div className="flex flex-col py-1 pl-11 pr-2">
                     {nestedCollections.map((link) => (
-                      <Link
+                      <SidebarLink
                         key={link.href}
                         href={link.href}
+                        active="collection"
+                        title={link.label}
                         className={`rounded-md py-1.5 text-sm leading-5 ${
                           link.active ? "font-medium text-ink" : "text-ink hover:bg-black/[0.03]"
                         }`}
                       >
                         {link.label}
-                      </Link>
+                      </SidebarLink>
                     ))}
                   </div>
                 )}
@@ -112,12 +114,14 @@ export async function AppSidebar({
               <div key={item.label} className="flex flex-col">
                 {row}
                 <div className="flex flex-col py-1 pl-11 pr-2">
-                  <Link
+                  <SidebarLink
                     href="/marketplace/my-listings"
+                    active="marketplace"
+                    title="Your listings"
                     className="rounded-md py-1.5 text-sm font-medium leading-5 text-ink"
                   >
                     Your listing
-                  </Link>
+                  </SidebarLink>
                 </div>
               </div>
             );
