@@ -56,7 +56,7 @@ Plugin: `@netlify/plugin-nextjs`. Env vars in `netlify.toml` `[build.environment
 | Leftovers (hours) | 24/25/26/28 done · 27 cancelled | Feature leftovers closed |
 | Review and fixes | Task 22 · 40h open | E2E + ClickUp bug backlog (velocity-based) |
 | Payments (deferred) | 0% | Task 20: real gateway later. Interim: Premium test cookie + Experts staff dummy pay |
-| Blogs | In progress | 1 static India coin-selling guide from the new content plan; further planned content remains |
+| Blogs | 100 articles | 16 Sep–24 Dec 2026; one post per day, 51 live / 49 scheduled on 5 Nov (India time) |
 | Premium experience | ~95% | `getPremiumStatus` → catalogue `auth/me` `user.isSubscribed` (Android parity). Upsell → mobile app; no web checkout. Stripe → Payments 20 |
 | Identification | Tasks 6–7 done | `/identify` through `/identify/coin/[id]`. Rate-match leftover **25** done (Figma Solid selected + dummy Feedback sent) |
 
@@ -99,7 +99,7 @@ Timeline: `coinzy-web-timeline.html` (browser + localStorage) and `coinzy-web-ti
 | `/catalogue/coin/[id]` | `app/catalogue/coin/[id]/page.tsx` | `797:35810` · `1348:137792` · `1341:249499` | `?from=` (+`fromPage`, `fromQ`); tab Premium gate; session → sidebar + header; `?premium=1` dev preview |
 | `/other-apps` | `app/other-apps/page.tsx` | `876:23169` | `lib/otherApps.ts` (TCG/Vinyl/Birds omitted until they ship — `14yn59xn56c`) |
 | `/blogs` | `app/blogs/page.tsx` | `822:23268` | `?category=` / `?show=` |
-| `/blogs/[slug]` | `app/blogs/[slug]/page.tsx` | `828:40221` | Static `lib/blogs.ts`; article bodies support source links; India selling draft also in `docs/blog-drafts/` |
+| `/blogs/[slug]` | `app/blogs/[slug]/page.tsx` | `828:40221` | `lib/blogs.ts` + `lib/blog-content/posts.ts` (97 additional reference articles); future-dated posts are hidden until midnight Asia/Kolkata from list, article routes, related posts, sitemap and llms.txt; article bodies support source links and visible FAQs/FAQPage schema; `docs/blog-drafts/production-schedule.md` lists all assigned editorial dates |
 | `/auth` | `app/auth/page.tsx` | task 3 nodes | `AuthFlow`; modes via `?mode=`; field errors `lib/auth/messages.ts` (Figma `1758:124172`); Terms/Privacy → `COINZY_*_URL` in `lib/constants.ts`. Non-guest session → Edge middleware + RSC redirect to `/home` (`14yn59xndgp`); guests may still upgrade. |
 | `/api/auth/[action]` | `app/api/auth/[action]/route.ts` | — | Proxy only; HTTP-only cookies |
 | `/settings` | `app/settings/page.tsx` | `1368:256937` · edit `1370:216726` · logout `1370:256025` · delete `2047:263653` | Signed-in Settings hub (`SettingsPanel` + `SettingsAside`). Guests: “Login to view account settings”. Delete account → `DELETE /api/auth/me` then Firebase sign-out + `/auth`. Plan & billing stub. |
@@ -306,7 +306,8 @@ Runtime under `public/assets/<area>/` (landing numbered folders `01-top-nav`…`
 - **Marketplace listing — Contact seller** (Figma `1356:164759`): signed-in viewers (guests included) open `ContactDetailsDialog` (clickable phone and email, each with a copy control; email opens the default app with a prefilled subject). Logged-out visitors never receive `contactEmail` / `phoneNumber` in the RSC payload (`app/marketplace/listing/[id]/page.tsx` redacts before props); seller fields show "Log in to view" and the button links to auth with `next`. Logged-out **auth** modals (`905:38594`, `908:43240`) are out of scope on web — `/auth?next=` is intentional.
 - `/`, `/auth`, `/home`, `/settings` read `coinzy_session` via `cookies()` → dynamic, `Cache-Control: no-store` (verified). `ReloadOnRestore` reloads them on bfcache restore (`pageshow.persisted`). Sign-out: `POST /api/auth/logout` then hard `location.replace("/")` (not `router.push`) so the router cache can't show a signed-in shell.
 - **Dual-auth soft-nav flicker (`14yn59xmwyy`):** `loading.tsx` must not `await cookies()` — that makes the loader dynamic so Next cannot prefetch/paint it instantly, leaving the landing page (or a blank white shell) up until the RSC flight returns. First fix (server `getSessionToken` branch) still flickered for that reason. Durable fix: client `DualAuthRouteLoading` + non-secret `coinzy_authed=1` hint; JWT stays HTTP-only.
-- Blogs "Load more" uses `replace` so repeated clicks don't stack history entries.
+- Blogs "Load more" uses `replace` so repeated clicks don't stack history entries. `BlogCard` keeps 510px cards with a 218px uncropped thumbnail area and fixed tag/title/excerpt/footer rows; badges stay on one line, with at most two distinct tags.
+- Blog artwork: `node scripts/generate-blog-thumbnails.cjs` generates personalized 960×640 cards and 1600×668 headers for all articles (including scheduled posts), using title keywords, real coin photographs only and bundled Plus Jakarta Sans. `public/assets/blogs/real-photos/credits.json` records additional photo sources/licenses; article captions and WebP metadata retain attribution. Generic guides use market-appropriate reference coins. `lib/blog-thumbnails.json` maps slugs to content-hashed WebP files; `lib/blogs.ts` applies them to cards, articles and metadata. `--check` validates freshness/dimensions; `--slug <slug>` regenerates one article. Instructions: `docs/blog-drafts/thumbnails.md`.
 
 ---
 

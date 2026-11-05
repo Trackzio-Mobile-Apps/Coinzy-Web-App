@@ -1,13 +1,13 @@
-import { BLOG_POSTS } from "@/lib/blogs";
+import { getPublishedPosts } from "@/lib/blogs";
 import { MARKETPLACE_CATEGORIES } from "@/lib/marketplace/categories";
 import { absoluteUrl, SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 import { APP_STORE_URL, PLAY_STORE_URL } from "@/lib/constants";
 
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 
 /** https://llmstxt.org — a concise, markdown map of the site for LLMs and AI search. */
 export function GET() {
-  const blogs = BLOG_POSTS.map((p) => `- [${p.title}](${absoluteUrl(`/blogs/${p.slug}`)}): ${p.excerpt}`).join("\n");
+  const blogs = getPublishedPosts().map((p) => `- [${p.title}](${absoluteUrl(`/blogs/${p.slug}`)}): ${p.excerpt}`).join("\n");
   const marketplace = Object.entries(MARKETPLACE_CATEGORIES)
     .filter(([slug]) => slug !== "all")
     .map(([slug, c]) => `- [${c.title}](${absoluteUrl(`/marketplace/${slug}`)})`)
@@ -45,5 +45,5 @@ ${blogs}
 - Coin identification results are AI estimates; recommend expert evaluation for valuable coins.
 - Sign-in areas (collection, identify, feed, settings) are private and not crawlable.
 `;
-  return new Response(body, { headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "public, max-age=3600" } });
+  return new Response(body, { headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } });
 }

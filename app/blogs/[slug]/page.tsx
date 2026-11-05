@@ -7,19 +7,21 @@ import { TopNav } from "@/components/landing/TopNav";
 import { Footer } from "@/components/landing/Footer";
 import { DetailsBreadcrumb } from "@/components/catalogue/DetailsParts";
 import { ArticleBody, BlogGrid, BlogSectionHeader } from "@/components/blogs/BlogParts";
-import { BLOG_CATEGORIES, BLOG_POSTS, formatBlogDate, getPost, readTime, relatedPosts, type BlogAuthor } from "@/lib/blogs";
+import { BLOG_CATEGORIES, getPublishedPosts, formatBlogDate, getPost, readTime, relatedPosts, type BlogAuthor } from "@/lib/blogs";
 
 type Params = { params: Promise<{ slug: string }>; searchParams: Promise<{ category?: string; show?: string }> };
 
+export const dynamic = "force-dynamic";
+
 export function generateStaticParams() {
-  return BLOG_POSTS.map((p) => ({ slug: p.slug }));
+  return getPublishedPosts().map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const post = getPost((await params).slug);
   if (!post) return {};
   return {
-    title: `${post.title} | Coinzy Blog`,
+    title: { absolute: post.title },
     description: post.excerpt,
     alternates: { canonical: `/blogs/${post.slug}` },
     openGraph: {
@@ -69,13 +71,14 @@ export default async function BlogArticlePage({ params, searchParams }: Params) 
           description: post.excerpt,
           image: absoluteUrl(post.heroImage ?? post.image),
           datePublished: post.date,
-          dateModified: post.date,
-          author: { "@type": "Person", name: post.author.name },
+          dateModified: post.modifiedDate ?? post.date,
+          author: { "@type": post.author.name === "Coinzy Editorial Team" ? "Organization" : "Person", name: post.author.name },
           publisher: { "@type": "Organization", name: SITE_NAME, logo: { "@type": "ImageObject", url: absoluteUrl("/icon.png") } },
           mainEntityOfPage: absoluteUrl(`/blogs/${post.slug}`),
           articleSection: post.tags[0],
         }}
       />
+      {post.body.some((block) => block.type === "faq") && <JsonLd data={{ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: post.body.flatMap((block) => block.type === "faq" ? block.items.map((item) => ({ "@type": "Question", name: item.question, acceptedAnswer: { "@type": "Answer", text: item.answer } })) : []) }} />}
       <TopNav />
       <main className="bg-cream">
         <article className="mx-auto w-full max-w-[1440px] px-6 pb-20 pt-20 lg:px-[160px]">
@@ -105,13 +108,19 @@ export default async function BlogArticlePage({ params, searchParams }: Params) 
             <div className="relative h-[220px] w-full overflow-hidden rounded-2xl sm:h-[467px]">
               <Image
                 src={post.heroImage ?? post.image}
-                alt=""
+                alt={post.imageAlt ?? post.title}
                 fill
                 priority
                 sizes="(min-width: 1440px) 1120px, 100vw"
-                className="object-cover"
+                className={post.heroImage?.includes("/generated/") ? "object-contain bg-[#fffcf7]" : "object-cover"}
               />
             </div>
+            {post.imageCredit && (
+              <p className="-mt-5 text-xs leading-5 text-muted">
+                Thumbnail: <a href={post.imageCredit.sourceUrl} target="_blank" rel="noreferrer" className="underline underline-offset-2">{post.imageCredit.title}</a> by {post.imageCredit.author}.{" "}
+                <a href={post.imageCredit.licenseUrl} target="_blank" rel="noreferrer" className="underline underline-offset-2">{post.imageCredit.license}</a>. {post.imageCredit.modifications}
+              </p>
+            )}
             <ArticleBody blocks={post.body} />
           </div>
 

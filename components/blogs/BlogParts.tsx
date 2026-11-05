@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { formatBlogDate, type BlogBlock, type BlogPost } from "@/lib/blogs";
+import { formatBlogDate, getPost, type BlogBlock, type BlogPost } from "@/lib/blogs";
 
 const A = "/assets/blogs";
 
@@ -10,27 +10,28 @@ const softBadge = "rounded-full bg-[#e8e8e8] font-medium text-muted";
 /** Figma "Blogs card" (885:27125): 510px, 24px padding, 218px image, tags, title, 3-line excerpt, date + ↗. */
 export function BlogCard({ post, listQuery }: { post: BlogPost; listQuery?: string }) {
   const href = `/blogs/${post.slug}${listQuery ? `?${listQuery}` : ""}`;
+  const tags = [...new Set(post.tags)].slice(0, 2);
   return (
     <article className="relative flex h-[510px] flex-col overflow-hidden rounded-[14px] bg-white py-6 shadow-[0_0_0_1px_rgba(10,10,10,0.1)] transition-shadow hover:shadow-[0_0_0_1px_rgba(10,10,10,0.1),0_8px_24px_-12px_rgba(0,0,0,0.25)]">
-      <div className="flex flex-1 flex-col gap-6 px-6">
-        <div className="relative h-[218px] w-full shrink-0 overflow-hidden rounded-lg">
-          <Image src={post.image} alt="" fill sizes="(min-width: 1280px) 315px, (min-width: 768px) 45vw, 90vw" className="object-cover" />
+      <div className="flex min-h-0 flex-1 flex-col gap-6 px-6">
+        <div className="relative h-[218px] w-full shrink-0 overflow-hidden rounded-lg bg-[#fffcf7]">
+          <Image src={post.image} alt={post.imageAlt ?? `Editorial illustration: ${post.title}`} fill sizes="(min-width: 1280px) 315px, (min-width: 768px) 45vw, 90vw" className="object-contain" />
         </div>
-        <div className="flex h-[220px] flex-col gap-3">
-          <div className="flex gap-2">
-            {post.tags.map((tag) => (
-              <span key={tag} className={`${softBadge} px-2 py-0.5 text-sm leading-5`}>
+        <div className="grid min-h-0 flex-1 grid-rows-[24px_56px_72px_32px] gap-3">
+          <div className="flex min-w-0 items-center gap-2 overflow-hidden">
+            {tags.map((tag) => (
+              <span key={tag} className={`${softBadge} min-w-0 truncate whitespace-nowrap px-2 py-0.5 text-sm leading-5`}>
                 {tag}
               </span>
             ))}
           </div>
-          <h3 className="line-clamp-2 text-xl font-medium leading-7 text-ink">
+          <h3 className="line-clamp-2 min-w-0 text-xl font-medium leading-7 text-ink">
             {/* Stretched link: the whole card opens the article. */}
             <Link href={href} className="after:absolute after:inset-0">
               {post.title}
             </Link>
           </h3>
-          <p className="line-clamp-3 min-h-0 flex-1 text-base leading-6 text-muted">{post.excerpt}</p>
+          <p className="line-clamp-3 min-w-0 text-base leading-6 text-muted">{post.excerpt}</p>
           <div className="flex items-center gap-1.5">
             <span className="relative h-6 w-[21px] shrink-0">
               <Image src={`${A}/icon-calendar.svg`} alt="" width={21} height={22} className="absolute left-[-0.5px] top-[1.25px]" />
@@ -100,9 +101,12 @@ const bodyText = "text-base leading-6 text-neutral-400";
 
 function Block({ block }: { block: BlogBlock }) {
   switch (block.type) {
+    case "faq":
+      return <section aria-label="Frequently asked questions" className="space-y-6"><h2 className="text-xl font-semibold leading-7 text-ink">Frequently asked questions</h2>{block.items.map((item) => <div key={item.question} className="space-y-2"><h3 className="text-lg font-medium text-ink">{item.question}</h3><p className={bodyText}>{item.answer}</p></div>)}</section>;
     case "p":
       return <p className={`${bodyText} sm:text-justify`}>{block.text}</p>;
     case "link":
+      if (block.href.startsWith("/blogs/") && !getPost(block.href.slice(7).split(/[?#]/)[0])) return null;
       return <Link href={block.href} className="text-primary-500 underline underline-offset-2">{block.text}</Link>;
     case "h2":
       return <h2 className="-mb-2 text-xl font-semibold leading-7 text-ink">{block.text}</h2>;
