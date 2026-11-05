@@ -56,7 +56,7 @@ Plugin: `@netlify/plugin-nextjs`. Env vars in `netlify.toml` `[build.environment
 | Leftovers (hours) | 24/25/26/28 done · 27 cancelled | Feature leftovers closed |
 | Review and fixes | Task 22 · 40h open | E2E + ClickUp bug backlog (velocity-based) |
 | Payments (deferred) | 0% | Task 20: real gateway later. Interim: Premium test cookie + Experts staff dummy pay |
-| Blogs | 100% | 6 static posts |
+| Blogs | In progress | 1 static India coin-selling guide from the new content plan; further planned content remains |
 | Premium experience | ~95% | `getPremiumStatus` → catalogue `auth/me` `user.isSubscribed` (Android parity). Upsell → mobile app; no web checkout. Stripe → Payments 20 |
 | Identification | Tasks 6–7 done | `/identify` through `/identify/coin/[id]`. Rate-match leftover **25** done (Figma Solid selected + dummy Feedback sent) |
 
@@ -77,7 +77,7 @@ Timeline: `coinzy-web-timeline.html` (browser + localStorage) and `coinzy-web-ti
 - Collection bucket filter rail is hidden when there are no filter options; selected filters remain clearable if options are unavailable.
 - Collection sidebar (`AppSidebar`) shows only Owned, Identified and Wishlist; private collections remain accessible from the collection overview.
 - Expert submission blocks the app with a non-dismissible modal loader during upload, request creation and navigation; errors dismiss it.
-- Expert upload required/optional slots stay independent even when optional is filled first or required is removed; debug sample fills all six image slots (`14yn59xrkjx`).
+- Expert upload forwards the selected slot index through each side card, so required/optional slots stay independent even when optional is filled first or required is removed; debug sample fills all six image slots (`14yn59xrkjx`).
 - Expert upload form (`ExpertUploadFlow`) shows no fabricated request ID before submission; the actual ID comes from the created request.
 - Expert status UI preview: development-only `/evaluation-submitted`, `/evaluation-in-progress`, `/evaluation-deadline-exceeded` and `/evaluation-report-ready` render dummy request states with sample media; preview skips polling, credits requests and retry mutations; the deadline preview alone supplies a sample 5-of-10 credits total because the API provides only a balance.
 
@@ -99,7 +99,7 @@ Timeline: `coinzy-web-timeline.html` (browser + localStorage) and `coinzy-web-ti
 | `/catalogue/coin/[id]` | `app/catalogue/coin/[id]/page.tsx` | `797:35810` · `1348:137792` · `1341:249499` | `?from=` (+`fromPage`, `fromQ`); tab Premium gate; session → sidebar + header; `?premium=1` dev preview |
 | `/other-apps` | `app/other-apps/page.tsx` | `876:23169` | `lib/otherApps.ts` (TCG/Vinyl/Birds omitted until they ship — `14yn59xn56c`) |
 | `/blogs` | `app/blogs/page.tsx` | `822:23268` | `?category=` / `?show=` |
-| `/blogs/[slug]` | `app/blogs/[slug]/page.tsx` | `828:40221` | Static `lib/blogs.ts` |
+| `/blogs/[slug]` | `app/blogs/[slug]/page.tsx` | `828:40221` | Static `lib/blogs.ts`; article bodies support source links; India selling draft also in `docs/blog-drafts/` |
 | `/auth` | `app/auth/page.tsx` | task 3 nodes | `AuthFlow`; modes via `?mode=`; field errors `lib/auth/messages.ts` (Figma `1758:124172`); Terms/Privacy → `COINZY_*_URL` in `lib/constants.ts`. Non-guest session → Edge middleware + RSC redirect to `/home` (`14yn59xndgp`); guests may still upgrade. |
 | `/api/auth/[action]` | `app/api/auth/[action]/route.ts` | — | Proxy only; HTTP-only cookies |
 | `/settings` | `app/settings/page.tsx` | `1368:256937` · edit `1370:216726` · logout `1370:256025` · delete `2047:263653` | Signed-in Settings hub (`SettingsPanel` + `SettingsAside`). Guests: “Login to view account settings”. Delete account → `DELETE /api/auth/me` then Firebase sign-out + `/auth`. Plan & billing stub. |
@@ -322,7 +322,7 @@ Runtime under `public/assets/<area>/` (landing numbered folders `01-top-nav`…`
 | Mobile app | `MobileAppSection` | `1526:304346` |
 | Collection CTA | `CollectionCTASection` | `1526:304347` |
 | Experts | `ExpertEvaluationSection` | `1526:304385` |
-| Community | `CommunityFeedSection` | `1526:304490` |
+| Community | `CommunityFeedSection` | `1526:304490` | Latest three Firestore posts via `fetchFeedPosts`; uses the existing Firebase session bridge and links to `/feed`; honest empty/unavailable state; cards reserve equal image space and align their actions. |
 | Footer | `Footer` | `1526:304542` |
 
 Data for landing copy/lists: `lib/constants.ts` (marketplace strip coins are live API, not `MARKETPLACE_COINS`). Favicon: `app/icon.png` + `app/apple-icon.png`. Identify demo pills: AI → `/auth?next=/identify`, Human Expert → `/auth?next=/experts` (`authHref`; `/` is logged-out only). Collection CTA “Start your collection” → `/auth?next=/collection` (`authHref`). Listing details `?from=landing` breadcrumb → `/#marketplace` (`FROM_LANDING` in `lib/backNav.ts`). Store badges: `APP_STORE_URL` / `PLAY_STORE_URL` in `lib/constants.ts` — `AppStoreButtons` (MobileAppSection) + Footer `StoreBadge` use the matching store (ClickUp `14yn59xn598`).

@@ -102,6 +102,8 @@ function Block({ block }: { block: BlogBlock }) {
   switch (block.type) {
     case "p":
       return <p className={`${bodyText} sm:text-justify`}>{block.text}</p>;
+    case "link":
+      return <Link href={block.href} className="text-primary-500 underline underline-offset-2">{block.text}</Link>;
     case "h2":
       return <h2 className="-mb-2 text-xl font-semibold leading-7 text-ink">{block.text}</h2>;
     case "ul":
