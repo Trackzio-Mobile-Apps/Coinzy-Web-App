@@ -6,17 +6,17 @@ Keep the fix log below current as work is completed; record any verification sti
 
 | ID | Issue | Expected / retest | Status | Fix notes |
 | --- | --- | --- | --- | --- |
-| 3 | A subscription expired on mobile still appears active on web, including after refresh and logout. | The same account should show its current subscription status across devices after refresh and signing in again. | Open | Pending investigation; web uses `auth/me` subscription status with a JWT fallback. |
 | 7 | Blogs need testing and proper data. | Test blog list and articles; replace or supply appropriate approved data. | Open | Pending testing and content. |
-| 8 | Removing a coin image in identification can show “Flip the coin” again. | The flip prompt should appear only once, and not reappear when an image is removed. | Open | Current flow resets the dismissal when both image slots are filled or empty. |
 
 ## Done
 
 | ID | Issue | Expected / retest | Status | Fix notes |
 | --- | --- | --- | --- | --- |
 | 2 | Navigation selection sometimes takes 1–2 seconds. | Navigation should respond promptly, show the destination loading state, and remain usable while loading. | Done | Sidebar links immediately show the destination's selected navigation and loading placeholder; navigation remains available. Browser retest pending. |
+| 3 | A subscription expired on mobile still appears active on web, including after refresh and logout. | The same account should show its current subscription status across devices after refresh and signing in again. | Done | Marked fixed per user confirmation; fix details not supplied. |
 | 4 | Images uploaded on mobile appear enlarged in the web Feed. | Mobile-uploaded images should display at an appropriate size and aspect ratio. | Done locally | Feed images use contain fitting to show the complete image without cover cropping; marked done locally per user confirmation. |
 | 5 | Circular cropped images sometimes appear square in the Expert flow. | The displayed image should preserve the intended circular crop. | Done locally | Expert crops export transparent circular PNGs, and uploads preserve PNG transparency. Existing uploaded images are unchanged. |
+| 8 | Removing a coin image in identification can show “Flip the coin” again. | The flip prompt should appear only once, and not reappear when an image is removed. | Done locally | Dismissal remains in effect when images are removed; starting a new upload from the failure screen resets it. Marked done per user confirmation. |
 
 ## Go Pro popup and scan counts
 
@@ -26,6 +26,9 @@ Keep the fix log below current as work is completed; record any verification sti
 
 ## Fix log
 
+- 5 November 2026 — **3:** Marked fixed per user confirmation; fix details not supplied.
+- 5 November 2026 — **8:** Keep the flip prompt dismissed after image removal; reset it when starting a new upload from the failure screen. Browser retest pending.
+- 5 November 2026 — **8:** Marked done locally per user confirmation.
 - 5 November 2026 — **2:** Added immediate destination loading state to sidebar navigation, including nested links. TypeScript passed; browser retest pending. ESLint unavailable in the current installation.
 - 5 November 2026 — **2:** Kept sidebar navigation clickable on both the immediate pending screen and route loading screens; browser retest pending.
 - 5 November 2026 — **4:** Changed Feed post images from cover to contain within the existing image area. Visual review with mobile uploads pending.
