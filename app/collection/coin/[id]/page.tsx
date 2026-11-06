@@ -24,7 +24,7 @@ import { getPremiumStatus, getSessionToken, getSessionUser } from "@/lib/auth/se
 import { parsePageParam, parseQueryParam } from "@/lib/backNav";
 import { collectionDetailsAncestor } from "@/lib/collection/breadcrumb";
 import { userCoinListingId } from "@/lib/collection/marketplaceSale";
-import { collectionCoinStatus, userCoinSpec } from "@/lib/collection/userCoinSpec";
+import { userCoinSpec } from "@/lib/collection/userCoinSpec";
 import { coinTitle, detailTabs, gradePrices, overviewRows } from "@/lib/catalogue/coinDetails";
 
 type Params = {
@@ -82,7 +82,11 @@ async function CollectionCoinDetailsContent({
   const grades = gradePrices(spec.estimatedPrice ?? null);
   const userImages = userCoin.imageUrls?.length ? userCoin.imageUrls : (archetype?.imageUrls ?? []);
   const databaseImages = archetype?.imageUrls?.length ? archetype.imageUrls : userImages;
-  const status = collectionCoinStatus(userCoin);
+  const statuses = [
+    ...(userCoin.isOwned ? ["owned" as const] : []),
+    ...(userCoin.isIdentified ? ["identified" as const] : []),
+    ...(userCoin.isWishlisted ? ["wishlist" as const] : []),
+  ];
   const listingId = userCoinListingId(userCoin);
   const [listing, sellFilters] = await Promise.all([
     // Own listings are created on the catalogue/session host — not prod guest browse.
@@ -116,6 +120,7 @@ async function CollectionCoinDetailsContent({
         sellerEmail={sellerEmail}
         listingId={listingId}
         autoOpenSell={autoOpenSell}
+        hideAddForSale={from === "wishlist"}
         listedSellerPanel={
           listingId && listing ? (
             <CollectionListedSellerRail listing={listing} listingId={listingId} coinId={coinId} />
@@ -133,11 +138,11 @@ async function CollectionCoinDetailsContent({
       >
           <div className="flex w-full flex-col gap-6 rounded-2xl bg-white p-4">
             <div className="flex min-h-8 flex-wrap items-center justify-between gap-3">
-              <div className="flex min-w-0 flex-wrap items-center gap-3">
-                <h1 className="text-2xl font-semibold leading-8 text-ink">{title}</h1>
-                <CollectionCoinStatusBadge status={status} />
+              <h1 className="min-w-0 flex-1 text-2xl font-semibold leading-8 text-ink">{title}</h1>
+              <div className="ml-auto flex shrink-0 flex-wrap items-center justify-end gap-3">
+                {statuses.map((status) => <CollectionCoinStatusBadge key={status} status={status} />)}
+                <CollectionCoinOverflowMenu coinId={coinId} coinTitle={title} returnHref={listHref} listingId={listingId} />
               </div>
-              <CollectionCoinOverflowMenu coinId={coinId} coinTitle={title} returnHref={listHref} listingId={listingId} />
             </div>
 
             <div className="flex flex-col gap-8 sm:flex-row sm:items-start">
@@ -155,10 +160,12 @@ async function CollectionCoinDetailsContent({
               </div>
             </div>
 
-            <IdentifyExpertBanner
-              title="Want more certainty?"
-              subtext="Have your coin reviewed by a human expert, not AI"
-            />
+            {from !== "wishlist" && (
+              <IdentifyExpertBanner
+                title="Want more certainty?"
+                subtext="Have your coin reviewed by a human expert, not AI"
+              />
+            )}
           </div>
 
           <CoinDetailTabs tabs={detailTabs(spec)} premium={premium} />

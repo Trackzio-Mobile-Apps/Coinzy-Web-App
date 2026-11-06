@@ -117,7 +117,7 @@ async function BucketBody({
                       <CoinPlaceholder className="size-full" />
                     )}
                   </div>
-                  <p className="line-clamp-2 px-3 py-3 text-sm text-ink">
+                  <p className="break-words px-3 py-3 text-sm text-ink">
                     {coin.issuer ? `${coin.issuer}. ` : ""}
                     {coin.name}
                   </p>

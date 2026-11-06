@@ -58,11 +58,11 @@ export function buildAddCoinPayload(
 ): AddCoinRequestBody {
   return {
     name: coin.name,
-    currency: scalar(coin.currency) ?? "",
-    issuer: scalar(coin.issuer) ?? "",
-    yearOfMinting: scalar(coin.yearOfMinting) ?? "",
+    currency: scalar(coin.currency) ?? "Unknown",
+    issuer: scalar(coin.issuer) ?? "Unknown",
+    yearOfMinting: scalar(coin.yearOfMinting) ?? "Unknown",
     ruler: scalar(coin.ruler) ?? "",
-    shape: scalar(coin.shape) ?? "",
+    shape: scalar(coin.shape) ?? "Unknown",
     rarity: scalar(coin.rarity) ?? "COMMON",
     estimatedPrice: estimatedScalar(coin.estimatedPrice),
     weightGrams: coin.weightGrams,

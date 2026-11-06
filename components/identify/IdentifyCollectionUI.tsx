@@ -309,6 +309,7 @@ export function IdentifySelectCollectionModal({
   onDone,
   onCreateCollection,
   saving,
+  error,
 }: {
   open: boolean;
   collections: UserCollectionOption[];
@@ -321,6 +322,7 @@ export function IdentifySelectCollectionModal({
   onDone: (created?: UserCollectionOption) => void;
   onCreateCollection: (name: string) => Promise<{ error: true; reason?: string; code?: string } | { error: false; option: UserCollectionOption }>;
   saving?: boolean;
+  error?: string | null;
 }) {
   const titleId = useId();
   const inputId = useId();
@@ -392,7 +394,7 @@ export function IdentifySelectCollectionModal({
         </button>
         <h2 id={titleId} className="pr-6 text-base font-medium leading-6 text-ink">Select a collection</h2>
         <p className="mt-1 text-sm leading-5 text-[#737373]">
-          Select the coin collection that you want to add this coin to
+          Select the coin collections that you want to add this coin to.
         </p>
       </div>
 
@@ -427,6 +429,7 @@ export function IdentifySelectCollectionModal({
             })}
         </ul>
         {loading && <p className="-mt-2 px-3 text-xs text-muted">Loading your collections…</p>}
+        {error && <p role="alert" className="px-3 text-sm text-[#dc2626]">{error}</p>}
 
         <div
           className={`rounded-xl border border-[#edd2d3] bg-[rgba(247,231,232,0.3)] py-3 ${

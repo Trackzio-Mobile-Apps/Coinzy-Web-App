@@ -1,5 +1,3 @@
-import type { AddCoinRequestBody } from "@/lib/identify/addCoinPayload";
-
 /** `GET /api/collections/fetchAll` row (custom / private collections). */
 export type ApiPrivateCollection = {
   collectionId: string;
@@ -98,30 +96,4 @@ export function defaultNewCollectionName(privateCount: number): string {
 
 export function collectionLabel(options: UserCollectionOption[], selectedId: string): string {
   return options.find((o) => o.id === selectedId)?.label ?? "your collection";
-}
-
-export function applyCollectionToAddBody(
-  base: AddCoinRequestBody,
-  option: UserCollectionOption,
-  userOwnsCoin: boolean,
-): AddCoinRequestBody {
-  const body = { ...base };
-  if (option.kind === "owned") {
-    body.isOwned = true;
-    body.isWishlisted = false;
-  } else if (option.kind === "identified") {
-    body.isOwned = false;
-    body.isWishlisted = false;
-  } else {
-    // Android parity: custom collections are saved not-owned (Owned is its own entry), so owning is not duplicated.
-    body.isOwned = false;
-    body.isWishlisted = false;
-    if (option.collectionId) body._collection = option.collectionId;
-  }
-  if (option.collectionId && option.kind === "identified") {
-    body._collection = option.collectionId;
-  }
-  // Identify flow: every saved coin is marked identified regardless of target collection.
-  body.isIdentified = true;
-  return body;
 }

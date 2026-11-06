@@ -22,7 +22,15 @@ export async function POST(request: NextRequest) {
     return reply({ error: true, reason: "Two image urls must be provided" }, 400);
   }
 
-  body.isIdentified = true;
+  // The upstream API requires these fields even when catalogue data omits them.
+  for (const field of ["currency", "issuer", "yearOfMinting", "shape"] as const) {
+    if (body[field] == null || (typeof body[field] === "string" && !body[field].trim())) {
+      body[field] = "Unknown";
+    }
+  }
+
+  // Private collection copies are separate from the Identified/Owned coin.
+  body.isIdentified = body.isIdentified === false && typeof body._collection === "string" && Boolean(body._collection.trim()) ? false : true;
 
   const result = await addCoinToCollection(token, body);
   if (result.error) {

@@ -46,6 +46,7 @@ export function CollectionCoinSellActions({
   databaseImages,
   title,
   autoOpenSell = false,
+  hideAddForSale = false,
   children,
 }: {
   coinId: string;
@@ -59,6 +60,7 @@ export function CollectionCoinSellActions({
   title: string;
   /** Open the Add for Sale drawer on mount (`?list=1`) after seller profile gate. */
   autoOpenSell?: boolean;
+  hideAddForSale?: boolean;
   children: ReactNode;
 }) {
   const router = useRouter();
@@ -82,11 +84,11 @@ export function CollectionCoinSellActions({
   };
 
   useEffect(() => {
-    if (!autoOpenSell || listed) return;
+    if (!autoOpenSell || listed || hideAddForSale) return;
     void startSell();
     // Only auto-run when From Owned / List-a-coin asks via `?list=1`.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional one-shot on autoOpenSell
-  }, [autoOpenSell, listed]);
+  }, [autoOpenSell, listed, hideAddForSale]);
 
   const submit = async (payload: ReturnType<typeof buildSellPayload>) => {
     setSubmitting(true);
@@ -131,7 +133,7 @@ export function CollectionCoinSellActions({
     router.refresh();
   };
 
-  const railFooter = listed ? listedSellerPanel : <CollectionAddForSaleTrigger onClick={startSell} />;
+  const railFooter = listed ? listedSellerPanel : hideAddForSale ? null : <CollectionAddForSaleTrigger onClick={startSell} />;
 
   return (
     <>
@@ -140,7 +142,7 @@ export function CollectionCoinSellActions({
         <CollectionCoinRail databaseImages={databaseImages} title={title} footer={railFooter} />
       </div>
 
-      {!listed && (
+      {!listed && !hideAddForSale && (
         <CollectionDetailsSellBar>
           <CollectionAddForSaleTrigger onClick={startSell} />
         </CollectionDetailsSellBar>

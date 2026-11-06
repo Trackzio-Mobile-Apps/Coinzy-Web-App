@@ -90,7 +90,7 @@ export function CollectionCoinOverflowMenu({
   };
 
   return (
-    <div ref={wrapRef} className="relative shrink-0">
+    <div ref={wrapRef} className="relative ml-auto shrink-0">
       <button
         type="button"
         aria-label="More actions"

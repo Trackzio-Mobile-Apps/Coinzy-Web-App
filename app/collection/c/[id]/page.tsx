@@ -71,7 +71,7 @@ async function PrivateCollectionBody({
                   <CoinPlaceholder className="size-full" />
                 )}
               </div>
-              <p className="line-clamp-2 px-3 py-3 text-sm text-ink">{coin.name}</p>
+              <p className="break-words px-3 py-3 text-sm text-ink">{coin.name}</p>
             </>
           );
           return (

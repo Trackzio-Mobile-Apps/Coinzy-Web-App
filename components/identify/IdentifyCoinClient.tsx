@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ArchetypeDetails } from "@/lib/api/coinzy";
 import {
   IdentifyAddToCollectionDrawer,
@@ -11,7 +11,6 @@ import {
 import { IdentifySuccessToast } from "@/components/identify/IdentifySuccessToast";
 import { buildAddCoinPayload } from "@/lib/identify/addCoinPayload";
 import {
-  applyCollectionToAddBody,
   buildCollectionOptions,
   IDENTIFIED_COLLECTION_ID,
   OWNED_COLLECTION_ID,
@@ -88,6 +87,7 @@ export function IdentifyResultRail({
   const [collectionAdded, setCollectionAdded] = useState(false);
   const [saleCoinAdded, setSaleCoinAdded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const savedTargets = useRef(new Set<string>());
 
   useEffect(() => {
     if (!collectionAdded) return;
@@ -148,30 +148,41 @@ export function IdentifyResultRail({
       setError("Upload photos are missing — identify this coin again.");
       return;
     }
-    // Add to each selected collection one by one (Owned first).
-    const picked = [...collections.filter((o) => selectedIds.includes(o.id)), ...(created ? [created] : [])]
-      .sort((x, y) => Number(y.kind === "owned") - Number(x.kind === "owned"));
+    const picked = [...collections.filter((o) => selectedIds.includes(o.id)), ...(created ? [created] : [])];
     if (!picked.length) {
       setError("Select a collection.");
       return;
     }
-    const base = buildAddCoinPayload(coin, archetypeId, imagePair, {
-      isOwned: userOwnsCoin,
-    });
-
+    const base = buildAddCoinPayload(coin, archetypeId, imagePair, { isOwned: userOwnsCoin });
+    const targets = [
+      ...(picked.some((option) => option.kind !== "private") || userOwnsCoin
+        ? [{ key: "system", body: base }]
+        : []),
+      ...picked.filter((option) => option.kind === "private" && option.collectionId).map((option) => ({
+        key: option.id,
+        body: { ...base, _collection: option.collectionId, isIdentified: false, isOwned: false },
+      })),
+    ];
+    if (targets.length === 0) {
+      setError("The selected collection is unavailable. Please try again.");
+      return;
+    }
     setSaving(true);
     setError(null);
-    for (const opt of picked) {
-      const res = await addCoinViaApi(applyCollectionToAddBody(base, opt, userOwnsCoin));
+    for (const target of targets) {
+      if (savedTargets.current.has(target.key)) continue;
+      const res = await addCoinViaApi(target.body);
       if (res.error) {
         setSaving(false);
-        setError(res.reason ?? `Could not add coin to ${opt.label}.`);
+        setError(res.reason ?? "Could not add coin to your collection. You can retry the remaining collections.");
         return;
       }
+      savedTargets.current.add(target.key);
     }
     setSaving(false);
     setSelectOpen(false);
     setDrawerOpen(false);
+    savedTargets.current.clear();
     setCollectionAdded(true);
   }, [archetypeId, coin, selectedIds, collections, imagePair, userOwnsCoin]);
 
@@ -354,6 +365,7 @@ export function IdentifyResultRail({
         }}
         onCreateCollection={handleCreateCollection}
         saving={saving}
+        error={error}
       />
 
       {feedbackToast && (
