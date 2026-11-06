@@ -1,5 +1,7 @@
 # Coinzy Web — Project Index
 
+- Footer social links are defined in `lib/constants.ts`; GitHub is omitted.
+
 - Public PNG artwork was converted to lossless WebP with transparency preserved; Next.js app icons remain PNG for browser and Apple icon compatibility.
 
 - Visitor region: `lib/useVisitorRegion.ts` exposes `useVisitorRegion()` for client UI (`null` while loading, then `india`, `rest-of-world`, or `unknown`). Netlify Edge Function `netlify/edge-functions/visitor-region.ts` serves `/api/visitor-region` using Netlify IP geolocation with no response caching. In development, use `?region=india` or `?region=rest-of-world` to preview; plain `npm run dev` otherwise returns `unknown` because it does not run the edge function. Use Netlify Dev or a deployed site to test detection. GeoIP is approximate and must not be used for authorization.

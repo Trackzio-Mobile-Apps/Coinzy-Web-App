@@ -18,7 +18,6 @@ export const TRACKZIO_ABOUT_URL = "https://trackzio.com/about";
 
 /** Footer social icons (Figma landing footer) — official Trackzio / Coinzy destinations. */
 export const FOOTER_SOCIALS = [
-  { src: "social-github.svg", label: "GitHub", href: "https://github.com/Trackzio-Mobile-Apps" },
   { src: "social-facebook.svg", label: "Facebook", href: "https://www.facebook.com/Trackzio" },
   { src: "social-twitter.svg", label: "X (Twitter)", href: "https://x.com/trackzio" },
   { src: "social-google.svg", label: "Google Play", href: PLAY_STORE_URL },
