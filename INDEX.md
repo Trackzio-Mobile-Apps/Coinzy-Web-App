@@ -149,7 +149,7 @@ Active nav: `components/landing/NavLinks.tsx` (`usePathname`).
 
 ---
 
-- `/catalogue` hides bottom pagination controls for both signed-in and public views; results remain limited to the requested page.
+- `/catalogue` shows pagination for signed-in users, preserving search, category and filters; the public view hides pagination.
 - Collection bucket and private collection cards display full coin names with wrapping instead of truncating them.
 - Collection coin details show all applicable Owned, Identified and Wishlist badges beside the right-aligned overflow menu.
 - Collection coin details hide the expert evaluation banner and Add for Sale actions when opened from Wishlist; other collection views retain them.

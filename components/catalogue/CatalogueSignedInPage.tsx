@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { AppSidebar } from "@/components/home/AppSidebar";
 import { CatalogueEmpty } from "@/components/catalogue/CatalogueEmpty";
 import { CatalogueSearch } from "@/components/catalogue/CatalogueSearch";
-import { CoinGrid, loadCoins } from "@/components/catalogue/CoinGrid";
+import { CoinGrid, Pagination, loadCoins } from "@/components/catalogue/CoinGrid";
 import { CoinGridSkeleton } from "@/components/catalogue/CoinGridSkeleton";
 import { MarketplaceAppHeader } from "@/components/marketplace/MarketplaceAppHeader";
 import type { SessionUser } from "@/lib/auth/session";
@@ -57,11 +57,13 @@ async function SignedInResults({
   page,
   query,
   selected,
+  pageParams,
 }: {
   categorySlug: string | undefined;
   page: number;
   query: string;
   selected: ListingFilterSelection;
+  pageParams: string;
 }) {
   const category = categorySlug && categorySlug !== "all" ? getCategory(categorySlug) : null;
   const filters: Record<string, (string | boolean)[]> = category ? await buildFilters(category).catch(() => ({})) : {};
@@ -102,6 +104,11 @@ async function SignedInResults({
         </p>
       </div>
       <CoinGrid compact coins={coins} from={from} fromPage={current} fromQuery={query} />
+      {totalPages > 1 && (
+        <div className="mt-8 flex justify-center">
+          <Pagination page={current} totalPages={totalPages} href={(n) => pageHref(new URLSearchParams(pageParams), n)} />
+        </div>
+      )}
       {!live && !query && (
         <p className="mt-4 text-center text-xs text-neutral-400">
           Showing sample coins — the catalogue is temporarily unavailable.
@@ -131,6 +138,12 @@ export function CatalogueSignedInPage({
     typeof searchParams.category === "string" && searchParams.category in CATALOGUE_CATEGORIES
       ? searchParams.category
       : undefined;
+
+  const pageParams = new URLSearchParams();
+  for (const [field, value] of Object.entries(searchParams)) {
+    if (Array.isArray(value)) value.forEach((item) => pageParams.append(field, item));
+    else if (value !== undefined) pageParams.set(field, value);
+  }
 
   const selected = parseListingFilterParams(searchParams);
   const filterKey = JSON.stringify(selected);
@@ -165,7 +178,7 @@ export function CatalogueSignedInPage({
                 <h2 className="text-lg font-medium leading-7 text-ink">Browse all coins</h2>
                 <AppliedFilterChips />
                 <Suspense key={`${category ?? "all"}|${query}|${page}|${filterKey}`} fallback={<CoinGridSkeleton compact count={PAGE_SIZE} />}>
-                  <SignedInResults categorySlug={category} page={page} query={query} selected={selected} />
+                  <SignedInResults categorySlug={category} page={page} query={query} selected={selected} pageParams={pageParams.toString()} />
                 </Suspense>
               </section>
             </div>
