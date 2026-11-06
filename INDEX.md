@@ -150,10 +150,12 @@ Active nav: `components/landing/NavLinks.tsx` (`usePathname`).
 ---
 
 - `/catalogue` shows pagination for signed-in users, preserving search, category and filters; the public view hides pagination.
+- Signed-in home dashboard uses `min-w-0` on its flex shell so mobile content fits the viewport.
+- Signed-in pages using `AppSidebar` show a Menu button in the header that opens navigation below the `lg` breakpoint; the desktop sidebar remains at larger widths.
 - Collection bucket and private collection cards display full coin names with wrapping instead of truncating them.
 - Collection coin details show all applicable Owned, Identified and Wishlist badges beside the right-aligned overflow menu.
 - Collection coin details hide the expert evaluation banner and Add for Sale actions when opened from Wishlist; other collection views retain them.
-- Collection overview header uses the existing private collection creation dialog for its Create new collection button; search submits to Owned.
+- Collection overview filters the displayed collection cards locally by collection name; its header also opens the private collection creation dialog.
 
 ## Key modules
 

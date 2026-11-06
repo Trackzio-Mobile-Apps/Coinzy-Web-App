@@ -32,7 +32,7 @@ export async function AppSidebar({
   const nestedCollections = collectionLinks.length
     ? collectionLinks.filter((link) => link.icon !== "private")
     : buildCollectionLinks([], "");
-  return (
+  const sidebar = (
     <aside className="flex h-full w-[254px] shrink-0 flex-col border-r border-[#e5e7eb] bg-white">
       <div className={`flex h-[76px] items-center gap-2 border-b border-[#e5e7eb] ${active === "identify" ? "px-8" : "px-4"}`}>
         <LogoMark />
@@ -144,5 +144,20 @@ export async function AppSidebar({
         </div>
       </div>
     </aside>
+  );
+
+  return (
+    <>
+      <div className="hidden shrink-0 lg:block">{sidebar}</div>
+      <details className="fixed left-3 top-4 z-50 lg:hidden">
+        <summary aria-label="Open navigation menu" className="flex h-11 cursor-pointer list-none items-center gap-1 rounded-lg border border-[#e5e7eb] bg-white px-2 text-ink shadow-sm [&::-webkit-details-marker]:hidden">
+          <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+          <span className="text-xs font-medium">Menu</span>
+        </summary>
+        <div className="absolute left-0 top-14 max-h-[calc(100dvh-5rem)] overflow-y-auto rounded-xl shadow-xl">
+          {sidebar}
+        </div>
+      </details>
+    </>
   );
 }

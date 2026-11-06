@@ -3,12 +3,10 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { AppSidebar } from "@/components/home/AppSidebar";
 import { MarketplaceAppHeader } from "@/components/marketplace/MarketplaceAppHeader";
-import { CatalogueSearch } from "@/components/catalogue/CatalogueSearch";
+import { CollectionOverview } from "@/components/collection/CollectionOverview";
 import { CollectionFreePlanCard } from "@/components/collection/CollectionFreePlanCard";
 import { DEFAULT_COLLECTION_COUNT } from "@/lib/identify/collections";
-import { CollectionCreateCollectionCard } from "@/components/collection/CollectionCreateCollectionCard";
 import { CollectionGridSkeleton } from "@/components/collection/CollectionGridSkeleton";
-import { CollectionHomeCard } from "@/components/collection/CollectionHomeCard";
 import { CollectionRecentlyIdentified } from "@/components/collection/CollectionRecentlyIdentified";
 import { collectionLinks } from "@/components/collection/collectionNav";
 import { privateCollectionTitle, systemCollectionTitle } from "@/lib/collection/cardTitle";
@@ -50,11 +48,9 @@ async function CollectionSidebar({ user }: { user: SessionUser }) {
 async function CollectionHomeBody({
   token,
   premium,
-  query,
 }: {
   token: string;
   premium: boolean;
-  query: string;
 }) {
   const [collections, owned, identified, wishlist, recent] = await Promise.all([
     fetchCollectionsForSession(token, 0, 20),
@@ -79,6 +75,7 @@ async function CollectionHomeBody({
 
   const cards = [
     {
+      name: "Owned",
       href: "/collection/owned",
       title: systemCollectionTitle("owned", ownedCount),
       count: ownedCount,
@@ -87,6 +84,7 @@ async function CollectionHomeBody({
       muted: false,
     },
     {
+      name: "Identified",
       href: "/collection/identified",
       title: systemCollectionTitle("identified", identifiedCount),
       count: identifiedCount,
@@ -95,6 +93,7 @@ async function CollectionHomeBody({
       muted: false,
     },
     {
+      name: "Wishlist",
       href: "/collection/wishlist",
       title: systemCollectionTitle("wishlist", wishlistedCount),
       count: wishlistedCount,
@@ -103,6 +102,7 @@ async function CollectionHomeBody({
       muted: false,
     },
     ...privateRows.map((r) => ({
+      name: r.name,
       href: `/collection/c/${r.collectionId}`,
       title: privateCollectionTitle(r.name, r.coinCount ?? 0),
       count: r.coinCount ?? 0,
@@ -114,24 +114,12 @@ async function CollectionHomeBody({
 
   return (
     <div className="mx-auto w-full max-w-[1122px]">
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold leading-8 text-ink sm:flex-1">Collection</h1>
-        <CatalogueSearch action="/collection/owned" query={query} placeholder="Search coins, empires, countries, years…" className="h-8 w-full max-w-none sm:min-w-0 sm:flex-1" />
-        <CollectionCreateCollectionCard privateCount={privateRows.length} variant="button" />
-      </div>
-      <div className="flex gap-4">
-      <div className="min-w-0 flex-1">
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          {cards.map((card) => (
-            <CollectionHomeCard key={card.href} {...card} />
-          ))}
-        </div>
-      </div>
+      <CollectionOverview cards={cards} privateCount={privateRows.length}>
       <aside className="mt-4 hidden shrink-0 flex-col gap-4 lg:flex">
         {!premium && <CollectionFreePlanCard used={collections.error ? null : DEFAULT_COLLECTION_COUNT + privateRows.length} />}
         <CollectionRecentlyIdentified coins={recentList} />
       </aside>
-      </div>
+      </CollectionOverview>
     </div>
   );
 }
@@ -141,7 +129,7 @@ function CollectionHomeBodyFallback() {
     <div className="mx-auto w-full max-w-[1122px]">
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-2xl font-semibold leading-8 text-ink sm:flex-1">Collection</h1>
-        <CatalogueSearch action="/collection/owned" query="" placeholder="Search coins, empires, countries, years…" className="h-8 w-full max-w-none sm:min-w-0 sm:flex-1" />
+        <input disabled placeholder="Search collections..." aria-label="Search collections" className="h-8 w-full rounded-lg border border-[#e5e5e5] bg-white px-3 text-xs sm:min-w-0 sm:flex-1" />
         <span className="inline-flex h-8 items-center rounded-[10px] bg-[#7C3C3F]/80 px-3 text-sm font-medium text-white">Create new collection</span>
       </div>
       <div className="flex gap-4">
@@ -170,7 +158,6 @@ export default async function CollectionHomePage({
     (await getPremiumStatus(user)) || (process.env.NODE_ENV !== "production" && sp.premium === "1");
   const token = await getSessionToken();
   if (!token) redirect("/auth?next=/collection");
-  const query = typeof sp.q === "string" ? sp.q : "";
 
   return (
     <div className="flex h-svh overflow-hidden bg-white">
@@ -181,7 +168,7 @@ export default async function CollectionHomePage({
         <MarketplaceAppHeader user={user} premium={premium} />
         <main className="min-w-0 flex-1 overflow-y-auto px-8 py-6">
           <Suspense fallback={<CollectionHomeBodyFallback />}>
-            <CollectionHomeBody token={token} premium={premium} query={query} />
+            <CollectionHomeBody token={token} premium={premium} />
           </Suspense>
         </main>
       </div>

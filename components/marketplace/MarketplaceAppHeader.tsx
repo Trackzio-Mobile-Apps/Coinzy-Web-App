@@ -9,10 +9,10 @@ const A = "/assets/home";
 export function MarketplaceAppHeader({ user, premium }: { user: SessionUser; premium: boolean }) {
   const greet = user.isGuest ? "Guest" : user.name;
   return (
-    <header className="flex h-[76px] shrink-0 items-center justify-between border-b border-[#e5e7eb] bg-white px-8">
-      <h1 className="min-w-0 truncate pr-4 text-2xl font-medium leading-8 text-ink">Hi {greet}!</h1>
+    <header className="flex h-[76px] shrink-0 items-center justify-between border-b border-[#e5e7eb] bg-white pl-24 pr-4 lg:px-8">
+      <h1 className="min-w-0 truncate pr-2 text-lg sm:pr-4 sm:text-2xl font-medium leading-8 text-ink">Hi {greet}!</h1>
       {premium ? (
-        <div className="flex items-center gap-4">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-4">
           <span className="inline-flex h-6 items-center gap-1 rounded-full border border-transparent bg-[linear-gradient(#fff,#fff)_padding-box,linear-gradient(90deg,#6366f1,#ec4899)_border-box] px-2 py-0.5 text-xs font-medium leading-4 text-[#0a0a0a]">
             <Image src={`${A}/icon-crown-dark.svg`} alt="" width={12} height={12} />
             You’re Premium
@@ -22,7 +22,7 @@ export function MarketplaceAppHeader({ user, premium }: { user: SessionUser; pre
           </Link>
         </div>
       ) : (
-        <div className="flex items-center gap-4">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-4">
           <PremiumUpgradeButton headerStyle email={user.email} className="inline-flex h-[22px] w-[101px] shrink-0 items-center justify-center gap-1 rounded-full bg-[linear-gradient(89.84deg,#6366f1_9.34%,#ec4899_90.16%)] px-2 py-0.5 font-sans text-xs font-medium leading-4 text-[#fafafa]">
             <Image src={`${A}/icon-crown.svg`} alt="" width={12} height={12} className="shrink-0" />
             <span className="w-[69px] whitespace-nowrap text-center">Go Premium</span>

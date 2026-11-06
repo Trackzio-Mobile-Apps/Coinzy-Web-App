@@ -192,7 +192,7 @@ export function Pagination({
   const first = Math.max(1, Math.min(page - 1, totalPages - count + 1));
   const pages = Array.from({ length: count }, (_, i) => first + i);
   return (
-    <nav aria-label="Pagination" className="flex items-center gap-0.5">
+    <nav aria-label="Pagination" className="flex flex-wrap items-center justify-center gap-0.5">
       <Link
         href={href(Math.max(1, page - 1))}
         aria-disabled={page === 1}
