@@ -8,8 +8,14 @@
 - Landing hero `HeroCoin` switches to the transparent `hero-coin-world.webp` eagle for ROW; India and unknown locations retain the original coin.
 - `IdentifyDemoSection` uses separate ROW coin artwork and sample identification values, rarity, condition and recent scans from the supplied reference.
 - `ExpertEvaluationSection` shows the supplied ROW sample report image and Morgan dollar text/value; the supplied image depicts a different coin, matching the reference as provided.
+- Signed-in marketplace category illustrations are cropped to circles to remove square image corners.
+- Signed-in home Premium banner invites users to explore Premium without claiming unlimited usage.
+- Antiqzy App Store links are available on the Other Apps page and the signed-in home download dialog.
+- Expert directory and hub cards hide review counts when zero or unavailable; positive counts remain visible.
 - Landing appraisers (`LandingAppraisers`) come from the available Experts directory using the server-only catalogue guest token, cached five minutes and streamed behind Suspense; errors and empty results have explicit states, and photos use configured image hosts with initials as fallback. Both regional views share this directory.
 
+- Identify add payload and `/api/coin/add` proxy use “Unknown” for missing currency, issuer, minting year or shape, which the coin API requires even when the archetype lacks them; the proxy also covers stale browser code.
+- Identify saves one identified coin (also Owned when selected) and separate, non-identified copies for each private collection. Partial failures can be retried without recreating already saved targets; existing duplicates are not automatically removed. The API supports one `_collection` per coin.
 - Identify collection selector: Done creates an open new collection and adds the coin to it and the selected collections; Enter performs the same action.
 
 Living map for humans and agents. **Agent rules:** `AGENTS.md` (shared), `CLAUDE.md` (Claude), `.cursor/rules/` (Cursor). Codex reads `AGENTS.md`. Update this file when routes, APIs, or hard-won gotchas change.
@@ -25,6 +31,7 @@ Living map for humans and agents. **Agent rules:** `AGENTS.md` (shared), `CLAUDE
 | `COINZY-WEB-SPEC.md` | Product/tech plan (older; prefer this index for “what exists”) |
 | `docs/coinid-api.md` | Catalogue/coin API |
 | `docs/auth-api.md` | Auth contract (from Android) |
+| `docs/coinzy-playtest-tracker-2026-11-06.html` | Standalone tracker for the 6 Nov playtest workbook: 99 reports, 5 suggestions, 12 embedded screenshots; reports sorted by recorded priority with completed reports grouped and struck through, status and notes persist separately in localStorage with JSON backup |
 | `docs/reopened-bug-tracker-2026-11-05.html` | Separate tracker for five reopened ClickUp issues and retest comments; local edits use an independent storage key |
 | `docs/qa-issues-tracker-2026-11-05.md` | New QA issues, scan-limit investigation, and fix log |
 | `docs/experts-api/` | Experts API Docsify mirror (`overview.md` + mobile-user/*); live [docs](https://coinzy-experts-api.trackzio.com/docs/#/README) |
@@ -107,7 +114,7 @@ Timeline: `coinzy-web-timeline.html` (browser + localStorage) and `coinzy-web-ti
 | `/catalogue` | `app/catalogue/page.tsx` | `797:30404` · signed-in shell | Guests: marketing TopNav/Footer. Session → `CatalogueSignedInPage` (AppSidebar + header, illustrated category band `?category=`, live filter rail, `?q=`/`?page=`). `loading.tsx` → client `DualAuthRouteLoading` + `coinzy_authed` hint (same as marketplace; `14yn59xmwyy`). Never marketing landing when logged in. |
 | `/catalogue/[slug]` | `app/catalogue/[slug]/page.tsx` | `797:33107` | Guests: filter rules → `fetchAll`. Session → redirect `/catalogue?category=<slug>` (app shell). |
 | `/catalogue/coin/[id]` | `app/catalogue/coin/[id]/page.tsx` | `797:35810` · `1348:137792` · `1341:249499` | `?from=` (+`fromPage`, `fromQ`); tab Premium gate; session → sidebar + header; `?premium=1` dev preview |
-| `/other-apps` | `app/other-apps/page.tsx` | `876:23169` | `lib/otherApps.ts` (TCG/Vinyl/Birds omitted until they ship — `14yn59xn56c`) |
+| `/other-apps` | `app/other-apps/page.tsx` | `876:23169` | `lib/otherApps.ts` (TCG/Vinyl/Birds omitted until they ship — `14yn59xn56c`); top-nav Try Coinzy AI button is hidden for non-guest signed-in users and shown to guests; Get app opens the QR download dialog in the marketing navigation, landing hero and auth header |
 | `/blogs` | `app/blogs/page.tsx` | `822:23268` | `?category=` / `?show=` |
 | `/blogs/[slug]` | `app/blogs/[slug]/page.tsx` | `828:40221` | `lib/blogs.ts` + `lib/blog-content/posts.ts` (97 additional reference articles); future-dated posts are hidden until midnight Asia/Kolkata from list, article routes, related posts, sitemap and llms.txt; article bodies support source links and visible FAQs/FAQPage schema; `docs/blog-drafts/production-schedule.md` lists all assigned editorial dates |
 | `/auth` | `app/auth/page.tsx` | task 3 nodes | `AuthFlow`; modes via `?mode=`; field errors `lib/auth/messages.ts` (Figma `1758:124172`); Terms/Privacy → `COINZY_*_URL` in `lib/constants.ts`. Non-guest session → Edge middleware + RSC redirect to `/home` (`14yn59xndgp`); guests may still upgrade. |
@@ -142,6 +149,10 @@ Active nav: `components/landing/NavLinks.tsx` (`usePathname`).
 
 ---
 
+- `/catalogue` hides bottom pagination controls for both signed-in and public views; results remain limited to the requested page.
+- Collection bucket and private collection cards display full coin names with wrapping instead of truncating them.
+- Collection coin details show all applicable Owned, Identified and Wishlist badges beside the right-aligned overflow menu.
+- Collection coin details hide the expert evaluation banner and Add for Sale actions when opened from Wishlist; other collection views retain them.
 - Collection overview header uses the existing private collection creation dialog for its Create new collection button; search submits to Owned.
 
 ## Key modules
@@ -173,7 +184,7 @@ Active nav: `components/landing/NavLinks.tsx` (`usePathname`).
 - Signed-in marketplace listing grids use container-width breakpoints and fluid cards; category tiles reserve space for coin art, and the filter rail becomes a collapsible panel below 1024px.
 - **Landing marketplace strip**: `loadRandomListings(5)` in `lib/marketplace/categories.ts` — `connection()` + Fisher–Yates over the (cached) `fetchAllListings` pool, prefer rows with photos, slice 5. Shuffle is **outside** `unstable_cache` so reloads differ; do not cache the shuffled result. Clickable `ListingCard`s → `/marketplace/listing/[id]?from=landing` (ClickUp `14yn59xn44e`).
 - **Catalogue search** (`?q=` on `/catalogue` and `/catalogue/[slug]`): `POST /archetypes/fetchAll?search=<term>` + the category filter body. **Verified live (6 Oct 2026): the API behaves as a case-sensitive whole-name match**, not the documented case-insensitive contains — `Dollar` 362, `dollar` 0, `Morgan Dollar` 63, `Morgan` 0, `Dolla` 0; with `american-coins` filters `Dollar` → 267; with rarity RARE/ULTRA_RARE → 18. `lib/catalogue/search.ts` `searchVariants` tries as-typed, Title Case, lower case and quoted-name aliases from Android labels (e.g. `1 Dollar 'Morgan Dollar'` → `Morgan Dollar`), keeping the first with hits. `loadCoins({ search })` (`CoinGrid.tsx`) uses `fetchArchetypesCached` (`unstable_cache`, tag `archetype-list`, key = page/size/search/filters, 1h). `parseQueryParam` (`lib/backNav.ts`) trims, strips control chars and caps at 160 (covers Android names up to 142 characters). Typing checks local names after a 300ms pause (`CatalogueSearch`); Enter/search-icon can also check names. Selecting a local match submits its full name; zero matches show a Not found bar with explicit direct catalogue search. The control uses the dashboard search pill, results are server-rendered inside `Suspense key=q|page` with `CoinGridSkeleton`; `CatalogueEmpty` covers no-results and API-down (a search never falls back to fake sample coins). `?q=` pages are `noindex`. The `/home` marketplace search input is still a non-functional placeholder.
-- `components/home/PremiumUpsellDialog.tsx` — Coin of the Day opens the shared Premium QR/store download dialog directly.
+- `components/home/PremiumUpsellDialog.tsx` — Coin of the Day opens the shared Premium QR/store download dialog with feature-specific title and description (playtest row 4).
 - `components/home/CoinOfTheDayDrawer.tsx` — client; "Coin of the day" 585px side drawer (Figma `1248:123835`). Props are a serializable view-model (`coinDrawerSections` in `lib/catalogue/coinDetails.ts`: Overview · Design & Material · Rarity · History); never import `lib/api/coinzy.ts` there. Trigger is a real `<Link>` to the coin details page (`?from=home`), intercepted on plain left-click. Footer ("Show more coins", opens the Premium upsell) only when `lockedCount > 0`. The drawer component also renders the home-panel lock line (`Unlock N more with Premium`, button → upsell) when `lockedCount > 0`; focus returns to "Learn more" if the upsell was opened from the drawer, else to the lock button. Esc / backdrop / close button close it; focus returns to the trigger. Icons: `public/assets/home/icon-close.svg` (hand-written — Figma export was a heart), `icon-crown-16.svg`.
 - **Premium home gating** — `getPremiumStatus(user)` in `lib/auth/session.ts` → `lib/auth/subscription.ts` `resolveIsSubscribed` (`GET auth/me` `user.isSubscribed`, JWT fallback). `GET /api/auth/me` exposes `isSubscribed` + `subscriptionProvider` / `subscriptionDate` to the browser. `app/home/page.tsx` honours **dev-only** `?premium=1` when `NODE_ENV !== "production"`.
 - `components/home/PremiumCoinOfTheDay.tsx` — client; Premium right-panel widget (Figma `1248:98330`): "{n} left" badge, 60px thumb carousel with prev/next, name + facts, "Learn more". `app/home/page.tsx` builds the serializable `CotdCoin[]` view-model (`toCotdCoin`) from all 1–3 `fetchCoinsOfTheDay` coins ("NA" for missing fields). Reveal count (starts at 1) is kept in `localStorage` key `coinzy:cotd-views:<UTC dayKey>` — a UI-only limit, **not enforcement**.
