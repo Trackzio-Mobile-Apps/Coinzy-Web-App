@@ -1,5 +1,13 @@
 # Coinzy Web — Project Index
 
+- Visitor region: `lib/useVisitorRegion.ts` exposes `useVisitorRegion()` for client UI (`null` while loading, then `india`, `rest-of-world`, or `unknown`). Netlify Edge Function `netlify/edge-functions/visitor-region.ts` serves `/api/visitor-region` using Netlify IP geolocation with no response caching. In development, use `?region=india` or `?region=rest-of-world` to preview; plain `npm run dev` otherwise returns `unknown` because it does not run the edge function. Use Netlify Dev or a deployed site to test detection. GeoIP is approximate and must not be used for authorization.
+- Landing page regional copy: `RegionalBrowseCatalogueSection`, `CollectionCTASection` and `MobileAppSection` switch catalogue categories, sample collection copy/value and community count for ROW; pending/unknown location uses the India version. Marketplace cards remain live listings with their actual prices.
+- ROW landing catalogue cards use the four `world-*.webp` coin assets in `public/assets/landing-page/05-browse-catalogue/`.
+- Landing hero `HeroCoin` switches to the transparent `hero-coin-world.webp` eagle for ROW; India and unknown locations retain the original coin.
+- `IdentifyDemoSection` uses separate ROW coin artwork and sample identification values, rarity, condition and recent scans from the supplied reference.
+- `ExpertEvaluationSection` shows the supplied ROW sample report image and Morgan dollar text/value; the supplied image depicts a different coin, matching the reference as provided.
+- Landing appraisers (`LandingAppraisers`) come from the available Experts directory using the server-only catalogue guest token, cached five minutes and streamed behind Suspense; errors and empty results have explicit states, and photos use configured image hosts with initials as fallback. Both regional views share this directory.
+
 - Identify collection selector: Done creates an open new collection and adds the coin to it and the selected collections; Enter performs the same action.
 
 Living map for humans and agents. **Agent rules:** `AGENTS.md` (shared), `CLAUDE.md` (Claude), `.cursor/rules/` (Cursor). Codex reads `AGENTS.md`. Update this file when routes, APIs, or hard-won gotchas change.

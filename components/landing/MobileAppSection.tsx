@@ -1,7 +1,10 @@
+"use client";
+
 import Image from "next/image";
 import { AppStoreButtons } from "@/components/ui/AppStoreButtons";
 import { SectionShell } from "@/components/ui/SectionShell";
 import { MOBILE_STATS } from "@/lib/constants";
+import { useVisitorRegion } from "@/lib/useVisitorRegion";
 
 const A = "/assets/landing-page/07-mobile-app";
 
@@ -53,6 +56,7 @@ function PhoneMockups() {
 }
 
 export function MobileAppSection() {
+  const isWorld = useVisitorRegion() === "rest-of-world";
   return (
     <SectionShell className="bg-cream">
       <div className="mx-auto flex max-w-[1280px] flex-col gap-20">
@@ -94,7 +98,7 @@ export function MobileAppSection() {
               }`}
             >
               <p className="whitespace-nowrap text-2xl font-semibold leading-8 text-primary-500">
-                {stat.value}
+                {isWorld && stat.label === "Community members" ? "200K+" : stat.value}
               </p>
               <p className="whitespace-nowrap text-sm font-light leading-5 text-muted-light">
                 {stat.label}

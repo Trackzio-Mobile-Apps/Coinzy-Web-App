@@ -1,13 +1,17 @@
+"use client";
+
 import Image from "next/image";
 import { ParchmentBackground } from "@/components/ui/ParchmentBackground";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { SectionShell } from "@/components/ui/SectionShell";
 import { authHref } from "@/lib/auth/returnTo";
 import { COLLECTION_COINS } from "@/lib/constants";
+import { useVisitorRegion } from "@/lib/useVisitorRegion";
 
 const COLLECTION_AUTH_HREF = authHref(undefined, "/collection");
 
 export function CollectionCTASection() {
+  const isWorld = useVisitorRegion() === "rest-of-world";
   return (
     <SectionShell
       id="collection"
@@ -17,9 +21,9 @@ export function CollectionCTASection() {
       <div className="relative space-y-8">
         <SectionHeader
           label="Collection"
-          title="Keep track of what you own"
+          title={isWorld ? "Save coins to your collection" : "Keep track of what you own"}
           description="Track coins you own, want, or want to watch. Value updates as the market moves."
-          actionLabel="Start your collection"
+          actionLabel={isWorld ? "View all" : "Start your collection"}
           actionHref={COLLECTION_AUTH_HREF}
         />
 
@@ -60,7 +64,7 @@ export function CollectionCTASection() {
                 Estimated value
               </p>
               <p className="text-2xl font-medium leading-8 text-primary-500">
-                ₹ 7,57,496.32
+                {isWorld ? "$7,893.3" : "₹ 7,57,496.32"}
               </p>
             </div>
           </div>

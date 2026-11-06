@@ -66,6 +66,11 @@ async function guestToken(backend: Backend, forceRefresh = false): Promise<strin
   return json.token;
 }
 
+/** Server-only catalogue guest token for APIs that accept the same credentials. */
+export function getCatalogueGuestToken(forceRefresh = false): Promise<string> {
+  return guestToken("catalogue", forceRefresh);
+}
+
 async function apiFetch<T>(
   path: string,
   init: RequestInit & { revalidate?: number; backend?: Backend } = {},

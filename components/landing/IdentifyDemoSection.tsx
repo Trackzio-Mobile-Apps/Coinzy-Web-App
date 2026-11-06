@@ -1,8 +1,28 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { SectionShell } from "@/components/ui/SectionShell";
 import { authHref } from "@/lib/auth/returnTo";
 import { IDENTIFY_RESULT, RECENT_SCANS } from "@/lib/constants";
+import { useVisitorRegion } from "@/lib/useVisitorRegion";
+
+const WORLD_RESULT = {
+  title: "",
+  meta: ["US", "Silver", "40%"],
+  tags: ["MS69", "American commemorative coin", "San Francisco mint"],
+  estimatedValue: "$6,000 – $19,000+",
+  rarity: "Ultra Rare",
+  condition: "Mint state",
+  match: IDENTIFY_RESULT.match,
+  image: "/assets/landing-page/03-identify-demo/world-result.webp",
+};
+
+const WORLD_SCANS = [
+  { name: "1794 Flowing Hair Dollar", value: "$70,000 to $150,000+", image: "/assets/landing-page/03-identify-demo/world-scan-1.webp" },
+  { name: "1933 Double Eagle", value: "$18,870,000", image: "/assets/landing-page/03-identify-demo/world-scan-2.webp" },
+  { name: "1943 US copper penny", value: "$100,000 – $372,000+", image: "/assets/landing-page/03-identify-demo/world-scan-3.webp" },
+];
 
 const IDENTIFY_AUTH_HREF = authHref(undefined, "/identify");
 const EXPERTS_AUTH_HREF = authHref(undefined, "/experts");
@@ -44,6 +64,9 @@ function ResultStat({
 }
 
 export function IdentifyDemoSection() {
+  const isWorld = useVisitorRegion() === "rest-of-world";
+  const result = isWorld ? WORLD_RESULT : IDENTIFY_RESULT;
+  const scans = isWorld ? WORLD_SCANS : RECENT_SCANS;
   return (
     <SectionShell id="identify" className="bg-cream" innerClassName="lg:!py-[125px]">
       <div className="flex flex-col items-stretch justify-between gap-12 lg:flex-row lg:items-center">
@@ -85,25 +108,23 @@ export function IdentifyDemoSection() {
                   width={11}
                   height={11}
                 />
-                {IDENTIFY_RESULT.match}
+                {result.match}
               </span>
             </div>
 
             <div className="space-y-6 rounded-[var(--radius-inner)] bg-primary-900 p-4">
               <div className="flex items-center gap-5">
                 <Image
-                  src={IDENTIFY_RESULT.image}
-                  alt={IDENTIFY_RESULT.title}
+                  src={result.image}
+                  alt={result.title || "Bicentennial Washington quarter"}
                   width={96}
                   height={96}
                   className="size-24 shrink-0 object-cover"
                 />
                 <div className="min-w-0 flex-1 space-y-1.5">
-                  <p className="text-lg font-medium leading-7 text-outline-bg">
-                    {IDENTIFY_RESULT.title}
-                  </p>
+                  {result.title && <p className="text-lg font-medium leading-7 text-outline-bg">{result.title}</p>}
                   <p className="flex flex-wrap gap-1 text-xs font-light leading-4 text-outline-bg">
-                    {IDENTIFY_RESULT.meta.map((item, i) => (
+                    {result.meta.map((item, i) => (
                       <span key={item} className="inline-flex items-center gap-1">
                         {i > 0 && <span aria-hidden>•</span>}
                         {item}
@@ -111,7 +132,7 @@ export function IdentifyDemoSection() {
                     ))}
                   </p>
                   <div className="flex flex-wrap gap-2 pt-1">
-                    {IDENTIFY_RESULT.tags.map((tag) => (
+                    {result.tags.map((tag) => (
                       <span
                         key={tag}
                         className="rounded-md bg-white/[0.06] px-2 py-[3px] text-xs leading-4 text-outline-bg"
@@ -128,7 +149,7 @@ export function IdentifyDemoSection() {
                   <div className="h-full border-r border-white/[0.08] pr-[17px]">
                     <ResultStat
                       label="Estimated value"
-                      value={IDENTIFY_RESULT.estimatedValue}
+                      value={result.estimatedValue}
                       valueClassName="font-bold text-gold-light"
                     />
                   </div>
@@ -137,7 +158,7 @@ export function IdentifyDemoSection() {
                   <div className="h-full border-r border-white/[0.08] pr-[17px]">
                     <ResultStat
                       label="Rarity"
-                      value={IDENTIFY_RESULT.rarity}
+                      value={result.rarity}
                       valueClassName="font-medium text-outline-bg"
                     />
                   </div>
@@ -145,7 +166,7 @@ export function IdentifyDemoSection() {
                 <div className="min-w-0 flex-[142.664_0_0] pr-8">
                   <ResultStat
                     label="Condition"
-                    value={IDENTIFY_RESULT.condition}
+                    value={result.condition}
                     valueClassName="font-medium text-outline-bg"
                   />
                 </div>
@@ -158,7 +179,7 @@ export function IdentifyDemoSection() {
               Recent scans
             </p>
             <div className="grid gap-2 sm:grid-cols-3">
-              {RECENT_SCANS.map((scan) => (
+              {scans.map((scan) => (
                 <div
                   key={scan.name}
                   className="flex flex-col gap-[15px] rounded-[var(--radius-inner)] border-[0.5px] border-white/[0.45] bg-black/[0.04] px-[12.5px] py-[8.5px]"

@@ -1,8 +1,11 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { SectionShell } from "@/components/ui/SectionShell";
 import { authHref } from "@/lib/auth/returnTo";
-import { APPRAISERS } from "@/lib/constants";
+import { useVisitorRegion } from "@/lib/useVisitorRegion";
 
 const EXPERTS_AUTH_HREF = authHref(undefined, "/experts");
 
@@ -14,7 +17,8 @@ const REPORT_ROWS = [
   { label: "Condition", value: "MS-63", accent: false },
 ];
 
-export function ExpertEvaluationSection() {
+export function ExpertEvaluationSection({ appraisers }: { appraisers: ReactNode }) {
+  const isWorld = useVisitorRegion() === "rest-of-world";
   return (
     <SectionShell id="experts" className="bg-cream">
       <div className="space-y-12">
@@ -57,15 +61,15 @@ export function ExpertEvaluationSection() {
 
             <div className="flex items-center gap-4 rounded-2xl bg-[#f0e8e0] p-4">
               <Image
-                src="/assets/landing-page/03-identify-demo/scan-one-rupee.png"
-                alt="1954 One Rupee coin"
+                src={isWorld ? `${ICONS}/world-report-coin.webp` : "/assets/landing-page/03-identify-demo/scan-one-rupee.png"}
+                alt={isWorld ? "Coin in sample report" : "1954 One Rupee coin"}
                 width={48}
                 height={48}
                 className="size-12 shrink-0 rounded-full object-cover"
               />
               <div className="space-y-1">
-                <p className="text-base font-bold leading-[1.2] text-ink">1954 One Rupee</p>
-                <p className="text-xs leading-[1.5] text-muted">(Government of India)</p>
+                <p className="text-base font-bold leading-[1.2] text-ink">{isWorld ? "1921 Morgan dollar" : "1954 One Rupee"}</p>
+                <p className="text-xs leading-[1.5] text-muted">{isWorld ? "Graded MS-63 PCGS" : "(Government of India)"}</p>
               </div>
             </div>
 
@@ -85,7 +89,7 @@ export function ExpertEvaluationSection() {
                       row.accent ? "text-primary-500" : "text-ink"
                     }`}
                   >
-                    {row.value}
+                    {isWorld && row.label === "Value" ? "$480 – $620" : row.value}
                   </span>
                 </div>
               ))}
@@ -117,33 +121,7 @@ export function ExpertEvaluationSection() {
                 />
               </Link>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {APPRAISERS.map((appraiser) => (
-                <div
-                  key={appraiser.name}
-                  className="flex items-start gap-5 rounded-2xl border-[0.5px] border-[#e3cfac] bg-[#f7f4f1] p-[12.5px]"
-                >
-                  <Image
-                    src={appraiser.avatar}
-                    alt={appraiser.name}
-                    width={40}
-                    height={40}
-                    className="size-10 shrink-0 rounded-full object-cover"
-                  />
-                  <div className="min-w-0 space-y-1">
-                    <p className="truncate text-sm font-medium leading-5 text-ink">
-                      {appraiser.name}
-                    </p>
-                    <p className="flex items-center gap-1 text-xs leading-4 text-muted-body">
-                      {appraiser.specialties[0]}
-                      <span aria-hidden className="flex h-4 w-[7px] items-center justify-center text-xl font-semibold leading-none">•</span>
-                      {appraiser.specialties[1]}
-                    </p>
-                    <p className="text-xs leading-4 text-muted">{appraiser.experience}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            {appraisers}
           </div>
         </div>
       </div>

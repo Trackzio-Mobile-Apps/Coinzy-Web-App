@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ParchmentBackground } from "@/components/ui/ParchmentBackground";
 import { SectionShell } from "@/components/ui/SectionShell";
 import { PLAY_STORE_URL } from "@/lib/constants";
+import { HeroCoin } from "./HeroCoin";
 
 const ICONS = "/assets/landing-page/02-hero";
 
@@ -15,14 +16,7 @@ export function HeroSection() {
         <>
           <ParchmentBackground variant="hero" />
           {/* Tracks the centre of the ring baked into the cover-scaled background (2752×1536 cover-fit in a left-pinned, 100%+16px × 813px box, like Figma's 1456px rect). */}
-          <Image
-            src={`${ICONS}/hero-coin.png`}
-            alt="Gold coin with a crab emblem"
-            width={200}
-            height={200}
-            priority
-            className="absolute left-[max(calc(50%+231px),calc(65.316%+10.45px))] top-[min(384px,calc(406.5px-1.5456vw))] size-[max(200px,13.736vw)] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain"
-          />
+          <HeroCoin />
         </>
       }
     >
