@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { absoluteUrl, PRIVATE_PATHS, SITE_URL } from "@/lib/site";
 
-/** Search + AI/LLM crawlers (training, search and user-triggered fetchers) are welcome on public pages. */
+/** Public pages and discovery files are crawlable; account, owner and preview routes are excluded. */
 const AI_BOTS = [
   "GPTBot",
   "OAI-SearchBot",
@@ -28,7 +28,7 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       { userAgent: "*", allow: "/", disallow },
-      { userAgent: AI_BOTS, allow: ["/", "/llms.txt"], disallow },
+      { userAgent: AI_BOTS, allow: ["/", "/llms.txt", "/sitemap.xml"], disallow },
     ],
     sitemap: absoluteUrl("/sitemap.xml"),
     host: SITE_URL,

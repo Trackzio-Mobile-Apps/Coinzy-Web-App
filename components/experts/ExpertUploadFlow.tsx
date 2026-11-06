@@ -96,7 +96,7 @@ export function ExpertUploadFlow({
 
   const getSlot = (slot: Slot) => (slot === "obverse" ? obverse : slot === "reverse" ? reverse : edge);
 
-  const addFiles = (slot: Slot, files: FileList | File[] | null, atIndex: 0 | 1 = 0) => {
+  const addFiles = (slot: Slot, files: FileList | File[] | null, atIndex: 0 | 1) => {
     if (!files) return;
     const list = Array.isArray(files) ? files : [...files];
     const picked = list.find((f) => f.type.startsWith("image/"));
@@ -273,19 +273,19 @@ export function ExpertUploadFlow({
         <PhotoSideCard
           title="Obverse (front)"
           slots={obverse}
-          onAdd={(files) => addFiles("obverse", files)}
+          onAdd={(files, atIndex) => addFiles("obverse", files, atIndex)}
           onRemove={(i) => removeAt("obverse", i)}
         />
         <PhotoSideCard
           title="Reverse (back)"
           slots={reverse}
-          onAdd={(files) => addFiles("reverse", files)}
+          onAdd={(files, atIndex) => addFiles("reverse", files, atIndex)}
           onRemove={(i) => removeAt("reverse", i)}
         />
         <PhotoSideCard
           title="Rim (edge)"
           slots={edge}
-          onAdd={(files) => addFiles("edge", files)}
+          onAdd={(files, atIndex) => addFiles("edge", files, atIndex)}
           onRemove={(i) => removeAt("edge", i)}
         />
 

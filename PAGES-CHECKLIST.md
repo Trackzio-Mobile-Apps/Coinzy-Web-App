@@ -57,7 +57,7 @@ Figma auth modals (`908:39186`, `908:39439`, `908:39567`, `905:38594`, `905:3880
 
 ## Blogs
 - [x] BlogsPage — `822:23268` → `app/blogs/page.tsx` (category chips + load more via URL params)
-- [x] BlogsPage/Read (article) — `828:40221` → `app/blogs/[slug]/page.tsx` (6 static posts in `lib/blogs.ts`)
+- [x] BlogsPage/Read (article) — `828:40221` → `app/blogs/[slug]/page.tsx` (100 scheduled articles in `lib/blogs.ts` + `lib/blog-content/posts.ts`; FAQ schema and publication gates)
 
 ## Our other apps
 - [x] Our other apps page — `876:23169` → `app/other-apps/page.tsx` ("Explore" → trackzio.com/apps/*, "Get the app" → Google Play; TCG/Vinyl/Birds omitted until they ship)

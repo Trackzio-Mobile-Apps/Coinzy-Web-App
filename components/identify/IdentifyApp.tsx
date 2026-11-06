@@ -43,6 +43,7 @@ export function IdentifyApp({
   premium = false,
   restoreMatches = false,
   initialUsage = null,
+  fromMarketplace = false,
 }: {
   autoLoadDebug?: boolean;
   premium?: boolean;
@@ -50,6 +51,7 @@ export function IdentifyApp({
   restoreMatches?: boolean;
   /** Server scan counters read on the page render (seeds the Free plan card). */
   initialUsage?: ScanUsage | null;
+  fromMarketplace?: boolean;
 }) {
   const router = useRouter();
   // Seed the shared scan-usage store from the server render (layout effect: before the first paint).
@@ -240,8 +242,8 @@ export function IdentifyApp({
 
   const pickMatch = (m: IdentifyMatch) => {
     // Mark this history entry as the matches view so browser Back (and the result page's back arrow) return here.
-    window.history.replaceState(window.history.state, "", "/identify?step=matches");
-    router.push(`/identify/coin/${m.archetypeId}`);
+    window.history.replaceState(window.history.state, "", `/identify?step=matches${fromMarketplace ? "&from=marketplace" : ""}`);
+    router.push(`/identify/coin/${m.archetypeId}${fromMarketplace ? "?from=marketplace" : ""}`);
   };
 
   const previewPair: [string, string] | null =

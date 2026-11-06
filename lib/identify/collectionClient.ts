@@ -52,14 +52,14 @@ export async function createCollectionViaApi(
 
 export async function addCoinViaApi(
   body: AddCoinRequestBody,
-): Promise<{ error: false } | { error: true; reason?: string }> {
+): Promise<{ error: false; coinId?: string } | { error: true; reason?: string }> {
   const res = await fetch("/api/coin/add", {
     method: "POST",
     credentials: "same-origin",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  const json = (await res.json()) as { error?: boolean; reason?: string };
+  const json = (await res.json()) as { error?: boolean; reason?: string; data?: { _id?: string; id?: string; coinId?: string } };
   if (!res.ok || json.error) return { error: true, reason: json.reason };
-  return { error: false };
+  return { error: false, coinId: json.data?._id ?? json.data?.id ?? json.data?.coinId };
 }

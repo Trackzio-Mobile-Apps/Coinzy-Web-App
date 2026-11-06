@@ -7,13 +7,15 @@ import { Footer } from "@/components/landing/Footer";
 import { WebappCTASection } from "@/components/marketplace/WebappCTASection";
 import { HeroBanner } from "@/components/ui/HeroBanner";
 import { BlogGrid, BlogSectionHeader } from "@/components/blogs/BlogParts";
-import { BLOG_CATEGORIES, SORTED_POSTS, type BlogCategory } from "@/lib/blogs";
+import { BLOG_CATEGORIES, getPublishedPosts, type BlogCategory } from "@/lib/blogs";
 
 export const metadata: Metadata = {
   title: "Blogs | Coinzy AI",
   description:
     "Identification guides, value insights, expert Q&As and rare coin stories — everything a collector should know.",
 };
+
+export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 6; // Figma: two rows of three
 
@@ -23,7 +25,8 @@ type Params = { searchParams: Promise<{ category?: string; show?: string }> };
 export default async function BlogsPage({ searchParams }: Params) {
   const { category: rawCategory, show } = await searchParams;
   const category = BLOG_CATEGORIES.find((c) => c === rawCategory) as BlogCategory | undefined;
-  const filtered = category ? SORTED_POSTS.filter((p) => p.tags[0] === category) : SORTED_POSTS;
+  const publishedPosts = getPublishedPosts();
+  const filtered = category ? publishedPosts.filter((p) => p.tags[0] === category) : publishedPosts;
   const visible = Math.max(PAGE_SIZE, Number.parseInt(show ?? "", 10) || PAGE_SIZE);
   const posts = filtered.slice(0, visible);
   const query = (c?: string, n?: number) => {

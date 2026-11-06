@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useId, useState, type ReactNode } from "react";
 import {
   buildSellPayload,
+  mergeSaleOptions,
   validateSellForm,
   type SellFormErrors,
   type SellFormState,
@@ -24,8 +25,9 @@ const label = "text-xs font-medium leading-4 text-[#1e1e1f]";
 const errorText = "text-xs text-[#dc2626]";
 
 // The marketplace filter endpoint contains only values used by existing listings.
-// Use Android's sale-form options when that endpoint has no values for a field.
-const fallbackScales = ["Sheldon Scale (1–70)", "European Numeric Scale (1–100)", "British Grading System"];
+// Always include Android’s sale-form options alongside values from existing listings.
+const otherOption = "Other (please specify)";
+const fallbackScales = ["Sheldon Scale (1–70)", "European Numeric Scale (1–100)", "British Grading System", otherOption];
 const fallbackGrades = [
   "P-1:Poor", "FR-2:Fair", "AG-3:About Good", "G-4:Good", "G-6:Good+", "VG-8:Very Good",
   "VG-10:Very Good+", "F-12:Fine", "F-15:Fine+", "VF-20:Very Fine", "VF-25:Very Fine+",
@@ -34,7 +36,7 @@ const fallbackGrades = [
   "AU-58:Near Mint State", "MS-60 to MS-70:Mint State", "PR-60 to PR-70:Proof",
 ];
 const britishGrades = ["B:Basal", "P:Poor", "G:Good", "VG:Very Good", "F:Fine", "VF:Very Fine", "EF:Extremely Fine", "AU:About Uncirculated", "UNC:Uncirculated", "BU:Brilliant Uncirculated", "FDC:Fleur de Coin"];
-const fallbackAuthorities = ["PCGS (Professional Coin Grading Service)", "NGC (Numismatic Guaranty Company)", "ANACS (American Numismatic Association Certification Service)", "ICG (Independent Coin Graders)", "SEGS (Sovereign Entities Grading Service)", "PGCS China", "Self-graded (no professional certification)"];
+const fallbackAuthorities = ["PCGS (Professional Coin Grading Service)", "NGC (Numismatic Guaranty Company)", "ANACS (American Numismatic Association Certification Service)", "ICG (Independent Coin Graders)", "SEGS (Sovereign Entities Grading Service)", "PGCS China", "Self-graded (no professional certification)", otherOption];
 const fallbackStrikes = ["Business Strike (Regular)", "Proof", "Reverse Proof", "Matte Proof", "Brilliant Uncirculated (BU)", "Specimen (SP)", "Satin Finish", "Error Coin", "Pattern / Trial Strike", "Token / Medal"];
 const fallbackCleaning = ["Uncleaned / Original", "Lightly Cleaned", "Heavily Cleaned", "Polished", "Re-toned", "Artificially Aged", "Repaired (e.g., plugged holes)", "Whizzed (mechanically altered)", "Mount Marks / Removed Mount", "Tooling (re-engraved details)"];
 
@@ -161,6 +163,8 @@ export function CollectionSellDrawer({
 }) {
   const [values, setValues] = useState<SellFormState>(() => emptyForm(defaultEmail));
   const [errors, setErrors] = useState<SellFormErrors>({});
+  const [otherScale, setOtherScale] = useState("");
+  const [otherAuthority, setOtherAuthority] = useState("");
   const priceId = useId();
   const [basicOpen, setBasicOpen] = useState(true);
   const [gradingOpen, setGradingOpen] = useState(true);
@@ -168,6 +172,8 @@ export function CollectionSellDrawer({
   useEffect(() => {
     if (!open) return;
     setErrors({});
+    setOtherScale("");
+    setOtherAuthority("");
     setValues(editListing ? {
       price: editListing.price == null ? "" : String(editListing.price),
       contactEmail: editListing.sellerDetails?.contactEmail ?? "",
@@ -197,15 +203,16 @@ export function CollectionSellDrawer({
   };
 
   const submit = () => {
-    const nextErrors = validateSellForm(values);
-    if (editListing) { delete nextErrors.gradingScale; delete nextErrors.gradingAuthority; }
+    const submittedValues = { ...values, gradingScale: values.gradingScale === otherOption ? otherScale.trim() : values.gradingScale, gradingAuthority: values.gradingAuthority === otherOption ? otherAuthority.trim() : values.gradingAuthority };
+    const nextErrors = validateSellForm(submittedValues);
+    if (editListing) { if (values.gradingScale !== otherOption) delete nextErrors.gradingScale; if (values.gradingAuthority !== otherOption) delete nextErrors.gradingAuthority; }
     if (values.gradingScale === fallbackScales[1] && values.gradeValue &&
         (!Number.isInteger(Number(values.gradeValue)) || Number(values.gradeValue) < 1 || Number(values.gradeValue) > 100)) {
       nextErrors.gradeValue = "Enter a whole number from 1 to 100";
     }
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
-    onSubmit(buildSellPayload(values, { name: sellerName, email: defaultEmail }, coinTitle));
+    onSubmit(buildSellPayload(submittedValues, { name: sellerName, email: defaultEmail }, coinTitle));
   };
 
   return (
@@ -324,8 +331,9 @@ export function CollectionSellDrawer({
                       set("gradeValue", "");
                     }}
                     placeholder="Select grading scale used"
-                    options={filterOptions.gradingScale?.length ? filterOptions.gradingScale : fallbackScales}
+                    options={mergeSaleOptions(fallbackScales, filterOptions.gradingScale)}
                   />
+                  {values.gradingScale === otherOption && <input aria-label="Specify grading scale" value={otherScale} onChange={(e) => { setOtherScale(e.target.value); setErrors((prev) => ({ ...prev, gradingScale: undefined })); }} placeholder="Specify grading scale" className={input} />}
                 </Field>
                 <Field id={`${priceId}-grade`} title="Grading Condition" error={errors.gradeValue}>
                   {values.gradingScale === fallbackScales[1] ? <input
@@ -351,8 +359,9 @@ export function CollectionSellDrawer({
                     value={values.gradingAuthority}
                     onChange={(v) => set("gradingAuthority", v)}
                     placeholder="Select name of the authority"
-                    options={filterOptions.gradingAuthority?.length ? filterOptions.gradingAuthority : fallbackAuthorities}
+                    options={mergeSaleOptions(fallbackAuthorities, filterOptions.gradingAuthority)}
                   />
+                  {values.gradingAuthority === otherOption && <input aria-label="Specify grading authority" value={otherAuthority} onChange={(e) => { setOtherAuthority(e.target.value); setErrors((prev) => ({ ...prev, gradingAuthority: undefined })); }} placeholder="Specify grading authority" className={input} />}
                 </Field>
                 <Field id={`${priceId}-cert`} title="Certification number">
                   <input

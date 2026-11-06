@@ -17,10 +17,10 @@ import { coinTitle, detailTabs, gradePrices, overviewRows } from "@/lib/catalogu
 
 type Params = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ premium?: string }>;
+  searchParams: Promise<{ premium?: string; from?: string }>;
 };
 
-async function IdentifyCoinDetails({ id, premium }: { id: string; premium: boolean }) {
+async function IdentifyCoinDetails({ id, premium, fromMarketplace }: { id: string; premium: boolean; fromMarketplace: boolean }) {
   const sessionToken = await getSessionToken();
   const coin =
     (sessionToken ? await fetchArchetypeDetailsForSession(id, sessionToken) : null) ?? (await fetchArchetypeDetails(id));
@@ -32,7 +32,7 @@ async function IdentifyCoinDetails({ id, premium }: { id: string; premium: boole
 
   return (
     <>
-      <DetailsBreadcrumb ancestors={[{ href: "/identify?step=matches", label: "Identify coin" }]} current={title} />
+      <DetailsBreadcrumb ancestors={[{ href: `/identify?step=matches${fromMarketplace ? "&from=marketplace" : ""}`, label: "Identify coin" }]} current={title} />
 
       <div className="mt-10 flex flex-col items-start gap-4 lg:flex-row">
         <div className="flex w-full min-w-0 flex-1 flex-col gap-4">
@@ -65,7 +65,7 @@ async function IdentifyCoinDetails({ id, premium }: { id: string; premium: boole
           <CoinDetailTabs tabs={detailTabs(coin)} premium={premium} />
         </div>
 
-        <IdentifyResultRail archetypeId={id} coin={coin} />
+        <IdentifyResultRail archetypeId={id} coin={coin} fromMarketplace={fromMarketplace} />
       </div>
     </>
   );
@@ -95,7 +95,7 @@ export default async function IdentifyCoinPage({ params, searchParams }: Params)
         <main className="min-w-0 flex-1 overflow-y-auto px-8 py-6">
           <div className="mx-auto w-full max-w-[1122px]">
             <Suspense key={id} fallback={<CoinDetailsSkeleton />}>
-              <IdentifyCoinDetails id={id} premium={premium} />
+              <IdentifyCoinDetails id={id} premium={premium} fromMarketplace={sp.from === "marketplace"} />
             </Suspense>
           </div>
         </main>

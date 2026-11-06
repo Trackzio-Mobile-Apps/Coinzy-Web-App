@@ -8,13 +8,16 @@ export const SITE_NAME = "Coinzy AI";
 export const SITE_TAGLINE = "AI Coin Identifier & Collector Platform";
 
 export const SITE_DESCRIPTION =
-  "Coinzy AI identifies coins from photos, tracks collections, lists coins on a collector marketplace, and connects you with expert appraisers. Catalogue of 1.5M+ coins.";
+  "Coinzy AI identifies coins from photos, tracks collections, lists coins on a collector marketplace, and connects you with expert appraisers. Browse a global coin catalogue.";
 
 /** Public, indexable routes (everything else is behind sign-in). */
 export const PUBLIC_PATHS = ["/", "/catalogue", "/marketplace", "/blogs", "/other-apps"] as const;
 
 /** Signed-in / API areas crawlers should skip. */
-export const PRIVATE_PATHS = ["/api/", "/auth", "/home", "/identify", "/collection", "/feed", "/experts", "/settings"] as const;
+export const PRIVATE_PATHS = [
+  "/api/", "/auth", "/home", "/identify", "/collection", "/feed", "/experts", "/settings",
+  "/marketplace/my-listings", "/marketplace/my-listing/", "/get-app", "/evaluation-",
+] as const;
 
 export const SAME_AS = [PLAY_STORE_URL, APP_STORE_URL];
 
