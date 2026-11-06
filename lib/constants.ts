@@ -1,9 +1,9 @@
 const MC = "/assets/landing-page/04-marketplace/";
-const MORGAN = `${MC}coin-morgan-dollar.png`;
-const FRANKLIN = `${MC}coin-franklin-half-dollar.png`;
-const HYDERABAD = `${MC}coin-hyderabad-one-pice.png`;
-const SPAIN = `${MC}coin-spain-320-reales.png`;
-const PICE = `${MC}coin-british-india-pice.png`;
+const MORGAN = `${MC}coin-morgan-dollar.webp`;
+const FRANKLIN = `${MC}coin-franklin-half-dollar.webp`;
+const HYDERABAD = `${MC}coin-hyderabad-one-pice.webp`;
+const SPAIN = `${MC}coin-spain-320-reales.webp`;
+const PICE = `${MC}coin-british-india-pice.webp`;
 
 export const PLAY_STORE_URL =
   "https://play.google.com/store/apps/details?id=com.coinzy.trackzio";
@@ -65,24 +65,24 @@ export const IDENTIFY_RESULT = {
   rarity: "Rare",
   condition: "Mint state",
   match: "98% match",
-  image: "/assets/landing-page/03-identify-demo/coin-mohur.png",
+  image: "/assets/landing-page/03-identify-demo/coin-mohur.webp",
 } as const;
 
 export const RECENT_SCANS = [
   {
     name: '1911 British India King George V "Pig Rupee" coin',
     value: "₹2,500 - ₹10,000",
-    image: "/assets/landing-page/03-identify-demo/scan-pig-rupee.png",
+    image: "/assets/landing-page/03-identify-demo/scan-pig-rupee.webp",
   },
   {
     name: "1996 Netaji Subhas Chandra Bose",
     value: "₹5,000 - ₹18,000",
-    image: "/assets/landing-page/03-identify-demo/scan-netaji.png",
+    image: "/assets/landing-page/03-identify-demo/scan-netaji.webp",
   },
   {
     name: "1954 One Rupee (Government of India)",
     value: "₹1,000 - ₹5,500+",
-    image: "/assets/landing-page/03-identify-demo/scan-one-rupee.png",
+    image: "/assets/landing-page/03-identify-demo/scan-one-rupee.webp",
   },
 ] as const;
 
@@ -90,22 +90,22 @@ export const CATEGORIES = [
   {
     title: "Rare American coins",
     subtitle: "14k+ coins · up to $50,000",
-    illustration: "/assets/landing-page/05-browse-catalogue/category-illustration-1.png",
+    illustration: "/assets/landing-page/05-browse-catalogue/category-illustration-1.webp",
   },
   {
     title: "Ancient Roman coins",
     subtitle: "8k+ coins · up to $120,000",
-    illustration: "/assets/landing-page/05-browse-catalogue/category-illustration-2.png",
+    illustration: "/assets/landing-page/05-browse-catalogue/category-illustration-2.webp",
   },
   {
     title: "British & European",
     subtitle: "11k+ coins · up to ₹85,000",
-    illustration: "/assets/landing-page/05-browse-catalogue/category-illustration-3.png",
+    illustration: "/assets/landing-page/05-browse-catalogue/category-illustration-3.webp",
   },
   {
     title: "Indian heritage coins",
     subtitle: "6k+ coins · up to ₹200,000",
-    illustration: "/assets/landing-page/05-browse-catalogue/category-illustration-4.png",
+    illustration: "/assets/landing-page/05-browse-catalogue/category-illustration-4.webp",
   },
 ] as const;
 
@@ -113,29 +113,29 @@ export const INDIA_CATEGORIES = [
   {
     title: "Rare Indian coins",
     subtitle: "4,100 coins · up to $65,000",
-    illustration: "/assets/landing-page/05-browse-catalogue/india-rare-indian.png",
-    coin: "/assets/landing-page/05-browse-catalogue/coin-rare-indian.png",
+    illustration: "/assets/landing-page/05-browse-catalogue/india-rare-indian.webp",
+    coin: "/assets/landing-page/05-browse-catalogue/coin-rare-indian.webp",
     href: "/catalogue/rare-indian-coins",
   },
   {
     title: "Mughal coins",
     subtitle: "14k+ coins · up to $50,000",
-    illustration: "/assets/landing-page/05-browse-catalogue/india-mughal.png",
-    coin: "/assets/landing-page/05-browse-catalogue/coin-mughal.png",
+    illustration: "/assets/landing-page/05-browse-catalogue/india-mughal.webp",
+    coin: "/assets/landing-page/05-browse-catalogue/coin-mughal.webp",
     href: "/catalogue/mughal-coins",
   },
   {
     title: "Commemorative Indian coins",
     subtitle: "1,300 coins · up to $1,500",
-    illustration: "/assets/landing-page/05-browse-catalogue/india-commemorative.png",
-    coin: "/assets/landing-page/05-browse-catalogue/coin-commemorative.png",
+    illustration: "/assets/landing-page/05-browse-catalogue/india-commemorative.webp",
+    coin: "/assets/landing-page/05-browse-catalogue/coin-commemorative.webp",
     href: "/catalogue/commemorative-indian-coins",
   },
   {
     title: "Indian Gold coins",
     subtitle: "2,400 coins · up to $300K",
-    illustration: "/assets/landing-page/05-browse-catalogue/india-indian-gold.png",
-    coin: "/assets/landing-page/05-browse-catalogue/coin-indian-gold.png",
+    illustration: "/assets/landing-page/05-browse-catalogue/india-indian-gold.webp",
+    coin: "/assets/landing-page/05-browse-catalogue/coin-indian-gold.webp",
     href: "/catalogue/indian-gold-coins",
   },
 ] as const;
@@ -144,30 +144,30 @@ export const MARKETPLACE_PAGE_CATEGORIES = [
   {
     title: "Roman coins",
     subtitle: "14k+ coins · up to $50,000",
-    illustration: "/assets/marketplace/category-roman.png",
-    coin: `${MC}coin-hyderabad-one-pice.png`,
+    illustration: "/assets/marketplace/category-roman.webp",
+    coin: `${MC}coin-hyderabad-one-pice.webp`,
     wellBg: "#e8d5c4",
   },
   {
     title: "American coins",
     subtitle: "4,100 coins · up to $65,000",
-    illustration: "/assets/marketplace/category-american.png",
-    coin: `${MC}coin-franklin-half-dollar.png`,
+    illustration: "/assets/marketplace/category-american.webp",
+    coin: `${MC}coin-franklin-half-dollar.webp`,
     coinClassName: "translate-y-[6.6px]",
     wellBg: "#dfd0b8",
   },
   {
     title: "Wheat pennies",
     subtitle: "1,300 coins · up to $1,500",
-    illustration: "/assets/marketplace/category-wheat.png",
-    coin: `${MC}coin-spain-320-reales.png`,
+    illustration: "/assets/marketplace/category-wheat.webp",
+    coin: `${MC}coin-spain-320-reales.webp`,
     wellBg: "#e0ceba",
   },
   {
     title: "Gold coins",
     subtitle: "2,400 coins · up to $300K",
-    illustration: "/assets/marketplace/category-gold.png",
-    coin: `${MC}coin-british-india-pice.png`,
+    illustration: "/assets/marketplace/category-gold.webp",
+    coin: `${MC}coin-british-india-pice.webp`,
     wellBg: "#d8ccbc",
   },
 ] as const;
@@ -180,27 +180,27 @@ export const MARKETPLACE_COINS = [
   {
     title: "Spain 320 Reales 1812",
     price: "₹2,87,486.97",
-    image: "/assets/landing-page/04-marketplace/coin-spain-320-reales.png",
+    image: "/assets/landing-page/04-marketplace/coin-spain-320-reales.webp",
   },
   {
     title: "1958 - Franklin Half Dollar | Mint condition",
     price: "₹26,486.96",
-    image: "/assets/landing-page/04-marketplace/coin-franklin-half-dollar.png",
+    image: "/assets/landing-page/04-marketplace/coin-franklin-half-dollar.webp",
   },
   {
     title: "1953 One Pice Hyderabad Mint Coin | Rare Indian Bronze Coin",
     price: "₹28,480.61",
-    image: "/assets/landing-page/04-marketplace/coin-hyderabad-one-pice.png",
+    image: "/assets/landing-page/04-marketplace/coin-hyderabad-one-pice.webp",
   },
   {
     title: "British India 1 Pice bronze coin issued in 1944 | King George VI",
     price: "₹35,601.13",
-    image: "/assets/landing-page/04-marketplace/coin-british-india-pice.png",
+    image: "/assets/landing-page/04-marketplace/coin-british-india-pice.webp",
   },
   {
     title: "1921 United States Morgan Silver Dollar | MS65",
     price: "₹58,860.54",
-    image: "/assets/landing-page/04-marketplace/coin-morgan-dollar.png",
+    image: "/assets/landing-page/04-marketplace/coin-morgan-dollar.webp",
   },
 ] as const;
 
@@ -209,25 +209,25 @@ export const APPRAISERS = [
     name: "Daniel Chen",
     specialties: ["Ancient coins", "Indian Coins"],
     experience: "12 yrs",
-    avatar: "/assets/landing-page/09-expert-evaluation/avatar-daniel-chen.png",
+    avatar: "/assets/landing-page/09-expert-evaluation/avatar-daniel-chen.webp",
   },
   {
     name: "John Kim",
     specialties: ["Foreign coins", "Indian Coins"],
     experience: "15 yrs",
-    avatar: "/assets/landing-page/09-expert-evaluation/avatar-john-kim.png",
+    avatar: "/assets/landing-page/09-expert-evaluation/avatar-john-kim.webp",
   },
   {
     name: "Maria Rodriguez",
     specialties: ["American coins", "Indian Coins"],
     experience: "8 yrs",
-    avatar: "/assets/landing-page/09-expert-evaluation/avatar-maria-rodriguez.png",
+    avatar: "/assets/landing-page/09-expert-evaluation/avatar-maria-rodriguez.webp",
   },
   {
     name: "Jim Presley",
     specialties: ["Foreign coins", "Indian Coins"],
     experience: "15 yrs",
-    avatar: "/assets/landing-page/09-expert-evaluation/avatar-jim-presley.png",
+    avatar: "/assets/landing-page/09-expert-evaluation/avatar-jim-presley.webp",
   },
 ] as const;
 
@@ -237,7 +237,7 @@ export const FEED_POSTS = [
     header: {
       bg: "#f4b183",
       layout: "pair",
-      images: ["/assets/landing-page/10-community/post-lincoln-cent-obverse.png", "/assets/landing-page/10-community/post-lincoln-cent-reverse.png"],
+      images: ["/assets/landing-page/10-community/post-lincoln-cent-obverse.webp", "/assets/landing-page/10-community/post-lincoln-cent-reverse.webp"],
     },
     excerpt:
       "Set of ten Fire-themed metal coins by Fantasy Coins LLC. These heavy-weight, finely-minted coins are crafted from zinc and nickel with high-relief 3D detailin...",
@@ -247,7 +247,7 @@ export const FEED_POSTS = [
   },
   {
     title: "Found in grandpa's drawer — what's it worth?",
-    header: { bg: "#ebe0db", layout: "banner", images: ["/assets/landing-page/10-community/post-grandpas-drawer.png"] },
+    header: { bg: "#ebe0db", layout: "banner", images: ["/assets/landing-page/10-community/post-grandpas-drawer.webp"] },
     excerpt:
       "Set of ten Fire-themed metal coins by Fantasy Coins LLC. These heavy-weight, finely-minted coins are crafted from zinc and nickel with high-relief 3D detailin...",
     likes: 42,
@@ -266,22 +266,22 @@ export const FEED_POSTS = [
 ] as const;
 
 export const COLLECTION_COINS = [
-  { name: "1812 Spanish gold | 320 Reales", image: "/assets/landing-page/04-marketplace/coin-spain-320-reales.png" },
+  { name: "1812 Spanish gold | 320 Reales", image: "/assets/landing-page/04-marketplace/coin-spain-320-reales.webp" },
   {
     name: "1953 One Pice Hyderabad Mint Coin | Rare Indian Bronze Coin",
-    image: "/assets/landing-page/04-marketplace/coin-hyderabad-one-pice.png",
+    image: "/assets/landing-page/04-marketplace/coin-hyderabad-one-pice.webp",
   },
-  { name: "1921 United States Morgan Silver Dollar | MS65", image: "/assets/landing-page/04-marketplace/coin-morgan-dollar.png" },
+  { name: "1921 United States Morgan Silver Dollar | MS65", image: "/assets/landing-page/04-marketplace/coin-morgan-dollar.webp" },
   // Figma reuses the gold Spanish coin artwork for this entry.
   {
     name: "Roman Empire. Hadrian (AD 117-138). As Roma - Fortuna",
-    image: "/assets/landing-page/04-marketplace/coin-spain-320-reales.png",
+    image: "/assets/landing-page/04-marketplace/coin-spain-320-reales.webp",
   },
   {
     name: "British India 1 Pice bronze coin issued in 1944 | King George VI",
-    image: "/assets/landing-page/04-marketplace/coin-british-india-pice.png",
+    image: "/assets/landing-page/04-marketplace/coin-british-india-pice.webp",
   },
-  { name: "1958 - Franklin Half Dollar | Mint condition", image: "/assets/landing-page/04-marketplace/coin-franklin-half-dollar.png" },
+  { name: "1958 - Franklin Half Dollar | Mint condition", image: "/assets/landing-page/04-marketplace/coin-franklin-half-dollar.webp" },
 ] as const;
 
 /**

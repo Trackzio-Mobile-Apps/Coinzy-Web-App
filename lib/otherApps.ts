@@ -9,7 +9,7 @@
 export const TRACKZIO_PLAY_URL = "https://play.google.com/store/apps/developer?id=Trackzio";
 
 export type OtherApp = {
-  /** Asset prefix in /assets/other-apps/ (`<slug>-header.webp`, `<slug>-icon.png`). */
+  /** Asset prefix in /assets/other-apps/ (`<slug>-header.webp`, `<slug>-icon.webp`). */
   slug: string;
   name: string;
   description: string;

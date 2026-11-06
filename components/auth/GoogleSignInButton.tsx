@@ -44,7 +44,7 @@ export function GoogleSignInButton({
         className="flex h-10 w-full items-center justify-center gap-2 rounded-button border border-[#e5e5e5] bg-white px-4 text-sm font-medium leading-5 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
       >
         <span className="flex size-6 shrink-0 items-center justify-center">
-          <Image src="/assets/auth/google.png" alt="" width={24} height={24} />
+          <Image src="/assets/auth/google.webp" alt="" width={24} height={24} />
         </span>
         {pending ? "Please wait…" : label}
       </button>
@@ -59,7 +59,7 @@ export function GoogleSignInButton({
       onClick={run}
       className="flex size-14 items-center justify-center rounded-full border border-[#e5e5e5] hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
     >
-      <Image src="/assets/auth/google.png" alt="" width={24} height={24} />
+      <Image src="/assets/auth/google.webp" alt="" width={24} height={24} />
     </button>
   );
 }

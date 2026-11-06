@@ -61,7 +61,7 @@ export function ExpertEvaluationSection({ appraisers }: { appraisers: ReactNode 
 
             <div className="flex items-center gap-4 rounded-2xl bg-[#f0e8e0] p-4">
               <Image
-                src={isWorld ? `${ICONS}/world-report-coin.webp` : "/assets/landing-page/03-identify-demo/scan-one-rupee.png"}
+                src={isWorld ? `${ICONS}/world-report-coin.webp` : "/assets/landing-page/03-identify-demo/scan-one-rupee.webp"}
                 alt={isWorld ? "Coin in sample report" : "1954 One Rupee coin"}
                 width={48}
                 height={48}

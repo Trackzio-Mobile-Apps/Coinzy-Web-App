@@ -111,7 +111,7 @@ export function SetSellerProfileDialog({
         <div className="flex items-start gap-3 pr-6">
           {/* User's profile picture (same avatar as the sidebar). Read-only for now — no edit affordance. */}
           <div className="relative size-8 shrink-0 overflow-hidden rounded-[10px] border border-[#e5e5e5]">
-            <Image src="/assets/home/avatar.png" alt="Your profile picture" width={32} height={32} className="size-full object-cover" />
+            <Image src="/assets/home/avatar.webp" alt="Your profile picture" width={32} height={32} className="size-full object-cover" />
           </div>
           <div className="min-w-0 flex-1">
             <h2 id={titleId} className="h-[22px] text-base font-medium leading-6 text-[#0a0a0a]">

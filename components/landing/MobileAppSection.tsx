@@ -22,7 +22,7 @@ function PhoneMockups() {
         />
       </div>
       <Image
-        src={`${A}/phone-mockup-camera.png`}
+        src={`${A}/phone-mockup-camera.webp`}
         alt="Coinzy camera identify screen"
         width={163}
         height={325}
@@ -30,21 +30,21 @@ function PhoneMockups() {
       />
       <div className="absolute left-[223.28px] top-[21.84px]">
         <Image
-          src={`${A}/phone-mockup-details.png`}
+          src={`${A}/phone-mockup-details.webp`}
           alt="Coinzy coin details screen"
           width={184}
           height={366}
           className="h-[366.41px] w-[184.48px] max-w-none object-cover"
         />
         <Image
-          src={`${A}/card-rarity-info.png`}
+          src={`${A}/card-rarity-info.webp`}
           alt=""
           width={100}
           height={62}
           className="absolute left-[145.11px] top-[141.31px] h-[62.49px] w-[99.82px] max-w-none rounded-[var(--radius-inner)] border border-[#f4f6f7] object-cover shadow-[-4px_8px_20px_10px_rgba(0,0,0,0.2)]"
         />
         <Image
-          src={`${A}/card-historical-data.png`}
+          src={`${A}/card-historical-data.webp`}
           alt=""
           width={105}
           height={88}

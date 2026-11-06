@@ -7,9 +7,9 @@ import { MARKETPLACE_PAGE_CATEGORIES } from "@/lib/constants";
 
 const CATEGORIES = [
   { ...MARKETPLACE_PAGE_CATEGORIES[1], slug: "rare-american-coins", title: "Rare American coins" },
-  { ...MARKETPLACE_PAGE_CATEGORIES[0], slug: "all", title: "World coins", coin: "/assets/landing-page/05-browse-catalogue/coin-indian-gold.png" },
+  { ...MARKETPLACE_PAGE_CATEGORIES[0], slug: "all", title: "World coins", coin: "/assets/landing-page/05-browse-catalogue/coin-indian-gold.webp" },
   { ...MARKETPLACE_PAGE_CATEGORIES[2], slug: "commemorative-coins", title: "Commemorative US coins" },
-  { ...MARKETPLACE_PAGE_CATEGORIES[3], slug: "us-gold-coins", title: "American Gold coins", coin: "/assets/landing-page/05-browse-catalogue/coin-indian-gold.png" },
+  { ...MARKETPLACE_PAGE_CATEGORIES[3], slug: "us-gold-coins", title: "American Gold coins", coin: "/assets/landing-page/05-browse-catalogue/coin-indian-gold.webp" },
 ];
 
 /** Illustrated category band in the signed-in catalogue; category changes reset the result page. */

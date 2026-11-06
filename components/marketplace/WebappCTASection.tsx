@@ -20,7 +20,7 @@ function AiScanBadge() {
         >
           <div className="relative h-[115px] w-[143px] shrink-0">
             <Image
-              src={`${A}/webapp-badge-coin.png`}
+              src={`${A}/webapp-badge-coin.webp`}
               alt=""
               width={104}
               height={105}
@@ -41,7 +41,7 @@ function AiScanBadge() {
               className="absolute left-[-2.1px] top-[61.6px] h-[6px] w-[147px]"
             />
             <Image
-              src={`${A}/webapp-badge-scanline.png`}
+              src={`${A}/webapp-badge-scanline.webp`}
               alt=""
               width={143}
               height={4}
@@ -64,7 +64,7 @@ export function WebappCTASection() {
   return (
     <section className="relative overflow-hidden bg-[#f5f5f5] py-16">
       <Image
-        src="/assets/landing-page/08-cta/background-texture.png"
+        src="/assets/landing-page/08-cta/background-texture.webp"
         alt=""
         fill
         className="object-cover"
@@ -72,7 +72,7 @@ export function WebappCTASection() {
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[354px] overflow-hidden opacity-70">
         <div className="absolute inset-x-0 top-[-140%] h-[244.24%]">
           <Image
-            src={`${A}/webapp-cta-dots.png`}
+            src={`${A}/webapp-cta-dots.webp`}
             alt=""
             fill
             className="object-cover"

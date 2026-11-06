@@ -26,28 +26,28 @@ const RATE_MESSAGE_MAX_LENGTH = 100;
 /** Figma `1254:103144` faces — Stroke default, Solid primary when selected (`1252:102854`). */
 const RATE_FACES = [
   {
-    src: "/assets/identify/rate/sad-02.png",
-    selectedSrc: "/assets/identify/rate/sad-02-selected.png",
+    src: "/assets/identify/rate/sad-02.webp",
+    selectedSrc: "/assets/identify/rate/sad-02-selected.webp",
     label: "Very dissatisfied",
   },
   {
-    src: "/assets/identify/rate/sad-01.png",
-    selectedSrc: "/assets/identify/rate/sad-01-selected.png",
+    src: "/assets/identify/rate/sad-01.webp",
+    selectedSrc: "/assets/identify/rate/sad-01-selected.webp",
     label: "Dissatisfied",
   },
   {
-    src: "/assets/identify/rate/flushed.png",
-    selectedSrc: "/assets/identify/rate/flushed-selected.png",
+    src: "/assets/identify/rate/flushed.webp",
+    selectedSrc: "/assets/identify/rate/flushed-selected.webp",
     label: "Neutral",
   },
   {
-    src: "/assets/identify/rate/happy.png",
-    selectedSrc: "/assets/identify/rate/happy-selected.png",
+    src: "/assets/identify/rate/happy.webp",
+    selectedSrc: "/assets/identify/rate/happy-selected.webp",
     label: "Satisfied",
   },
   {
-    src: "/assets/identify/rate/star-face.png",
-    selectedSrc: "/assets/identify/rate/star-face-selected.png",
+    src: "/assets/identify/rate/star-face.webp",
+    selectedSrc: "/assets/identify/rate/star-face-selected.webp",
     label: "Very satisfied",
   },
 ] as const;

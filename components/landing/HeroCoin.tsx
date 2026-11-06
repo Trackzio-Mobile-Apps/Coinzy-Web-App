@@ -7,7 +7,7 @@ export function HeroCoin() {
   const isWorld = useVisitorRegion() === "rest-of-world";
   return (
     <Image
-      src={isWorld ? "/assets/landing-page/02-hero/hero-coin-world.webp" : "/assets/landing-page/02-hero/hero-coin.png"}
+      src={isWorld ? "/assets/landing-page/02-hero/hero-coin-world.webp" : "/assets/landing-page/02-hero/hero-coin.webp"}
       alt={isWorld ? "Gold coin with an eagle emblem" : "Gold coin with a crab emblem"}
       width={200}
       height={200}

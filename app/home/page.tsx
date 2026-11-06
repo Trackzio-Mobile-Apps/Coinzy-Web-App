@@ -72,7 +72,7 @@ async function loadMarketRows(slug: string) {
           rarity: rarity?.label,
           rarityTone: rarity?.tone,
           price: card.price ?? "Price on request",
-          image: card.images[0] || "/assets/home/coin-listing-1.png",
+          image: card.images[0] || "/assets/home/coin-listing-1.webp",
         };
       }),
     );

@@ -28,7 +28,7 @@ export function ParchmentBackground({
             }}
           />
           <Image
-            src="/assets/landing-page/02-hero/background-texture-layer-1.png"
+            src="/assets/landing-page/02-hero/background-texture-layer-1.webp"
             alt=""
             fill
             className="object-cover opacity-80"
@@ -56,7 +56,7 @@ export function ParchmentBackground({
     return (
       <div className={`pointer-events-none absolute inset-0 ${className}`}>
         <Image
-          src="/assets/landing-page/08-cta/background-texture.png"
+          src="/assets/landing-page/08-cta/background-texture.webp"
           alt=""
           fill
           className="object-cover opacity-60"
@@ -69,7 +69,7 @@ export function ParchmentBackground({
   return (
     <div className={`pointer-events-none absolute inset-0 ${className}`}>
       <Image
-        src="/assets/landing-page/02-hero/background-texture-layer-1.png"
+        src="/assets/landing-page/02-hero/background-texture-layer-1.webp"
         alt=""
         fill
         className="object-cover opacity-60"

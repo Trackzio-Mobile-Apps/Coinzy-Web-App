@@ -18,7 +18,7 @@ export function LogoMark() {
     >
       <div className="relative h-6 w-[28.8px] shrink-0">
         <Image
-          src={`${LOGO}/logo-coin-icon.png`}
+          src={`${LOGO}/logo-coin-icon.webp`}
           alt=""
           width={21}
           height={21}
@@ -39,7 +39,7 @@ export function LogoMark() {
           className="absolute left-[-2px] top-[10.6px] h-[4.6px] w-[32.8px]"
         />
         <Image
-          src={`${LOGO}/logo-badge-scanline.png`}
+          src={`${LOGO}/logo-badge-scanline.webp`}
           alt=""
           width={29}
           height={1}

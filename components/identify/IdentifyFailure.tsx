@@ -63,7 +63,7 @@ export function IdentifyFailure({
       </div>
 
       <IdentifyExpertBanner
-        illustrationSrc="/assets/identify/expert-review-thumb.png"
+        illustrationSrc="/assets/identify/expert-review-thumb.webp"
         title="Want more certainty?"
         subtext="Have your coin reviewed by an human expert, not AI"
         showButtonIcon

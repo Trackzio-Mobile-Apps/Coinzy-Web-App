@@ -12,7 +12,7 @@ import {
 import { IdentifyZoomSlider, zoomScaleFromSlider } from "@/components/identify/IdentifyZoomSlider";
 import { useModalDialog } from "@/components/ui/useModalDialog";
 
-const FLIP_ILLUSTRATION = "/assets/identify/flip-coin-illustration.png";
+const FLIP_ILLUSTRATION = "/assets/identify/flip-coin-illustration.webp";
 
 /** Figma `1828:206843` — shown after the first side is uploaded. */
 export function IdentifyFlipCoinModal({

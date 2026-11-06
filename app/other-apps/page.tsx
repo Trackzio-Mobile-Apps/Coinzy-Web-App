@@ -33,7 +33,7 @@ function AppCard({ app }: { app: OtherApp }) {
       </div>
       <div className="flex flex-1 items-start gap-3 px-4">
         <Image
-          src={`${A}/${app.slug}-icon.png`}
+          src={`${A}/${app.slug}-icon.webp`}
           alt={`${app.name} icon`}
           width={64}
           height={64}

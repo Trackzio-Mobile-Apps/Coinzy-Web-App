@@ -59,7 +59,7 @@ export function Footer() {
         <div className={`${INNER} grid gap-10 md:grid-cols-2 lg:flex lg:items-start lg:justify-between`}>
           <div className="space-y-4 lg:w-[282px]">
             <div className="flex items-center gap-3">
-              <Image src={`${A}/logo.png`} alt="Coinzy" width={32} height={32} className="size-8 rounded" />
+              <Image src={`${A}/logo.webp`} alt="Coinzy" width={32} height={32} className="size-8 rounded" />
               <span className="text-xl font-semibold leading-[26px] text-primary-50">Coinzy AI</span>
             </div>
             <p className="text-sm leading-5 text-primary-200">

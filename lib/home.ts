@@ -52,7 +52,7 @@ export const HOME_MARKETPLACE_FALLBACK = [
     rarity: "Common",
     rarityTone: "muted" as const,
     price: "$2,500",
-    image: "/assets/home/coin-listing-1.png",
+    image: "/assets/home/coin-listing-1.webp",
   },
   {
     id: undefined as string | undefined,
@@ -62,7 +62,7 @@ export const HOME_MARKETPLACE_FALLBACK = [
     rarity: "Very rare",
     rarityTone: "warn" as const,
     price: "$1,200",
-    image: "/assets/home/coin-listing-2.png",
+    image: "/assets/home/coin-listing-2.webp",
   },
   {
     id: undefined as string | undefined,
@@ -72,7 +72,7 @@ export const HOME_MARKETPLACE_FALLBACK = [
     rarity: "Rare",
     rarityTone: "info" as const,
     price: "$5,700",
-    image: "/assets/home/coin-listing-3.png",
+    image: "/assets/home/coin-listing-3.webp",
   },
   {
     id: undefined as string | undefined,
@@ -82,14 +82,14 @@ export const HOME_MARKETPLACE_FALLBACK = [
     rarity: "Rare",
     rarityTone: "info" as const,
     price: "$910",
-    image: "/assets/home/coin-listing-4.png",
+    image: "/assets/home/coin-listing-4.webp",
   },
 ];
 
 export const HOME_CATALOGUE_FALLBACK = [
-  { id: undefined as string | undefined, name: "1909 - Small VDB Lincoln cent", price: "Est. $700 – $2,500", image: "/assets/home/catalogue-1.png" },
-  { id: undefined as string | undefined, name: "1909 - Small VDB Lincoln cent", price: "Est. $700 – $2,500", image: "/assets/home/catalogue-2.png" },
-  { id: undefined as string | undefined, name: "1909 - Small VDB Lincoln cent", price: "Est. $700 – $2,500", image: "/assets/home/catalogue-3.png" },
+  { id: undefined as string | undefined, name: "1909 - Small VDB Lincoln cent", price: "Est. $700 – $2,500", image: "/assets/home/catalogue-1.webp" },
+  { id: undefined as string | undefined, name: "1909 - Small VDB Lincoln cent", price: "Est. $700 – $2,500", image: "/assets/home/catalogue-2.webp" },
+  { id: undefined as string | undefined, name: "1909 - Small VDB Lincoln cent", price: "Est. $700 – $2,500", image: "/assets/home/catalogue-3.webp" },
 ];
 
 export const HOME_OTHER_APPS = [
@@ -97,7 +97,7 @@ export const HOME_OTHER_APPS = [
     slug: "banknote",
     name: "Banknote AI",
     description: "Identify banknotes using Banknote AI",
-    icon: "/assets/other-apps/banknote-icon.png",
+    icon: "/assets/other-apps/banknote-icon.webp",
     playHref: "https://play.google.com/store/apps/details?id=com.trackzio.banknote",
     appStoreHref: "https://apps.apple.com/us/app/banknote-identification-ai/id6747063766",
     qr: "/assets/other-apps/banknote-qr.svg",
@@ -106,7 +106,7 @@ export const HOME_OTHER_APPS = [
     slug: "habit-eazy",
     name: "Habit Eazy",
     description: "Build better habits with Habit Eazy",
-    icon: "/assets/other-apps/habit-eazy-icon.png",
+    icon: "/assets/other-apps/habit-eazy-icon.webp",
     playHref: "https://play.google.com/store/apps/details?id=com.progresspal",
     appStoreHref: "https://apps.apple.com/in/app/habit-eazy-habit-to-do-pal/id6738790392",
     qr: "/assets/other-apps/habit-eazy-qr.svg",
@@ -115,7 +115,7 @@ export const HOME_OTHER_APPS = [
     slug: "antiqzy",
     name: "Antiqzy AI",
     description: "Identify antiques using Antiqzy AI",
-    icon: "/assets/other-apps/antiqzy-icon.png",
+    icon: "/assets/other-apps/antiqzy-icon.webp",
     playHref: "https://play.google.com/store/apps/details?id=com.trackzio.antiquevintage",
     appStoreHref: null,
     qr: "/assets/other-apps/antiqzy-qr.svg",

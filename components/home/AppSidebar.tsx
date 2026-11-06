@@ -134,7 +134,7 @@ export async function AppSidebar({
       <div className="border-t border-[#e5e7eb] p-4">
         <div className="flex items-center gap-3 rounded-xl px-1 py-1">
           <div className="relative size-8 shrink-0">
-            <Image src={`${A}/avatar.png`} alt="" width={32} height={32} className="size-8 rounded-full object-cover" />
+            <Image src={`${A}/avatar.webp`} alt="" width={32} height={32} className="size-8 rounded-full object-cover" />
             <span className="absolute bottom-0 right-0 size-2.5 rounded-full border-2 border-white bg-[#268823]" />
           </div>
           <div className="min-w-0">
