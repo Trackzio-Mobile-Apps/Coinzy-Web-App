@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { AppSidebar } from "@/components/home/AppSidebar";
 import { CatalogueEmpty } from "@/components/catalogue/CatalogueEmpty";
 import { CatalogueSearch } from "@/components/catalogue/CatalogueSearch";
-import { CoinGrid, Pagination, loadCoins } from "@/components/catalogue/CoinGrid";
+import { CoinGrid, loadCoins } from "@/components/catalogue/CoinGrid";
 import { CoinGridSkeleton } from "@/components/catalogue/CoinGridSkeleton";
 import { MarketplaceAppHeader } from "@/components/marketplace/MarketplaceAppHeader";
 import type { SessionUser } from "@/lib/auth/session";
@@ -79,10 +79,6 @@ async function SignedInResults({
   });
   const current = Math.min(page, totalPages);
   const from = category?.slug ?? "catalogue";
-  const baseParams = new URLSearchParams();
-  for (const [field, values] of Object.entries(selected)) values.forEach((value) => baseParams.append(field, value));
-  if (query) baseParams.set("q", query);
-  if (category && category.slug !== "all") baseParams.set("category", category.slug);
 
   if (!coins.length) {
     return (
@@ -106,11 +102,6 @@ async function SignedInResults({
         </p>
       </div>
       <CoinGrid compact coins={coins} from={from} fromPage={current} fromQuery={query} />
-      {totalPages > 1 && (
-        <div className="mt-4 flex justify-end">
-          <Pagination page={current} totalPages={totalPages} href={(n) => pageHref(baseParams, n)} />
-        </div>
-      )}
       {!live && !query && (
         <p className="mt-4 text-center text-xs text-neutral-400">
           Showing sample coins — the catalogue is temporarily unavailable.

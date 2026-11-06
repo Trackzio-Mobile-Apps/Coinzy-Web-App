@@ -191,7 +191,7 @@ export function MarketplaceSignedInPage({
                       <p className="text-sm font-medium leading-5 text-ink">{cat.title}</p>
                       <p className="text-xs leading-4 text-[#737373]">{cat.subtitle}</p>
                     </div>
-                    <Image src={cat.coin} alt="" width={80} height={80} className="w-[64px] shrink-0 object-contain @min-[750px]:w-[80px]" />
+                    <Image src={cat.coin} alt="" width={80} height={80} className="size-[64px] shrink-0 rounded-full object-cover @min-[750px]:size-[80px]" />
                   </Link>
                 ))}
               </div>

@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 import { LogoMark } from "@/components/landing/TopNav";
 import { AuthFlow, type AuthMode } from "@/components/auth/AuthFlow";
 import { ReloadOnRestore } from "@/components/auth/ReloadOnRestore";
-import { COINZY_PRIVACY_URL, COINZY_TERMS_URL, PLAY_STORE_URL } from "@/lib/constants";
+import { COINZY_PRIVACY_URL, COINZY_TERMS_URL } from "@/lib/constants";
+import { CoinzyDownloadButton } from "@/components/ui/CoinzyDownloadButton";
 import { getSessionUser } from "@/lib/auth/session";
 import { authHref, safeReturnPath } from "@/lib/auth/returnTo";
 
@@ -41,7 +42,7 @@ export default async function AuthPage({ searchParams }: { searchParams: Promise
         </Link>
         <div className="flex items-center gap-3">
           <Link href={authHref("login", next)} replace className="rounded-button px-4 py-2 text-sm font-medium leading-5">Log in</Link>
-          <Link href={PLAY_STORE_URL} className="rounded-button bg-primary-500 px-3 py-1.5 text-sm font-medium leading-5 text-white hover:bg-primary-700">Get the App</Link>
+          <CoinzyDownloadButton label="Get the App" className="rounded-button bg-primary-500 px-3 py-1.5 text-sm font-medium leading-5 text-white hover:bg-primary-700" />
         </div>
       </header>
       <main className="grid min-h-[calc(100svh-64px)] bg-gradient-to-b from-[#f9fafb] to-[#edf0f3] lg:grid-cols-[727fr_713fr]">

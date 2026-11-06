@@ -24,6 +24,7 @@ export function PremiumSubscribeDialog({
   email,
   scanUsage,
   catalogueDetails = false,
+  coinOfTheDay = false,
   collectionLimit = false,
   credits = false,
   onCreditsChecked,
@@ -35,6 +36,7 @@ export function PremiumSubscribeDialog({
   startAtDownload?: boolean;
   scanUsage?: { used: number; limit: number };
   catalogueDetails?: boolean;
+  coinOfTheDay?: boolean;
   collectionLimit?: boolean;
   credits?: boolean;
   onCreditsChecked?: (balance: number) => void;
@@ -89,10 +91,10 @@ export function PremiumSubscribeDialog({
         <Image src={`${A}/premium-crown.svg`} alt="" width={64} height={64} />
         <div className="space-y-1 pr-6">
           <h2 id={titleId} className="text-xl font-medium leading-7 text-white">
-            {credits ? "Buy credits in the Coinzy app" : collectionLimit ? "Get unlimited collection space" : catalogueDetails ? "Get advanced coin details - Go Premium" : scanUsage ? scanUsage.used >= scanUsage.limit ? `You've used all ${scanUsage.limit} free scans!` : `You've used ${scanUsage.used} of ${scanUsage.limit} free scans!` : "Get Premium in the app"}
+            {credits ? "Buy credits in the Coinzy app" : coinOfTheDay ? "More knowledge, more fun!" : collectionLimit ? "Get unlimited collection space" : catalogueDetails ? "Get advanced coin details - Go Premium" : scanUsage ? scanUsage.used >= scanUsage.limit ? `You've used all ${scanUsage.limit} free scans!` : `You've used ${scanUsage.used} of ${scanUsage.limit} free scans!` : "Get Premium in the app"}
           </h2>
           <p className="text-sm leading-5 text-white/90">
-            {credits ? "Scan the code with your phone. Pick a credit pack in the app, then come back here to upload your coin." : "Premium is available in the Coinzy mobile app. Scan the code with your phone to get it."}
+            {credits ? "Scan the code with your phone. Pick a credit pack in the app, then come back here to upload your coin." : coinOfTheDay ? "Premium members enjoy multiple Coin of the Day reveals daily." : "Premium is available in the Coinzy mobile app. Scan the code with your phone to get it."}
           </p>
         </div>
         <button

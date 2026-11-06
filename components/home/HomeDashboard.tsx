@@ -170,9 +170,9 @@ export function HomeDashboard({
 
             {!premium && (
               <section className="flex flex-col gap-3 rounded-2xl p-5 sm:flex-row sm:items-center sm:justify-between" style={{ backgroundImage: "linear-gradient(-36.21deg, rgb(106, 101, 237) 10.1%, rgb(229, 74, 159) 98.5%)" }}>
-                <p className="text-2xl font-medium leading-8 text-[#f2f2f3]">Unlock unlimited</p>
+                <p className="text-2xl font-medium leading-8 text-[#f2f2f3]">Get more with Premium</p>
                 <PremiumUpgradeButton headerStyle email={user.email} className="inline-flex h-10 items-center justify-center rounded-[14px] border border-white bg-white px-6 text-base font-medium leading-6 text-primary-500 shadow-[0_0_0_2px_#b155bf]">
-                  Subscribe
+                  Explore Premium
                 </PremiumUpgradeButton>
               </section>
             )}

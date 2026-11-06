@@ -6,6 +6,8 @@ import { Footer } from "@/components/landing/Footer";
 import { HeroBanner } from "@/components/ui/HeroBanner";
 import { WebappCTASection } from "@/components/marketplace/WebappCTASection";
 import { OTHER_APP_SECTIONS, type OtherApp } from "@/lib/otherApps";
+import { getSessionToken } from "@/lib/auth/session";
+import { sessionJwtIsGuest } from "@/lib/auth/jwt-payload";
 
 export const metadata: Metadata = {
   title: "Our other apps | Coinzy AI",
@@ -95,10 +97,13 @@ function AppCard({ app }: { app: OtherApp }) {
 }
 
 /** Trackzio app family — Figma `Landing page/Our other apps` (876:23169). */
-export default function OtherAppsPage() {
+export default async function OtherAppsPage() {
+  const token = await getSessionToken();
+  const hideCoinzy = !!token && !sessionJwtIsGuest(token);
+
   return (
     <>
-      <TopNav />
+      <TopNav hideTryCoinzy={hideCoinzy} />
       <main className="bg-cream">
         {/* Hero (Figma 908:43028) */}
         <HeroBanner

@@ -117,7 +117,7 @@ export const HOME_OTHER_APPS = [
     description: "Identify antiques using Antiqzy AI",
     icon: "/assets/other-apps/antiqzy-icon.webp",
     playHref: "https://play.google.com/store/apps/details?id=com.trackzio.antiquevintage",
-    appStoreHref: null,
+    appStoreHref: "https://apps.apple.com/app/id6791132900",
     qr: "/assets/other-apps/antiqzy-qr.svg",
   },
 ];

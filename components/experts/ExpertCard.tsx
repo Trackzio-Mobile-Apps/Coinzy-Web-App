@@ -72,7 +72,7 @@ export function ExpertCard({ expert }: { expert: ExpertCardData }) {
             <span className="text-xs font-semibold leading-4 text-[#1e1e1f]">{expert.rating}</span>
           </div>
         )}
-        <p className="text-xs font-light leading-4 text-[#606062]">({expert.reviews} reviews)</p>
+        {Number(expert.reviews.replace(/,/g, "")) > 0 && <p className="text-xs font-light leading-4 text-[#606062]">({expert.reviews} reviews)</p>}
       </div>
     </div>
     <div className="mt-3 flex flex-col gap-1">

@@ -3,14 +3,13 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { CatalogueEmpty } from "@/components/catalogue/CatalogueEmpty";
 import { CatalogueSearch } from "@/components/catalogue/CatalogueSearch";
-import { CoinGrid, Pagination, loadCoins } from "@/components/catalogue/CoinGrid";
+import { CoinGrid, loadCoins } from "@/components/catalogue/CoinGrid";
 import { CoinGridSkeleton } from "@/components/catalogue/CoinGridSkeleton";
 import { SectionShell } from "@/components/ui/SectionShell";
-import { pagedHref } from "@/lib/backNav";
 
 const PAGE_SIZE = 15; // Figma: 3 rows × 5 cards
 
-/** Grid + pager for one page of `/catalogue` (optionally narrowed by `?q=`); streams in behind a skeleton. */
+/** Grid for one page of `/catalogue` (optionally narrowed by `?q=`); streams in behind a skeleton. */
 async function BrowseAllResults({ page, query }: { page: number; query: string }) {
   const { coins, totalPages, totalCount, live } = await loadCoins({ page, pageSize: PAGE_SIZE, search: query });
   const current = Math.min(page, totalPages);
@@ -31,7 +30,6 @@ async function BrowseAllResults({ page, query }: { page: number; query: string }
         )}
         <CoinGrid coins={coins} from="catalogue" fromPage={current} fromQuery={query} />
       </div>
-      <Pagination page={current} totalPages={totalPages} href={(n) => `${pagedHref("/catalogue", n, query)}#browse-all`} />
     </div>
   );
 }

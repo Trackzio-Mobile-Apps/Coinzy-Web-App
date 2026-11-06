@@ -12,9 +12,11 @@ const serverEnvironment = () => null;
 interface OtherAppDownloadButtonProps {
   app: { name: string; description: string; icon: string; qr: string; playHref: string; appStoreHref: string | null };
   className?: string;
+  label?: string;
+  icon?: string;
 }
 
-export function OtherAppDownloadButton({ app, className }: OtherAppDownloadButtonProps) {
+export function OtherAppDownloadButton({ app, className, label = "Try free", icon }: OtherAppDownloadButtonProps) {
   const [open, setOpen] = useState(false);
   const titleId = useId();
   const dialog = useModalDialog(open, setOpen);
@@ -22,8 +24,9 @@ export function OtherAppDownloadButton({ app, className }: OtherAppDownloadButto
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} aria-label={`Try ${app.name} free`} className={className}>
-        Try free
+      <button type="button" onClick={() => setOpen(true)} aria-label={label === "Try free" ? `Try ${app.name} free` : label} className={className}>
+        {icon && <Image src={icon} alt="" width={16} height={16} />}
+        {label}
       </button>
       <dialog
         ref={dialog}

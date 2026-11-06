@@ -2,7 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Container } from "@/components/layout/Container";
 import { NavLinks } from "@/components/landing/NavLinks";
-import { NAV_LINKS, PLAY_STORE_URL } from "@/lib/constants";
+import { NAV_LINKS } from "@/lib/constants";
+import { CoinzyDownloadButton } from "@/components/ui/CoinzyDownloadButton";
 
 const LOGO = "/assets/landing-page/01-top-nav";
 
@@ -56,7 +57,7 @@ export function LogoMark() {
   );
 }
 
-export function TopNav() {
+export function TopNav({ hideTryCoinzy = false }: { hideTryCoinzy?: boolean } = {}) {
   return (
     <header className="sticky top-0 z-50 border-b-[0.5px] border-border-light bg-cream">
       <Container as="div" className="flex h-16 items-center justify-between gap-6">
@@ -74,18 +75,13 @@ export function TopNav() {
         <NavLinks />
 
         <div className="flex items-center gap-3">
-          <Link
-            href={PLAY_STORE_URL}
-            className="hidden items-center justify-center rounded-[var(--radius-button)] border border-[#e5e5e5] bg-white px-4 py-2 text-sm font-medium leading-5 text-[#0a0a0a] transition-colors hover:bg-neutral-50 sm:inline-flex"
-          >
-            Get app
-          </Link>
-          <Link
+          <CoinzyDownloadButton className="hidden items-center justify-center rounded-[var(--radius-button)] border border-[#e5e5e5] bg-white px-4 py-2 text-sm font-medium leading-5 text-[#0a0a0a] transition-colors hover:bg-neutral-50 sm:inline-flex" />
+          {!hideTryCoinzy && <Link
             href="/auth"
             className="inline-flex items-center justify-center rounded-[var(--radius-button)] bg-primary-500 px-3 py-1.5 text-sm font-medium leading-5 text-[#fafafa] transition-colors hover:bg-primary-700"
           >
             Try Coinzy AI
-          </Link>
+          </Link>}
           <details className="group relative lg:hidden">
             <summary
               aria-label="Open menu"
@@ -107,12 +103,7 @@ export function TopNav() {
                   {link.label}
                 </Link>
               ))}
-              <Link
-                href={PLAY_STORE_URL}
-                className="rounded-lg px-3 py-2 text-sm font-medium leading-5 text-ink hover:bg-black/5 sm:hidden"
-              >
-                Get app
-              </Link>
+              <CoinzyDownloadButton className="rounded-lg px-3 py-2 text-left text-sm font-medium leading-5 text-ink hover:bg-black/5 sm:hidden" />
             </nav>
           </details>
         </div>

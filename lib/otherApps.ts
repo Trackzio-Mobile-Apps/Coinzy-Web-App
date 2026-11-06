@@ -58,6 +58,7 @@ export const OTHER_APP_SECTIONS: {
         description: "Identify antiques and vintage finds using Antiqzy AI",
         exploreHref: site("antiqzy"),
         playHref: play("com.trackzio.antiquevintage"),
+        appStoreHref: "https://apps.apple.com/app/id6791132900",
       },
       {
         slug: "rockzy",

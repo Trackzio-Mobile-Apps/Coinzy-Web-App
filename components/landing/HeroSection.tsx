@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ParchmentBackground } from "@/components/ui/ParchmentBackground";
 import { SectionShell } from "@/components/ui/SectionShell";
-import { PLAY_STORE_URL } from "@/lib/constants";
+import { CoinzyDownloadButton } from "@/components/ui/CoinzyDownloadButton";
 import { HeroCoin } from "./HeroCoin";
 
 const ICONS = "/assets/landing-page/02-hero";
@@ -47,13 +47,11 @@ export function HeroSection() {
               <Image src={`${ICONS}/icon-computer.svg`} alt="" width={16} height={16} />
               Try Coinzy AI
             </Link>
-            <Link
-              href={PLAY_STORE_URL}
+            <CoinzyDownloadButton
+              label="Get the app"
+              icon={`${ICONS}/icon-download.svg`}
               className="inline-flex h-11 items-center justify-center gap-1.5 rounded-[var(--radius-button)] border border-primary-200 bg-outline-bg px-4 text-sm font-medium leading-5 text-primary-500 transition-colors hover:bg-primary-50 sm:flex-[230.5_1_0%]"
-            >
-              <Image src={`${ICONS}/icon-download.svg`} alt="" width={16} height={16} />
-              Get the app
-            </Link>
+            />
           </div>
         </div>
       </div>
