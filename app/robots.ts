@@ -1,12 +1,10 @@
 import type { MetadataRoute } from "next";
 import { absoluteUrl, PRIVATE_PATHS, SITE_URL } from "@/lib/site";
 
-/** Public pages and discovery files are crawlable; account, owner and preview routes are excluded. */
+/** Public pages are crawlable except by the high-volume training crawlers blocked at the edge. */
 const AI_BOTS = [
-  "GPTBot",
   "OAI-SearchBot",
   "ChatGPT-User",
-  "ClaudeBot",
   "Claude-User",
   "Claude-SearchBot",
   "anthropic-ai",
@@ -27,6 +25,7 @@ export default function robots(): MetadataRoute.Robots {
   const disallow = [...PRIVATE_PATHS];
   return {
     rules: [
+      { userAgent: ["GPTBot", "ClaudeBot"], disallow: "/" },
       { userAgent: "*", allow: "/", disallow },
       { userAgent: AI_BOTS, allow: ["/", "/llms.txt", "/sitemap.xml"], disallow },
     ],
