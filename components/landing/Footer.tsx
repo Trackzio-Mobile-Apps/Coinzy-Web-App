@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { version } from "@/package.json";
 import {
   APP_STORE_URL,
   COINZY_PRIVACY_URL,
@@ -107,7 +108,9 @@ export function Footer() {
 
       <div className="border-t border-primary-400 px-6">
         <div className={`${INNER} flex flex-col items-center gap-4 py-4 sm:h-[61px] sm:flex-row sm:gap-6 sm:py-0`}>
-          <p className="flex-1 text-base leading-6 text-primary-400">©2025 Coinzy AI/Trackzio</p>
+          <p className="flex-1 text-base leading-6 text-primary-400">
+            ©2025 Coinzy AI/Trackzio <span className="ml-1 text-[10px]">v{version}</span>
+          </p>
           <div className="flex items-center gap-4">
             {FOOTER_SOCIALS.map((social) => (
               <Link

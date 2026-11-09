@@ -2,7 +2,7 @@
 
 - Crawler bandwidth protection: `netlify/edge-functions/block-training-crawlers.ts` returns an empty, uncached 403 for OpenAI and Anthropic training, search and user bots only on `/_next/image`; `app/robots.ts` disallows that endpoint for the same bots while allowing public pages. Requires a Netlify deploy (plain Next dev does not execute edge functions). Static images and direct external image origins remain accessible. User-agent matching can be spoofed; Netlify edge/request usage still applies to blocked traffic.
 
-- Footer social links are defined in `lib/constants.ts`; GitHub is omitted.
+- Footer social links are defined in `lib/constants.ts`; GitHub is omitted. The copyright displays the version from `package.json`.
 
 - Public PNG artwork was converted to lossless WebP with transparency preserved; Next.js app icons remain PNG for browser and Apple icon compatibility.
 
