@@ -1,10 +1,9 @@
-/** Stop the high-volume crawlers before serving pages, optimized images or static assets. */
+/** Keep OpenAI and Anthropic crawlers from downloading optimized images. */
 export default (request: Request): Response | undefined => {
-  // Let crawlers discover the disallow rules even when other requests are blocked.
-  if (new URL(request.url).pathname === "/robots.txt") return;
+  if (new URL(request.url).pathname !== "/_next/image") return;
 
   const userAgent = request.headers.get("user-agent") ?? "";
-  if (/\b(?:GPTBot|ClaudeBot)\b/i.test(userAgent)) {
+  if (/\b(?:GPTBot|OAI-SearchBot|ChatGPT-User|ClaudeBot|Claude-SearchBot|Claude-User)\b/i.test(userAgent)) {
     return new Response(null, {
       status: 403,
       headers: { "Cache-Control": "private, no-store" },
@@ -12,5 +11,5 @@ export default (request: Request): Response | undefined => {
   }
 };
 
-// Next.js middleware excludes /_next/image and static assets; enforce this at Netlify's edge.
+// Next.js middleware excludes /_next/image; enforce this at Netlify's edge.
 export const config = { path: "/*" };

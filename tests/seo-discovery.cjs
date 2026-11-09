@@ -109,6 +109,19 @@ function load(file) {
 
   const robots = load('app/robots.ts').default();
   assert.equal(robots.sitemap, 'https://coinzy.example/sitemap.xml');
+  const blockedBots = ['GPTBot', 'OAI-SearchBot', 'ChatGPT-User', 'ClaudeBot', 'Claude-SearchBot', 'Claude-User'];
+  const imageRule = robots.rules.find((group) => Array.isArray(group.userAgent) && group.userAgent.includes('GPTBot'));
+  const edge = load('netlify/edge-functions/block-training-crawlers.ts').default;
+  for (const bot of blockedBots) {
+    assert.ok(imageRule.userAgent.includes(bot));
+    assert.ok(imageRule.disallow.includes('/_next/image'));
+    assert.ok(!imageRule.disallow.includes('/'));
+    const request = (path) => new Request(`https://coinzy.example${path}`, { headers: { 'user-agent': bot } });
+    assert.equal(edge(request('/_next/image?url=coin.png&w=256&q=75')).status, 403);
+    assert.equal(edge(request('/blogs')), undefined);
+    assert.equal(edge(request('/assets/coin.png')), undefined);
+  }
+  assert.equal(edge(new Request('https://coinzy.example/_next/image', { headers: { 'user-agent': 'Mozilla/5.0' } })), undefined);
   for (const group of robots.rules) {
     for (const privateRoute of ['/collection/owned', '/marketplace/my-listings', '/marketplace/my-listing/123', '/experts/new', '/evaluation-hub-preview', '/api/coin/add', '/get-app']) {
       assert.ok(group.disallow.some((prefix) => privateRoute.startsWith(prefix)), `Crawler group must exclude ${privateRoute}`);

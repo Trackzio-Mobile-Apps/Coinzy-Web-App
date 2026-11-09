@@ -1,6 +1,6 @@
 # Coinzy Web — Project Index
 
-- Crawler bandwidth protection: `netlify/edge-functions/block-training-crawlers.ts` returns an empty, uncached 403 for GPTBot/ClaudeBot across all paths, including `/_next/image` and static images; `/robots.txt` remains accessible and disallows both in `app/robots.ts`. Requires a Netlify deploy (plain Next dev does not execute edge functions). User-agent matching can be spoofed; direct external image origins are outside this protection. Other crawlers and browsers continue normally. Netlify edge/request usage still applies to blocked traffic.
+- Crawler bandwidth protection: `netlify/edge-functions/block-training-crawlers.ts` returns an empty, uncached 403 for OpenAI and Anthropic training, search and user bots only on `/_next/image`; `app/robots.ts` disallows that endpoint for the same bots while allowing public pages. Requires a Netlify deploy (plain Next dev does not execute edge functions). Static images and direct external image origins remain accessible. User-agent matching can be spoofed; Netlify edge/request usage still applies to blocked traffic.
 
 - Footer social links are defined in `lib/constants.ts`; GitHub is omitted.
 
