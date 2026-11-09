@@ -5,6 +5,7 @@ import localFont from "next/font/local";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { absoluteUrl, SAME_AS, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import { OfflineBanner } from "@/components/ui/OfflineBanner";
+import { FirebaseAnalytics } from "@/components/analytics/FirebaseAnalytics";
 import "./globals.css";
 
 const plusJakarta = localFont({
@@ -76,6 +77,7 @@ export default function RootLayout({
       className={`${GeistSans.variable} ${GeistMono.variable} ${plusJakarta.variable}`}
     >
       <body className="antialiased">
+        <FirebaseAnalytics />
         <JsonLd data={SITE_JSON_LD} />
         <OfflineBanner />
         {children}
