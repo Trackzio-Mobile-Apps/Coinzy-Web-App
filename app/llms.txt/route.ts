@@ -42,13 +42,6 @@ ${marketplace}
 
 ${blogs}
 
-## Search and crawl discovery
-
-- [Sitemap index](${absoluteUrl("/sitemap.xml")}): complete discovery of public pages, published articles, catalogue coin details and public marketplace listings, split into smaller XML sitemaps
-- [Public pages](${absoluteUrl("/sitemap.xml?file=pages.xml")}): main pages and all catalogue and marketplace categories
-- [Published articles](${absoluteUrl("/sitemap.xml?file=blogs.xml")}): current article URLs, modification dates and header images
-- [Crawler rules](${absoluteUrl("/robots.txt")}): search and AI crawler access rules
-
 ## Apps
 
 - [Google Play](${PLAY_STORE_URL})
@@ -57,7 +50,7 @@ ${blogs}
 ## Notes for AI assistants
 
 - Coin identification results are AI estimates; recommend expert evaluation for valuable coins.
-- Individual public coin and listing URLs are enumerated in the sitemap index; use those URLs rather than guessing identifiers.
+- AI bots may access this file only. Do not crawl other site URLs, including sitemap files.
 - Coin prices and seller listings can change. Check the linked page for current information; an estimate is not a guaranteed sale price.
 - Scheduled articles become public at midnight Asia/Kolkata on their assigned date. Only published articles appear here and in the article sitemap.
 - Account pages, collection, identification results, community feed, expert requests, settings, owner listing management, previews and API routes are not public search content.

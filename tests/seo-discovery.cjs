@@ -107,24 +107,31 @@ function load(file) {
   assert.equal((await sitemapFileResponse('marketplace-0.xml')).status, 503);
   fail = false;
 
-  const robots = load('app/robots.ts').default();
-  assert.equal(robots.sitemap, 'https://coinzy.example/sitemap.xml');
-  const blockedBots = ['GPTBot', 'OAI-SearchBot', 'ChatGPT-User', 'ClaudeBot', 'Claude-SearchBot', 'Claude-User'];
-  const imageRule = robots.rules.find((group) => Array.isArray(group.userAgent) && group.userAgent.includes('GPTBot'));
+  const robots = fs.readFileSync('public/robots.txt', 'utf8');
+  const blockedBots = ['GPTBot', 'OAI-SearchBot', 'ChatGPT-User', 'ClaudeBot', 'Claude-SearchBot', 'Claude-User', 'Claude-Web', 'anthropic-ai', 'Perplexity-User', 'Google-Extended', 'cohere-ai', 'MistralAI-User'];
+  const groups = robots.trim().split(/\n\s*\n/);
+  const botRule = groups.find((group) => group.includes('User-agent: GPTBot\n'));
   const edge = load('netlify/edge-functions/block-training-crawlers.ts').default;
   for (const bot of blockedBots) {
-    assert.ok(imageRule.userAgent.includes(bot));
-    assert.ok(imageRule.disallow.includes('/_next/image'));
-    assert.ok(!imageRule.disallow.includes('/'));
+    assert.match(botRule, /Disallow: \/(?:\n|$)/);
     const request = (path) => new Request(`https://coinzy.example${path}`, { headers: { 'user-agent': bot } });
     assert.equal(edge(request('/_next/image?url=coin.png&w=256&q=75')).status, 403);
-    assert.equal(edge(request('/blogs')), undefined);
-    assert.equal(edge(request('/assets/coin.png')), undefined);
+    assert.equal(edge(request('/blogs')).status, 403);
+    assert.equal(edge(request('/assets/coin.png')).status, 403);
+    assert.equal(edge(request('/sitemap.xml')).status, 403);
+  }
+  for (const bot of ['GPTBot', 'ChatGPT-User', 'ClaudeBot', 'Claude-User', 'PerplexityBot', 'cohere-ai']) {
+    assert.equal(edge(new Request('https://coinzy.example/llms.txt', { headers: { 'user-agent': bot } })), undefined);
+  }
+  assert.match(groups[0], /Allow: \/llms\.txt/);
+  for (const bot of ['Googlebot', 'bingbot', 'ExampleCrawler', 'ExampleSpider']) {
+    assert.equal(edge(new Request('https://coinzy.example/sitemap.xml', { headers: { 'user-agent': bot } })), undefined);
   }
   assert.equal(edge(new Request('https://coinzy.example/_next/image', { headers: { 'user-agent': 'Mozilla/5.0' } })), undefined);
-  for (const group of robots.rules) {
+  for (const group of groups) {
     for (const privateRoute of ['/collection/owned', '/marketplace/my-listings', '/marketplace/my-listing/123', '/experts/new', '/evaluation-hub-preview', '/api/coin/add', '/get-app']) {
-      assert.ok(group.disallow.some((prefix) => privateRoute.startsWith(prefix)), `Crawler group must exclude ${privateRoute}`);
+      const prefixes = [...group.matchAll(/^Disallow: (.+)$/gm)].map((match) => match[1]);
+      assert.ok(prefixes.some((prefix) => privateRoute.startsWith(prefix)), `Crawler group must exclude ${privateRoute}`);
     }
   }
   const response = load('app/llms.txt/route.ts').GET();
@@ -134,7 +141,8 @@ function load(file) {
   assert.match(llms, /^# Coinzy AI/);
   for (const route of expectedPages) assert.ok(llms.includes(`(${site.absoluteUrl(route)})`), `LLM map includes ${route}`);
   for (const post of blog.BLOG_POSTS) assert.equal(llms.includes(`(${site.absoluteUrl(`/blogs/${post.slug}`)})`), post.date <= '2026-11-05');
-  assert.ok(llms.includes('(https://coinzy.example/sitemap.xml)'));
+  assert.ok(!llms.includes('(https://coinzy.example/sitemap.xml)'));
+  assert.match(llms, /AI bots may access this file only/);
   assert.equal(errors.length, 3);
   console.log('PASS: complete paginated discovery, public categories, India publication rollover, XML escaping, private crawler exclusions and retryable API failures');
 })().catch((error) => { console.error(error); process.exitCode = 1; });

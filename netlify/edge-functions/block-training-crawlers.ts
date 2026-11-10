@@ -1,9 +1,9 @@
-/** Keep OpenAI and Anthropic crawlers from downloading optimized images. */
+/** Restrict known AI bots to the site's llms.txt. */
 export default (request: Request): Response | undefined => {
-  if (new URL(request.url).pathname !== "/_next/image") return;
-
   const userAgent = request.headers.get("user-agent") ?? "";
-  if (/\b(?:GPTBot|OAI-SearchBot|ChatGPT-User|ClaudeBot|Claude-SearchBot|Claude-User)\b/i.test(userAgent)) {
+  const aiBot = /(?:GPTBot|OAI-SearchBot|ChatGPT-User|ClaudeBot|Claude-SearchBot|Claude-User|Claude-Web|anthropic-ai|PerplexityBot|Perplexity-User|Google-Extended|Applebot-Extended|Bytespider|CCBot|Meta-ExternalAgent|cohere-ai|Amazonbot|DuckAssistBot|MistralAI-User)/i.test(userAgent);
+  if (aiBot && new URL(request.url).pathname === "/llms.txt") return;
+  if (aiBot) {
     return new Response(null, {
       status: 403,
       headers: { "Cache-Control": "private, no-store" },
@@ -11,5 +11,4 @@ export default (request: Request): Response | undefined => {
   }
 };
 
-// Next.js middleware excludes /_next/image; enforce this at Netlify's edge.
 export const config = { path: "/*" };
