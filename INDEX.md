@@ -1,6 +1,7 @@
 # Coinzy Web — Project Index
 
 - Crawler protection: `public/robots.txt` and `netlify/edge-functions/block-training-crawlers.ts` allow named AI bots only `/llms.txt` and block their other site paths, including sitemap URLs. Other crawlers, including Googlebot and Bingbot, can access public paths; private paths remain disallowed in robots.txt. `app/llms.txt/route.ts` describes this AI crawler restriction and does not direct AI bots to the sitemap. Requires a Netlify deploy (plain Next dev does not execute edge functions). Direct external image origins remain accessible. User-agent matching can be spoofed or miss unidentified bots; Netlify edge/request usage still applies to blocked traffic. The static robots file does not advertise an environment-specific sitemap; `/sitemap.xml` remains available.
+- Check deployed crawler access with `bash tests/check-crawler-access.sh` (defaults to `https://coinzyai.com`; optionally pass another origin); it reports HTTP results for named AI bots, search bots and a browser user agent.
 
 - Footer social links are defined in `lib/constants.ts`; GitHub is omitted. The copyright displays the version from `package.json`.
 
